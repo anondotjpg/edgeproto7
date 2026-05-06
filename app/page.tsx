@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { FiArrowUpRight } from "react-icons/fi";
 import LastUpdatedAgo from "./components/LastUpdatedAgo";
+import LeagueTabs from "./components/LeagueTabs";
 
 type OddsOutcome = {
   name: string;
@@ -299,25 +300,7 @@ export default async function Home({
           <header>
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
               <div className="min-w-0 flex-1">
-                <div className="no-scrollbar relative z-20 flex items-center gap-4 overflow-x-auto sm:gap-2">
-                  {LEAGUES.map((item) => {
-                    const isActive = item.league === selectedLeague;
-
-                    return (
-                      <Link
-                        key={item.league}
-                        href={`/?league=${item.league}`}
-                        className={
-                          isActive
-                            ? "shrink-0 text-[13px] font-semibold text-white sm:rounded-full sm:bg-white sm:px-4 sm:py-2 sm:text-black"
-                            : "shrink-0 text-[13px] font-medium text-zinc-500 sm:rounded-full sm:px-4 sm:py-2 sm:text-zinc-300"
-                        }
-                      >
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                </div>
+                <LeagueTabs leagues={LEAGUES} selectedLeague={selectedLeague} />
               </div>
             </div>
           </header>
