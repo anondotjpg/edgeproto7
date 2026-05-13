@@ -124,8 +124,8 @@ function OddsCell({
     <Link
       href={href}
       className={[
-        "flex min-h-[56px] items-center justify-center bg-transparent px-3 py-2 text-center transition-colors hover:bg-zinc-900",
-        !isTop ? "border-t border-zinc-800" : "",
+        "flex min-h-[56px] items-center justify-center bg-transparent px-3 py-2 text-center transition-colors hover:bg-zinc-800/50",
+        !isTop ? "border-t border-zinc-800/60" : "",
       ].join(" ")}
     >
       <div className="text-[14px] font-semibold tracking-tight text-zinc-100">
@@ -148,7 +148,7 @@ function getLogoFallbackClassName(sportKey: string) {
     return "h-9 w-9 bg-zinc-950";
   }
 
-  return "h-9 w-9 rounded-sm border border-zinc-800 bg-zinc-950";
+  return "h-9 w-9 rounded-sm bg-zinc-950";
 }
 
 function TeamRow({
@@ -194,11 +194,12 @@ function GameCard({ game }: { game: Game }) {
   const eventHref = `/event/${game.slug}`;
 
   return (
-    <article className="relative rounded-[24px] border border-zinc-800 bg-zinc-950 p-4 pb-12">
+    <article className="relative rounded-[24px] bg-zinc-900/60 p-4 pb-12 backdrop-blur-sm">
       <div className="mb-2 grid grid-cols-[minmax(0,1fr)_96px] gap-0">
         <div className="pl-1 text-[9px] font-medium uppercase tracking-[0.14em] text-zinc-500">
           Teams
         </div>
+
         <div className="flex items-center justify-center text-[9px] font-medium uppercase tracking-[0.14em] text-zinc-500">
           ML
         </div>
@@ -211,6 +212,7 @@ function GameCard({ game }: { game: Game }) {
             info={game.away_team_info}
             sportKey={game.sport_key}
           />
+
           <TeamRow
             team={game.home_team}
             info={game.home_team_info}
@@ -218,12 +220,13 @@ function GameCard({ game }: { game: Game }) {
           />
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-zinc-800">
+        <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/70">
           <OddsCell
             value={formatPrice(awayMoneyline?.price)}
             href={eventHref}
             isTop
           />
+
           <OddsCell
             value={formatPrice(homeMoneyline?.price)}
             href={eventHref}
@@ -255,6 +258,7 @@ export default async function Home({
   const resolvedSearchParams = await searchParams;
 
   const requestedLeague = resolvedSearchParams?.league;
+
   const selectedLeague: LeagueKey = LEAGUES.some(
     (item) => item.league === requestedLeague
   )
@@ -307,13 +311,14 @@ export default async function Home({
 
           <div className="mt-8 sm:mt-4">
             <section className="space-y-4">
-              <div className="grid grid-cols-[112px_minmax(0,1fr)_112px] items-end gap-3 bg-zinc-950">
+              <div className="grid grid-cols-[112px_minmax(0,1fr)_112px] items-end gap-3">
                 <LastUpdatedAgo updatedAt={data.updatedAt} />
 
                 <div className="min-w-0 text-center">
                   <h2 className="text-[33px] font-semibold leading-none tracking-tight text-zinc-50">
                     {league?.leagueLabel ?? selectedLeagueMeta.label}
                   </h2>
+
                   <p className="mt-0.5 text-[12px] leading-none text-zinc-400">
                     {totalGames} game{totalGames === 1 ? "" : "s"}
                   </p>
@@ -329,7 +334,7 @@ export default async function Home({
               </div>
 
               {!league || league.games.length === 0 ? (
-                <div className="rounded-[24px] border border-zinc-800 bg-zinc-950 p-5 text-[13px] text-zinc-400">
+                <div className="rounded-[24px] bg-zinc-900/40 p-5 text-[13px] text-zinc-400">
                   No active {selectedLeagueMeta.label} markets right now.
                 </div>
               ) : (
