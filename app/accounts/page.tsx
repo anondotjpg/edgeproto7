@@ -303,7 +303,7 @@ export default function AccountsPage() {
           <div className="mx-auto w-full max-w-[1480px] px-5 py-8 pb-24 sm:px-6 md:pb-8">
             <OwnedAccountsSection />
 
-            <div className="mb-10 text-center">
+            <div className="mb-7 sm:mb-10 text-center">
               <h1 className="text-[30px] font-semibold tracking-tight text-zinc-100 sm:text-[38px] italic">
                 Find Your Edge
               </h1>
@@ -312,7 +312,7 @@ export default function AccountsPage() {
               </p>
             </div>
 
-            <div className="grid justify-center gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid justify-center gap-7 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
               {ACCOUNT_PLANS.map((plan) => (
                 <div
                   key={plan.planKey}
