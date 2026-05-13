@@ -192,6 +192,7 @@ function TeamPanel({
           <div className="truncate text-[24px] font-semibold tracking-tight text-zinc-50">
             {info?.name || team}
           </div>
+
           <div className="mt-1 text-[13px] text-zinc-400">
             {info?.record || info?.abbreviation || info?.alias || "—"}
           </div>
@@ -241,7 +242,7 @@ export default async function EventPage({ params }: EventPageProps) {
   if (!game) {
     return (
       <div className="min-h-screen bg-[#09090b] pb-24 text-white md:pb-0">
-        <div className="mx-auto w-full max-w-5xl min-w-0 px-4 py-6 sm:px-6">
+        <div className="mx-auto w-full max-w-5xl min-w-0 px-4 py-10 sm:px-6 sm:py-12">
           <div className="mb-6">
             <BackButton />
           </div>
@@ -250,6 +251,7 @@ export default async function EventPage({ params }: EventPageProps) {
             <h1 className="text-2xl font-semibold tracking-tight text-white">
               Event not found
             </h1>
+
             <p className="mt-2 text-sm text-zinc-400">
               {data.error ||
                 "This game may no longer be active or the slug no longer matches."}
@@ -268,7 +270,7 @@ export default async function EventPage({ params }: EventPageProps) {
 
   return (
     <div className="min-h-screen bg-[#09090b] pb-24 text-white md:pb-0">
-      <div className="mx-auto w-full max-w-5xl min-w-0 px-4 py-6 sm:px-6">
+      <div className="mx-auto w-full max-w-5xl min-w-0 px-4 py-10 sm:px-6 sm:py-12">
         <header className="mb-6">
           <BackButton />
         </header>
