@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Edge - Funding Your Bets.",
-  description: "fund your bets.",
+  title: "Edge",
+  description: "Fund your bets.",
 };
 
 export default function RootLayout({
