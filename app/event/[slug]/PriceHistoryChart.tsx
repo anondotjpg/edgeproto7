@@ -36,6 +36,14 @@ type Props = {
   slug: string;
 };
 
+type EndDotProps = {
+  cx?: number;
+  cy?: number;
+  stroke?: string;
+  index?: number;
+  points?: unknown[];
+};
+
 function formatTimeLabel(timestampSeconds: number) {
   return new Date(timestampSeconds * 1000).toLocaleString([], {
     month: "short",
@@ -43,6 +51,31 @@ function formatTimeLabel(timestampSeconds: number) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function EndDot(props: EndDotProps) {
+  const points = props.points;
+  const index = props.index;
+
+  if (
+    !points ||
+    index !== points.length - 1 ||
+    props.cx === undefined ||
+    props.cy === undefined
+  ) {
+    return null;
+  }
+
+  return (
+    <circle
+      cx={props.cx}
+      cy={props.cy}
+      r={3.5}
+      fill={props.stroke}
+      stroke="#09090b"
+      strokeWidth={2}
+    />
+  );
 }
 
 export default function PriceHistoryChart({ slug }: Props) {
@@ -137,7 +170,7 @@ export default function PriceHistoryChart({ slug }: Props) {
         </div>
       </div>
 
-      <div className="relative w-full min-w-0 overflow-hidden rounded-2xl">
+      <div className="relative w-full min-w-0 rounded-2xl">
         {showChart ? (
           <motion.div
             initial={{ opacity: 0 }}
@@ -149,11 +182,11 @@ export default function PriceHistoryChart({ slug }: Props) {
               e.currentTarget.blur();
             }}
           >
-            <div className="w-full min-w-0 overflow-hidden rounded-2xl outline-none focus:outline-none [&_*:focus]:outline-none">
+            <div className="w-full min-w-0 rounded-2xl outline-none focus:outline-none [&_*:focus]:outline-none">
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart
                   data={chartData}
-                  margin={{ top: 8, right: 0, left: 0, bottom: 12 }}
+                  margin={{ top: 8, right: 12, left: 0, bottom: 12 }}
                 >
                   <CartesianGrid
                     stroke="rgba(255,255,255,0.08)"
@@ -187,7 +220,7 @@ export default function PriceHistoryChart({ slug }: Props) {
                     name={data?.away.label}
                     stroke="#ffffff"
                     strokeWidth={2}
-                    dot={false}
+                    dot={<EndDot />}
                     activeDot={false}
                     connectNulls
                   />
@@ -197,7 +230,7 @@ export default function PriceHistoryChart({ slug }: Props) {
                     name={data?.home.label}
                     stroke="#71717a"
                     strokeWidth={2}
-                    dot={false}
+                    dot={<EndDot />}
                     activeDot={false}
                     connectNulls
                   />
