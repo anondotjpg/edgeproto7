@@ -279,7 +279,7 @@ export default async function EventPage({ params }: EventPageProps) {
               href={getPolymarketHref(game)}
               target="_blank"
               rel="noreferrer"
-              className="absolute right-0 -top-7 inline-flex items-center gap-1.5 rounded-full border border-zinc-800 px-3 py-1.5 text-[12px] font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-white md:top-0"
+              className="absolute right-0 -top-7 inline-flex items-center gap-1.5 text-[12px] font-medium text-zinc-300 transition-colors hover:text-white md:top-0"
             >
               <span>Polymarket</span>
               <FiArrowUpRight className="h-3.5 w-3.5" />
