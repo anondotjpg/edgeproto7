@@ -308,7 +308,7 @@ export default function AccountsPage() {
                 Find Your Edge
               </h1>
               <p className="text-[15px] text-zinc-500 sm:text-[16px]">
-                Place your bets.
+                Beat the odds.
               </p>
             </div>
 

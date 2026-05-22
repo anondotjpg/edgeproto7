@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
 import { FiArrowUpRight, FiEdit2 } from "react-icons/fi";
@@ -70,6 +70,7 @@ function EmptyAccountCard({ authenticated }: { authenticated: boolean }) {
 }
 
 export default function OwnedAccountsSection() {
+  const router = useRouter();
   const { ready, authenticated, getAccessToken } = usePrivy();
   const [accounts, setAccounts] = useState<ExistingAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -182,6 +183,10 @@ export default function OwnedAccountsSection() {
     }
   }
 
+  function openAccount(accountId: string) {
+    router.push(`/accounts/${accountId}`);
+  }
+
   const showSkeleton = !ready || isLoading;
   const showEmpty = !showSkeleton && (!authenticated || accounts.length === 0);
   const showAccounts = !showSkeleton && authenticated && accounts.length > 0;
@@ -231,7 +236,25 @@ export default function OwnedAccountsSection() {
             return (
               <div
                 key={account.id}
-                className="group rounded-[14px] bg-zinc-950 px-4 py-3 ring-1 ring-zinc-900 transition-colors hover:bg-zinc-900/80 hover:ring-zinc-800"
+                role={isEditing ? undefined : "link"}
+                tabIndex={isEditing ? undefined : 0}
+                onClick={() => {
+                  if (!isEditing) {
+                    openAccount(account.id);
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if (isEditing) return;
+
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openAccount(account.id);
+                  }
+                }}
+                className={[
+                  "group rounded-[14px] bg-zinc-950 px-4 py-3 ring-1 ring-zinc-900 transition-colors hover:bg-zinc-900/80 hover:ring-zinc-800",
+                  isEditing ? "" : "cursor-pointer",
+                ].join(" ")}
               >
                 {isEditing ? (
                   <div>
@@ -313,7 +336,9 @@ export default function OwnedAccountsSection() {
                         type="button"
                         aria-label="Rename account"
                         title="Rename account"
-                        onClick={() => {
+                        onClick={(event) => {
+                          event.stopPropagation();
+
                           setEditingAccountId(account.id);
                           setDraftName(
                             (account.account_name ?? "").slice(
@@ -327,12 +352,18 @@ export default function OwnedAccountsSection() {
                         <FiEdit2 className="h-3.5 w-3.5" />
                       </button>
 
-                      <Link
-                        href={`/accounts/${account.id}`}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-zinc-400 transition-colors group-hover:bg-zinc-800 group-hover:text-zinc-100"
+                      <button
+                        type="button"
+                        aria-label="Open account"
+                        title="Open account"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openAccount(account.id);
+                        }}
+                        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-zinc-900 text-zinc-400 transition-colors group-hover:bg-zinc-800 group-hover:text-zinc-100"
                       >
                         <FiArrowUpRight className="h-3.5 w-3.5" />
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 )}

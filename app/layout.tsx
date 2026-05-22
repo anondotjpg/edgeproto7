@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Edge",
-  description: "Fund your bets.",
+  description: "Beat the odds.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icon.png",
