@@ -18,18 +18,41 @@ type ExistingAccount = {
 
 const MAX_ACCOUNT_NAME_LENGTH = 15;
 
+function getStatusLabel(status: string) {
+  const normalizedStatus = status.toLowerCase();
+
+  if (normalizedStatus === "active_dev") return "Active";
+  if (normalizedStatus === "active") return "Active";
+  if (normalizedStatus === "passed") return "Passed";
+  if (normalizedStatus === "failed") return "Failed";
+  if (normalizedStatus === "won") return "Won";
+  if (normalizedStatus === "lost") return "Lost";
+  if (normalizedStatus === "void") return "Void";
+
+  return status;
+}
+
 function getStatusClassName(status: string) {
   const normalizedStatus = status.toLowerCase();
 
-  if (normalizedStatus === "failed") {
-    return "bg-red-950/60 text-red-400";
+  if (
+    normalizedStatus === "active" ||
+    normalizedStatus === "active_dev" ||
+    normalizedStatus === "passed" ||
+    normalizedStatus === "won"
+  ) {
+    return "bg-green-950/35 text-green-500 ring-1 ring-green-950/70";
   }
 
-  if (normalizedStatus === "passed") {
-    return "bg-green-950/60 text-green-400";
+  if (normalizedStatus === "failed" || normalizedStatus === "lost") {
+    return "bg-red-900/25 text-red-400 ring-1 ring-red-900/50";
   }
 
-  return "bg-zinc-900 text-zinc-500";
+  if (normalizedStatus === "void") {
+    return "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800";
+  }
+
+  return "bg-zinc-900 text-zinc-500 ring-1 ring-zinc-800";
 }
 
 function AccountSkeletonCard() {
@@ -320,7 +343,7 @@ export default function OwnedAccountsSection() {
                             account.status
                           )}`}
                         >
-                          {account.status}
+                          {getStatusLabel(account.status)}
                         </div>
                       </div>
 

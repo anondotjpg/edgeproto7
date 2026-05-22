@@ -1,3 +1,4 @@
+import type React from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -33,6 +34,18 @@ function formatMoney(value: number | null | undefined) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+function formatCompactMoney(value: number | null | undefined) {
+  const safeValue = Number(value ?? 0);
+
+  if (Math.abs(safeValue) >= 1000) {
+    return `$${(safeValue / 1000).toLocaleString(undefined, {
+      maximumFractionDigits: 1,
+    })}k`;
+  }
+
+  return formatMoney(safeValue);
 }
 
 function formatSignedMoney(value: number | null | undefined) {
@@ -102,159 +115,201 @@ function resultLabel(status: string) {
   if (status === "void") return "Void";
   if (status === "passed") return "Passed";
   if (status === "failed") return "Failed";
-  if (status === "active_dev") return "Active Dev";
+  if (status === "active_dev") return "Active";
+  if (status === "active") return "Active";
   return status;
 }
 
-function statusColor(status: string) {
-  if (status === "passed" || status === "won") {
-    return "border-emerald-900/70 text-emerald-300";
+function statusClassName(status: string) {
+  if (
+    status === "active" ||
+    status === "active_dev" ||
+    status === "passed" ||
+    status === "won"
+  ) {
+    return "bg-green-950/35 text-green-500 ring-1 ring-green-950/70";
   }
 
   if (status === "failed" || status === "lost") {
-    return "border-red-900/70 text-red-300";
+    return "bg-red-900/25 text-red-400 ring-1 ring-red-900/50";
   }
 
   if (status === "void") {
-    return "border-zinc-700 text-zinc-400";
+    return "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800";
   }
 
-  return "border-zinc-800 text-zinc-400";
+  return "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800";
 }
 
 function pnlColor(value: number) {
-  if (value > 0) return "text-green-400";
+  if (value > 0) return "text-green-500";
   if (value < 0) return "text-red-400";
   return "text-zinc-100";
 }
 
-function StatCard({
+function getHealthLabel(room: number, limit: number) {
+  if (room <= 0) return "Breached";
+
+  const ratio = limit > 0 ? room / limit : 1;
+
+  if (ratio <= 0.25) return "Danger";
+  if (ratio <= 0.5) return "Careful";
+  return "Healthy";
+}
+
+function getHealthClassName(room: number, limit: number) {
+  if (room <= 0) return "text-red-400 bg-red-900/25 ring-red-900/50";
+
+  const ratio = limit > 0 ? room / limit : 1;
+
+  if (ratio <= 0.25) {
+    return "text-red-400 bg-red-900/25 ring-red-900/50";
+  }
+
+  if (ratio <= 0.5) {
+    return "text-amber-500 bg-amber-950/30 ring-amber-950/60";
+  }
+
+  return "text-green-500 bg-green-950/35 ring-green-950/70";
+}
+
+function ProgressBar({
+  value,
+  tone = "default",
+}: {
+  value: number;
+  tone?: "default" | "danger" | "success";
+}) {
+  const width = Math.min(Math.max(value, 0), 100);
+
+  const color =
+    tone === "danger"
+      ? "bg-red-500"
+      : tone === "success"
+        ? "bg-green-600"
+        : "bg-zinc-100";
+
+  return (
+    <div className="h-2 overflow-hidden rounded-full bg-zinc-900">
+      <div
+        className={`h-full rounded-full ${color}`}
+        style={{ width: `${width}%` }}
+      />
+    </div>
+  );
+}
+
+function MetricCard({
   label,
   value,
-  sub,
+  helper,
   valueClassName = "text-zinc-100",
 }: {
   label: string;
   value: string;
-  sub?: string;
+  helper?: string;
   valueClassName?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
-      <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
+    <div className="rounded-[18px] bg-zinc-950/80 p-3 ring-1 ring-zinc-900 sm:rounded-[22px] sm:p-4">
+      <div className="text-[11px] font-medium leading-none text-zinc-500 sm:text-[12px]">
         {label}
       </div>
 
       <div
-        className={[
-          "mt-2 text-xl font-semibold tracking-tight",
-          valueClassName,
-        ].join(" ")}
+        className={`mt-2 truncate text-[17px] font-semibold leading-none tracking-tight sm:text-[22px] ${valueClassName}`}
       >
         {value}
       </div>
 
-      {sub ? <div className="mt-1 text-xs text-zinc-500">{sub}</div> : null}
+      {helper ? (
+        <div className="mt-1 truncate text-[11px] leading-4 text-zinc-600 sm:mt-2 sm:text-[12px] sm:leading-5">
+          {helper}
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function FloorBar({
-  current,
+function RuleRoomCard({
+  title,
+  room,
+  limit,
   floor,
-  start,
-}: {
-  current: number;
-  floor: number;
-  start: number;
-}) {
-  const range = Math.max(start - floor, 1);
-  const distanceAboveFloor = current - floor;
-
-  const currentPercent = Math.min(
-    Math.max((distanceAboveFloor / range) * 100, 0),
-    100
-  );
-
-  const isBreached = current <= floor;
-
-  return (
-    <div className="mt-4">
-      <div className="relative h-3 overflow-hidden rounded-full bg-zinc-900">
-        <div
-          className={[
-            "h-full rounded-full transition-all",
-            isBreached ? "bg-red-500/70" : "bg-zinc-200",
-          ].join(" ")}
-          style={{ width: `${currentPercent}%` }}
-        />
-
-        <div className="absolute left-0 top-0 h-full w-[2px] bg-red-400" />
-      </div>
-
-      <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-600">
-        <span>Floor {formatMoney(floor)}</span>
-        <span>Start {formatMoney(start)}</span>
-      </div>
-    </div>
-  );
-}
-
-function RuleCard({
-  label,
   current,
-  floor,
-  start,
   description,
-  danger,
 }: {
-  label: string;
-  current: number;
+  title: string;
+  room: number;
+  limit: number;
   floor: number;
-  start: number;
+  current: number;
   description: string;
-  danger?: boolean;
 }) {
-  const distanceAboveFloor = Math.max(current - floor, 0);
+  const breached = room <= 0;
+  const safeRoom = Math.max(room, 0);
+
+  const usedPercent =
+    limit > 0
+      ? Math.min(Math.max(((limit - safeRoom) / limit) * 100, 0), 100)
+      : 0;
+
+  const healthLabel = getHealthLabel(room, limit);
+  const healthClassName = getHealthClassName(room, limit);
 
   return (
-    <div
-      className={[
-        "rounded-2xl border bg-black/30 p-4",
-        danger ? "border-red-950" : "border-zinc-800",
-      ].join(" ")}
-    >
+    <div className="rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-            {label}
-          </div>
+          <div className="text-[13px] font-medium text-zinc-500">{title}</div>
 
           <div
             className={[
-              "mt-2 text-lg font-semibold",
-              danger ? "text-red-300" : "text-zinc-100",
+              "mt-2 text-[30px] font-semibold leading-none tracking-tight",
+              breached ? "text-red-400" : "text-zinc-100",
             ].join(" ")}
           >
-            {formatMoney(current)}
+            {breached ? "Failed" : formatMoney(safeRoom)}
+          </div>
+
+          <div className="mt-2 text-[13px] text-zinc-500">
+            {breached ? "limit breached" : "room before fail"}
           </div>
         </div>
 
         <div
-          className={[
-            "rounded-full border px-2.5 py-1 text-[11px] font-medium",
-            danger
-              ? "border-red-900/70 text-red-300"
-              : "border-zinc-800 text-zinc-400",
-          ].join(" ")}
+          className={`rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ${healthClassName}`}
         >
-          {danger ? "Breached" : `${formatMoney(distanceAboveFloor)} above`}
+          {healthLabel}
         </div>
       </div>
 
-      <FloorBar current={current} floor={floor} start={start} />
+      <div className="mt-5">
+        <div className="mb-2 flex items-center justify-between text-[12px] text-zinc-500">
+          <span>Used</span>
+          <span>{Math.round(usedPercent)}%</span>
+        </div>
 
-      <p className="mt-3 text-xs leading-5 text-zinc-500">{description}</p>
+        <ProgressBar value={usedPercent} tone={breached ? "danger" : "default"} />
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="rounded-2xl bg-black/30 p-3">
+            <div className="text-[11px] text-zinc-600">Fail floor</div>
+            <div className="mt-1 text-[14px] font-semibold text-red-400">
+              {formatMoney(floor)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-black/30 p-3">
+            <div className="text-[11px] text-zinc-600">Current</div>
+            <div className="mt-1 text-[14px] font-semibold text-zinc-100">
+              {formatMoney(current)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-4 text-[13px] leading-6 text-zinc-500">{description}</p>
     </div>
   );
 }
@@ -269,12 +324,12 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[24px] border border-zinc-800 bg-zinc-950 p-5">
-      <h3 className="text-lg font-semibold tracking-tight text-zinc-100">
+    <div className="rounded-[26px] bg-zinc-950/70 p-6 ring-1 ring-zinc-900">
+      <div className="text-[17px] font-semibold tracking-tight text-zinc-100">
         {title}
-      </h3>
+      </div>
 
-      <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-500">
+      <p className="mt-2 max-w-xl text-[14px] leading-6 text-zinc-500">
         {description}
       </p>
 
@@ -286,56 +341,56 @@ function EmptyState({
 function BetCard({ bet }: { bet: BetRow }) {
   const pnl = getBetPnl(bet);
   const displayStatus = bet.result ?? bet.status;
+  const isOpen = bet.status === "open";
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
+    <div className="rounded-[22px] bg-zinc-950/80 p-4 ring-1 ring-zinc-900">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate text-lg font-semibold tracking-tight text-zinc-100">
+          <div className="truncate text-[16px] font-semibold tracking-tight text-zinc-100">
             {bet.selection}
-          </h3>
+          </div>
 
-          <p className="mt-1 text-sm text-zinc-500">
-            {bet.league?.toUpperCase()} · {formatOdds(bet.odds)}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[12px] text-zinc-500">
+            <span>{bet.league?.toUpperCase()}</span>
+            <span className="text-zinc-700">•</span>
+            <span>{bet.market}</span>
+            <span className="text-zinc-700">•</span>
+            <span>{formatOdds(bet.odds)}</span>
+          </div>
         </div>
 
         <div
-          className={[
-            "shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium",
-            statusColor(displayStatus),
-          ].join(" ")}
+          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${statusClassName(
+            displayStatus
+          )}`}
         >
           {resultLabel(displayStatus)}
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3 border-t border-zinc-800 pt-3">
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-            Stake
-          </div>
-          <div className="mt-1 text-sm font-semibold text-zinc-100">
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="rounded-2xl bg-black/30 p-3">
+          <div className="text-[11px] text-zinc-600">Stake</div>
+          <div className="mt-1 text-[14px] font-semibold text-zinc-100">
             {formatMoney(bet.stake)}
           </div>
         </div>
 
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-            Payout
+        <div className="rounded-2xl bg-black/30 p-3">
+          <div className="text-[11px] text-zinc-600">
+            {isOpen ? "Possible" : "Payout"}
           </div>
-          <div className="mt-1 text-sm font-semibold text-zinc-100">
-            {formatMoney(bet.potential_payout)}
+          <div className="mt-1 text-[14px] font-semibold text-zinc-100">
+            {formatMoney(isOpen ? bet.potential_payout : bet.settlement_amount)}
           </div>
         </div>
 
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-            P/L
-          </div>
+        <div className="rounded-2xl bg-black/30 p-3">
+          <div className="text-[11px] text-zinc-600">P/L</div>
           <div
             className={[
-              "mt-1 text-sm font-semibold",
+              "mt-1 text-[14px] font-semibold",
               pnl === null ? "text-zinc-100" : pnlColor(pnl),
             ].join(" ")}
           >
@@ -345,30 +400,28 @@ function BetCard({ bet }: { bet: BetRow }) {
       </div>
 
       {bet.polymarket_winning_outcome ? (
-        <div className="mt-3 border-t border-zinc-800 pt-3">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-            Polymarket Result
-          </div>
-          <div className="mt-1 text-sm font-semibold text-zinc-100">
+        <div className="mt-3 rounded-2xl bg-black/30 p-3">
+          <div className="text-[11px] text-zinc-600">Resolved outcome</div>
+          <div className="mt-1 text-[13px] font-medium text-zinc-200">
             {bet.polymarket_winning_outcome}
           </div>
         </div>
       ) : null}
 
       {bet.settlement_reason ? (
-        <div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-500">
+        <div className="mt-3 rounded-2xl bg-black/30 p-3 text-[12px] leading-5 text-zinc-500">
           {bet.settlement_reason}
         </div>
       ) : null}
 
       {bet.polymarket_resolution_error && bet.status === "open" ? (
-        <div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-500">
+        <div className="mt-3 rounded-2xl bg-black/30 p-3 text-[12px] leading-5 text-zinc-500">
           {bet.polymarket_resolution_error}
         </div>
       ) : null}
 
-      <div className="mt-3 border-t border-zinc-800 pt-3 text-xs text-zinc-500">
-        {bet.status === "open"
+      <div className="mt-3 text-[12px] text-zinc-600">
+        {isOpen
           ? `Placed ${formatDate(bet.placed_at)}`
           : `Settled ${formatDate(bet.settled_at)}`}
       </div>
@@ -487,176 +540,182 @@ export default async function AccountPage({ params }: AccountPageProps) {
       ? account.account_name.trim()
       : "";
 
-  const pageTitle = accountName
-    ? accountName
-    : `${fallbackAccountTitle} Challenge`;
+  const pageTitle = accountName || `${fallbackAccountTitle} Challenge`;
 
   const targetProgress =
     profitTargetBalance > 0
       ? Math.min(Math.max((currentBalance / profitTargetBalance) * 100, 0), 100)
       : 0;
 
-  const dailyDistance = Math.max(ruleEquity - dailyFloor, 0);
-  const totalDistance = Math.max(ruleEquity - totalFloor, 0);
   const remainingToTarget = Math.max(profitTargetBalance - currentBalance, 0);
+  const dailyRoom = ruleEquity - dailyFloor;
+  const totalRoom = ruleEquity - totalFloor;
+
+  const accountStatus = String(account.status);
+  const isPassed = accountStatus === "passed";
 
   return (
-    <div className="min-h-screen bg-[#09090b] px-5 pt-20 pb-24 text-white md:pb-0 md:pt-0">
-      <div className="mx-auto w-full max-w-5xl md:py-16">
-        <div className="mb-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Account Overview
-          </p>
-
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-100 sm:text-4xl">
-            {pageTitle}
-          </h1>
-
-          <p className="mt-2 text-sm text-zinc-500">
-            Current balance, P/L, open risk, rules, and recent positions.
-          </p>
-        </div>
-
+    <div className="min-h-screen bg-[#09090b] px-4 pb-24 pt-6 text-white sm:px-6 md:pb-12 md:pt-10">
+      <div className="mx-auto mt-7 w-full max-w-6xl">
         {account.failure_reason ? (
-          <div className="mb-6 rounded-[20px] border border-red-950 bg-red-950/20 p-4 text-sm text-red-300">
+          <div className="mb-4 rounded-[22px] bg-red-900/20 p-4 text-[14px] leading-6 text-red-400 ring-1 ring-red-900/50">
             {account.failure_reason}
           </div>
         ) : null}
 
-        <div className="mb-6 rounded-[24px] border border-zinc-800 bg-zinc-950 p-5 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div
-                className={[
-                  "inline-flex rounded-full border px-3 py-1 text-xs font-medium",
-                  statusColor(account.status),
-                ].join(" ")}
-              >
-                {resultLabel(String(account.status))}
-              </div>
-
-              <div className="mt-4 text-[42px] font-semibold leading-none tracking-tight text-zinc-100">
-                {formatMoney(currentBalance)}
-              </div>
-
-              <p className="mt-2 text-sm text-zinc-500">Available balance</p>
+        <section className="rounded-[32px] bg-zinc-950/90 p-5 sm:p-7">
+          <div className="relative">
+            <div
+              className={`absolute right-0 top-0 rounded-full px-3 py-1.5 text-[12px] font-medium ${statusClassName(
+                accountStatus
+              )}`}
+            >
+              {resultLabel(accountStatus)}
             </div>
 
-            <div className="min-w-[220px] rounded-2xl border border-zinc-800 bg-black/30 p-4">
-              <div className="flex items-center justify-between gap-4 text-sm">
-                <span className="text-zinc-500">Target</span>
-                <span className="font-semibold text-zinc-100">
-                  {formatMoney(profitTargetBalance)}
-                </span>
+            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+              <div className="min-w-0 pr-24 sm:pr-32">
+                <h1 className="text-[34px] font-semibold leading-none tracking-tight text-zinc-100 sm:text-[48px]">
+                  {pageTitle}
+                </h1>
+
+                <p className="mt-3 max-w-2xl text-[15px] leading-7 text-zinc-500">
+                  Your balance, progress to target, room before failing, and
+                  every position tied to this account.
+                </p>
+
+                <div className="mt-7">
+                  <div className="text-[13px] font-medium text-zinc-500">
+                    Available balance
+                  </div>
+
+                  <div className="mt-2 text-[52px] font-semibold leading-none tracking-tight text-zinc-100 sm:text-[68px]">
+                    {formatMoney(currentBalance)}
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2 text-[13px]">
+                    <span className="rounded-full bg-black/30 px-3 py-1.5 text-zinc-400 ring-1 ring-zinc-900">
+                      {openBets.length} open
+                    </span>
+
+                    <span className="rounded-full bg-black/30 px-3 py-1.5 text-zinc-400 ring-1 ring-zinc-900">
+                      {pastBets.length} settled
+                    </span>
+
+                    <span
+                      className={[
+                        "rounded-full bg-black/30 px-3 py-1.5 ring-1 ring-zinc-900",
+                        pnlColor(realizedPnl),
+                      ].join(" ")}
+                    >
+                      {formatSignedMoney(realizedPnl)} realized
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-900">
-                <div
-                  className="h-full rounded-full bg-zinc-200"
-                  style={{ width: `${targetProgress}%` }}
-                />
-              </div>
+              <div className="rounded-[26px] bg-black/30 p-5 ring-1 ring-zinc-900">
+                <div>
+                  <div className="text-[13px] font-medium text-zinc-500">
+                    Goal
+                  </div>
 
-              <p className="mt-3 text-xs text-zinc-500">
-                {remainingToTarget > 0
-                  ? `${formatMoney(remainingToTarget)} left to target.`
-                  : "Target reached. Account passes when no positions are open."}
+                  <div className="mt-1 text-[24px] font-semibold tracking-tight text-zinc-100">
+                    {formatMoney(profitTargetBalance)}
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  <ProgressBar
+                    value={targetProgress}
+                    tone={isPassed ? "success" : "default"}
+                  />
+                </div>
+
+                <p className="mt-4 text-[13px] leading-6 text-zinc-500">
+                  {isPassed
+                    ? "Target reached and account passed."
+                    : remainingToTarget > 0
+                      ? `${formatMoney(
+                          remainingToTarget
+                        )} left before target. Account passes after target is reached and no positions are open.`
+                      : "Target reached. Account passes once no positions are open."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          <MetricCard
+            label="Rule equity"
+            value={formatMoney(ruleEquity)}
+            helper="Available + open risk"
+          />
+
+          <MetricCard
+            label="Open risk"
+            value={formatMoney(reservedRisk)}
+            helper={`${openBets.length} active position${
+              openBets.length === 1 ? "" : "s"
+            }`}
+          />
+
+          <MetricCard
+            label="Max bet"
+            value={formatMoney(maxRiskAmount)}
+            helper="Largest single stake"
+          />
+
+          <MetricCard
+            label="Account size"
+            value={formatMoney(account.plan_size)}
+            helper={plan?.sizeLabel ?? "Starting plan"}
+          />
+        </section>
+
+        <section className="mt-4 grid gap-3 lg:grid-cols-2">
+          <RuleRoomCard
+            title="Daily loss room"
+            current={ruleEquity}
+            room={dailyRoom}
+            floor={dailyFloor}
+            limit={dailyLossLimit}
+            description={`Today started at ${formatMoney(
+              dayStartingBalance
+            )}. If rule equity reaches ${formatMoney(
+              dailyFloor
+            )}, this account fails the daily loss rule.`}
+          />
+
+          <RuleRoomCard
+            title="Total loss room"
+            current={ruleEquity}
+            room={totalRoom}
+            floor={totalFloor}
+            limit={totalLossLimit}
+            description={`This account started at ${formatMoney(
+              startingBalance
+            )}. If rule equity reaches ${formatMoney(
+              totalFloor
+            )}, this account fails the total loss rule.`}
+          />
+        </section>
+
+        <section className="mt-10">
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-[24px] font-semibold tracking-tight text-zinc-100">
+                Open positions
+              </h2>
+
+              <p className="mt-1 text-[14px] text-zinc-500">
+                Bets that are still waiting to settle.
               </p>
             </div>
-          </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <StatCard
-              label="Realized P/L"
-              value={formatSignedMoney(realizedPnl)}
-              valueClassName={pnlColor(realizedPnl)}
-              sub="settled only"
-            />
-
-            <StatCard
-              label="Rule Equity"
-              value={formatMoney(ruleEquity)}
-              sub="available + reserved"
-            />
-
-            <StatCard
-              label="Reserved Risk"
-              value={formatMoney(reservedRisk)}
-              sub={`${openBets.length} open`}
-            />
-
-            <StatCard
-              label="Max Bet"
-              value={formatMoney(maxRiskAmount)}
-              sub="fixed by size"
-            />
-
-            <StatCard
-              label="Starting"
-              value={formatMoney(startingBalance)}
-              sub="initial balance"
-            />
-          </div>
-        </div>
-
-        <div className="mb-6 grid gap-4 lg:grid-cols-2">
-          <RuleCard
-            label="Daily Floor"
-            current={ruleEquity}
-            floor={dailyFloor}
-            start={dayStartingBalance}
-            danger={ruleEquity <= dailyFloor}
-            description={`Start-of-day balance ${formatMoney(
-              dayStartingBalance
-            )}. Daily loss limit ${formatMoney(
-              dailyLossLimit
-            )}. Distance from floor: ${formatMoney(dailyDistance)}.`}
-          />
-
-          <RuleCard
-            label="Total Floor"
-            current={ruleEquity}
-            floor={totalFloor}
-            start={startingBalance}
-            danger={ruleEquity <= totalFloor}
-            description={`Starting balance ${formatMoney(
-              startingBalance
-            )}. Total loss limit ${formatMoney(
-              totalLossLimit
-            )}. Distance from floor: ${formatMoney(totalDistance)}.`}
-          />
-        </div>
-
-        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Account Size"
-            value={formatMoney(account.plan_size)}
-            sub={plan?.sizeLabel ?? undefined}
-          />
-
-          <StatCard label="Fee" value={formatMoney(account.one_time_fee)} />
-
-          <StatCard
-            label="Profit Target"
-            value={formatPercent(profitTargetPercent)}
-            sub={formatMoney(profitTargetBalance)}
-          />
-
-          <StatCard
-            label="Positions"
-            value={`${openBets.length} open`}
-            sub={`${pastBets.length} past`}
-          />
-        </div>
-
-        <section className="mt-8">
-          <div className="mb-4 flex items-end justify-between gap-4">
-            <h2 className="text-2xl font-semibold tracking-tight text-zinc-100">
-              Open Positions
-            </h2>
-
-            <div className="text-sm text-zinc-500">
-              reserved: {formatMoney(reservedRisk)}
+            <div className="hidden text-[13px] text-zinc-500 sm:block">
+              {formatMoney(reservedRisk)} reserved
             </div>
           </div>
 
@@ -673,7 +732,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
               action={
                 <Link
                   href="/"
-                  className="inline-flex rounded-xl border border-zinc-800 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+                  className="inline-flex rounded-full bg-zinc-100 px-4 py-2 text-[14px] font-semibold text-zinc-950 transition-colors hover:bg-white"
                 >
                   Browse markets
                 </Link>
@@ -683,9 +742,15 @@ export default async function AccountPage({ params }: AccountPageProps) {
         </section>
 
         <section className="mt-10">
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight text-zinc-100">
-            Past Positions
-          </h2>
+          <div className="mb-4">
+            <h2 className="text-[24px] font-semibold tracking-tight text-zinc-100">
+              Past positions
+            </h2>
+
+            <p className="mt-1 text-[14px] text-zinc-500">
+              Settled wins, losses, and voids.
+            </p>
+          </div>
 
           {pastBets.length ? (
             <div className="grid gap-3 lg:grid-cols-2">
@@ -701,15 +766,15 @@ export default async function AccountPage({ params }: AccountPageProps) {
           )}
         </section>
 
-        <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
-          <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+        <section className="mt-10 rounded-[24px] bg-zinc-950/70 p-4 ring-1 ring-zinc-900">
+          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-600">
             Account ID
           </div>
 
-          <div className="mt-2 break-all text-sm text-zinc-300">
+          <div className="mt-2 break-all text-[13px] text-zinc-400">
             {account.id}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
