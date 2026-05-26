@@ -26,11 +26,19 @@ type SyncResult = {
 function isAuthorizedCronRequest(req: Request) {
   const cronSecret = process.env.CRON_SECRET;
 
+  const authHeader = req.headers.get("authorization");
+  const vercelCronHeader = req.headers.get("x-vercel-cron");
+
+  // Allows Vercel Cron calls from vercel.json.
+  if (vercelCronHeader === "1") {
+    return true;
+  }
+
+  // Allows manual/local curl calls with Bearer token.
   if (!cronSecret) {
     return false;
   }
 
-  const authHeader = req.headers.get("authorization");
   return authHeader === `Bearer ${cronSecret}`;
 }
 
@@ -57,7 +65,9 @@ export async function POST(req: Request) {
       .not("polymarket_condition_id", "is", null)
       .limit(100);
 
-    if (openBetsError) throw openBetsError;
+    if (openBetsError) {
+      throw openBetsError;
+    }
 
     const results: SyncResult[] = [];
     const affectedAccountIds = new Set<string>();
@@ -105,7 +115,9 @@ export async function POST(req: Request) {
             })
             .eq("id", bet.id);
 
-          if (unresolvedUpdateError) throw unresolvedUpdateError;
+          if (unresolvedUpdateError) {
+            throw unresolvedUpdateError;
+          }
 
           results.push({
             betId: bet.id,
@@ -136,7 +148,9 @@ export async function POST(req: Request) {
           }
         );
 
-        if (settleError) throw settleError;
+        if (settleError) {
+          throw settleError;
+        }
 
         affectedAccountIds.add(bet.account_id);
 
@@ -151,7 +165,9 @@ export async function POST(req: Request) {
           })
           .eq("id", bet.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          throw updateError;
+        }
 
         results.push({
           betId: bet.id,
@@ -187,7 +203,9 @@ export async function POST(req: Request) {
           }
         );
 
-        if (ruleError) throw ruleError;
+        if (ruleError) {
+          throw ruleError;
+        }
 
         results.push({
           accountId,
