@@ -120,6 +120,10 @@ function resultLabel(status: string) {
   return status;
 }
 
+function accountStatusClassName() {
+  return "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800";
+}
+
 function statusClassName(status: string) {
   if (
     status === "active" ||
@@ -301,7 +305,7 @@ function RuleRoomCard({
           </div>
 
           <div className="rounded-2xl bg-black/30 p-3">
-            <div className="text-[11px] text-zinc-600">Current</div>
+            <div className="text-[11px] text-zinc-600">Rule equity</div>
             <div className="mt-1 text-[14px] font-semibold text-zinc-100">
               {formatMoney(current)}
             </div>
@@ -544,10 +548,10 @@ export default async function AccountPage({ params }: AccountPageProps) {
 
   const targetProgress =
     profitTargetBalance > 0
-      ? Math.min(Math.max((currentBalance / profitTargetBalance) * 100, 0), 100)
+      ? Math.min(Math.max((ruleEquity / profitTargetBalance) * 100, 0), 100)
       : 0;
 
-  const remainingToTarget = Math.max(profitTargetBalance - currentBalance, 0);
+  const remainingToTarget = Math.max(profitTargetBalance - ruleEquity, 0);
   const dailyRoom = ruleEquity - dailyFloor;
   const totalRoom = ruleEquity - totalFloor;
 
@@ -558,7 +562,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
     <div className="min-h-screen bg-[#09090b] px-4 pb-24 pt-6 text-white sm:px-6 md:pb-12 md:pt-10">
       <div className="mx-auto mt-7 w-full max-w-6xl">
         {account.failure_reason ? (
-          <div className="mb-2 rounded-[22px] bg-red-900/20 px-3 py-1.5 text-[14px] leading-6 text-red-400 ring-1 ring-red-900/50 whitespace-nowrap w-min">
+          <div className="mb-2 w-min whitespace-nowrap rounded-[22px] bg-red-900/20 px-3 py-1.5 text-[14px] leading-6 text-red-400 ring-1 ring-red-900/50">
             {account.failure_reason}
           </div>
         ) : null}
@@ -566,9 +570,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
         <section className="rounded-[32px] bg-zinc-950/90 p-5 sm:p-7">
           <div className="relative">
             <div
-              className={`absolute right-0 top-0 rounded-full px-3 py-1.5 text-[12px] font-medium ${statusClassName(
-                accountStatus
-              )}`}
+              className={`absolute right-0 top-0 rounded-full px-3 py-1.5 text-[12px] font-medium ${accountStatusClassName()}`}
             >
               {resultLabel(accountStatus)}
             </div>
@@ -579,21 +581,25 @@ export default async function AccountPage({ params }: AccountPageProps) {
                   {pageTitle}
                 </h1>
 
-                <p className="mt-3 max-w-2xl text-[15px] leading-7 text-zinc-500 hidden md:block">
-                  Your balance, progress to target, room before failing, and
-                  every position tied to this account.
+                <p className="mt-3 hidden max-w-2xl text-[15px] leading-7 text-zinc-500 md:block">
+                  Your rule equity, available balance, progress to target, room
+                  before failing, and every position tied to this account.
                 </p>
 
                 <div className="mt-7">
                   <div className="text-[13px] font-medium text-zinc-500">
-                    Available balance
+                    Rule equity
                   </div>
 
                   <div className="mt-2 text-[52px] font-semibold leading-none tracking-tight text-zinc-100 sm:text-[68px]">
-                    {formatMoney(currentBalance)}
+                    {formatMoney(ruleEquity)}
                   </div>
 
-                  <div className="mt-3 flex flex-wrap gap-2 text-[13px]">
+                  <div className="mt-3 text-[13px] font-medium text-zinc-500">
+                    {formatMoney(currentBalance)} available
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2 text-[13px]">
                     <span className="rounded-full bg-black/30 px-3 py-1.5 text-zinc-400 ring-1 ring-zinc-900">
                       {openBets.length} open
                     </span>
@@ -623,6 +629,10 @@ export default async function AccountPage({ params }: AccountPageProps) {
                   <div className="mt-1 text-[24px] font-semibold tracking-tight text-zinc-100">
                     {formatMoney(profitTargetBalance)}
                   </div>
+
+                  <div className="mt-1 text-[12px] text-zinc-600">
+                    Progress uses rule equity
+                  </div>
                 </div>
 
                 <div className="mt-5">
@@ -638,7 +648,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
                     : remainingToTarget > 0
                       ? `${formatMoney(
                           remainingToTarget
-                        )} left before target. Account passes after target is reached and no positions are open.`
+                        )} left before target. Account passes after rule equity reaches the target and no positions are open.`
                       : "Target reached. Account passes once no positions are open."}
                 </p>
               </div>

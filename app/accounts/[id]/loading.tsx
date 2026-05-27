@@ -43,7 +43,7 @@ function RuleSkeleton({ label }: { label: string }) {
           </div>
 
           <div className="rounded-2xl bg-black/30 p-3">
-            <div className="text-[11px] text-zinc-600">Current</div>
+            <div className="text-[11px] text-zinc-600">Rule equity</div>
             <SkeletonBlock className="mt-2 h-4 w-20" />
           </div>
         </div>
@@ -101,19 +101,21 @@ export default function LoadingAccountPage() {
               <div className="min-w-0 pr-24 sm:pr-32">
                 <SkeletonBlock className="h-10 w-64 max-w-full sm:h-12 sm:w-80" />
 
-                <div className="mt-3 max-w-2xl space-y-2 hidden md:block">
+                <div className="mt-3 hidden max-w-2xl space-y-2 md:block">
                   <SkeletonBlock className="h-4 w-full max-w-xl" />
                   <SkeletonBlock className="h-4 w-4/5 max-w-lg" />
                 </div>
 
                 <div className="mt-7">
                   <div className="text-[13px] font-medium text-zinc-500">
-                    Available balance
+                    Rule equity
                   </div>
 
                   <SkeletonBlock className="mt-3 h-14 w-64 max-w-full sm:h-16 sm:w-80" />
 
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <SkeletonBlock className="mt-3 h-4 w-36" />
+
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <SkeletonBlock className="h-8 w-20 rounded-full" />
                     <SkeletonBlock className="h-8 w-24 rounded-full" />
                     <SkeletonBlock className="h-8 w-28 rounded-full" />
@@ -128,6 +130,10 @@ export default function LoadingAccountPage() {
                   </div>
 
                   <SkeletonBlock className="mt-2 h-7 w-32" />
+
+                  <div className="mt-2 text-[12px] text-zinc-600">
+                    Progress uses rule equity
+                  </div>
                 </div>
 
                 <SkeletonBlock className="mt-5 h-2 w-full rounded-full" />
