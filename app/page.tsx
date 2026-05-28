@@ -313,7 +313,7 @@ export default async function Home({
               "radial-gradient(900px circle at center, white, transparent)",
           }}
         >
-          <div className="absolute inset-0 bg-[#09090b]/35" />
+          <div className="absolute inset-0 bg-[#09090b]/25" />
         </div>
 
         <div className="relative z-[2] mx-auto w-full max-w-7xl px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-6">
