@@ -29,7 +29,7 @@ export default function LeagueTabs({
               "relative shrink-0 text-[13px] transition-colors",
               "sm:rounded-full sm:px-4 sm:py-2",
               isActive
-                ? "font-semibold text-white sm:text-black"
+                ? "font-semibold text-white sm:text-zinc-100"
                 : "font-medium text-zinc-500 sm:text-zinc-300",
             ].join(" ")}
           >
@@ -42,7 +42,7 @@ export default function LeagueTabs({
                   damping: 34,
                   mass: 0.8,
                 }}
-                className="absolute inset-0 hidden rounded-full bg-white sm:block"
+                className="absolute inset-0 hidden rounded-full bg-zinc-800 sm:block"
               />
             ) : null}
 
