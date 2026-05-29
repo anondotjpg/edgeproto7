@@ -10,7 +10,7 @@ import {
   DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/ui/drawer";
+} from "../components/ui/drawer";
 
 type OwnedAccount = {
   id: string;
