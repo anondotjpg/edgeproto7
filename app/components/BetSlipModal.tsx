@@ -760,7 +760,12 @@ export default function BetSlipModal({
           onOpenChange={handleOpenChange}
           repositionInputs={false}
         >
-          <DrawerContent className="bottom-[-420px] max-h-none border-zinc-800 bg-zinc-950 pb-[420px] text-white">
+          <DrawerContent className="max-h-none overflow-visible border-zinc-800 bg-zinc-950 text-white">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-full h-[100dvh] bg-zinc-950"
+            />
+
             <DrawerHeader className="sr-only">
               <DrawerTitle>Place Bet</DrawerTitle>
               <DrawerDescription>
@@ -768,7 +773,7 @@ export default function BetSlipModal({
               </DrawerDescription>
             </DrawerHeader>
 
-            <div className="mx-auto flex h-[82svh] w-full max-w-2xl flex-col px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-2">
+            <div className="relative z-10 mx-auto flex h-[82svh] w-full max-w-2xl flex-col px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-2">
               <div className="mx-auto mb-5 h-1.5 w-12 shrink-0 rounded-full bg-zinc-800" />
 
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
