@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
 
@@ -113,61 +120,131 @@ function getBetPnl(bet: Bet) {
 }
 
 function SkeletonBlock({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-md bg-zinc-900 ${className}`} />;
+  return (
+    <div
+      className={[
+        "animate-pulse rounded-md bg-zinc-700/70",
+        "shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]",
+        className,
+      ].join(" ")}
+    />
+  );
 }
 
-function StatSkeleton({ label }: { label: string }) {
+function StatsGrid({ children }: { children: ReactNode }) {
   return (
-    <div>
-      <div className="text-[9px] uppercase leading-4 tracking-[0.14em] text-zinc-500 sm:text-[11px] sm:tracking-[0.18em]">
-        {label}
-      </div>
-      <SkeletonBlock className="mt-2 h-7 w-12 sm:h-8 sm:w-16" />
+    <div className="mb-6 grid h-[56px] grid-cols-3 gap-3 overflow-hidden sm:mb-8 sm:h-[62px] sm:gap-4">
+      {children}
     </div>
   );
 }
 
-function BetCardSkeleton() {
+function StatShell({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="h-[56px] overflow-hidden sm:h-[62px]">
+      <div className="h-4 text-[9px] uppercase leading-4 tracking-[0.14em] text-zinc-500 sm:text-[11px] sm:tracking-[0.18em]">
+        {label}
+      </div>
+
+      <div className="mt-1.5 flex h-9 items-start overflow-hidden sm:mt-2 sm:h-10">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function StatSkeleton({
+  label,
+  variant = "short",
+}: {
+  label: string;
+  variant?: "short" | "money";
+}) {
+  return (
+    <StatShell label={label}>
+      {variant === "money" ? (
+        <SkeletonBlock className="mt-[1px] h-[28px] w-[118px] sm:h-[34px] sm:w-[150px]" />
+      ) : (
+        <SkeletonBlock className="mt-[1px] h-[28px] w-[28px] sm:h-[34px] sm:w-[36px]" />
+      )}
+    </StatShell>
+  );
+}
+
+function StatItem({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <StatShell label={label}>
+      <div className="h-[29px] text-[29px] font-semibold leading-none text-zinc-100 sm:h-[36px] sm:text-3xl">
+        {value}
+      </div>
+    </StatShell>
+  );
+}
+
+function DetailSkeleton({ label, width }: { label: string; width: string }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
+        {label}
+      </div>
+
+      <div className="mt-1 h-5">
+        <SkeletonBlock className={`h-4 ${width}`} />
+      </div>
+    </div>
+  );
+}
+
+function BetCardSkeleton({ active }: { active?: boolean }) {
   return (
     <div className="rounded-[22px] border border-zinc-800 bg-zinc-950 p-4">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <SkeletonBlock className="h-3 w-24" />
-          <SkeletonBlock className="mt-2.5 h-6 w-36" />
-          <SkeletonBlock className="mt-2 h-4 w-16" />
+        <div className="min-w-0">
+          <div className="h-[14px]">
+            <SkeletonBlock className="h-3 w-24" />
+          </div>
+
+          <div className="mt-2 h-[25px]">
+            <SkeletonBlock className="h-6 w-36" />
+          </div>
+
+          <div className="mt-0.5 h-5">
+            <SkeletonBlock className="h-4 w-16" />
+          </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <SkeletonBlock className="h-7 w-14 rounded-full" />
-          <SkeletonBlock className="h-7 w-14 rounded-xl" />
+          <SkeletonBlock className="h-[28px] w-14 rounded-full" />
+
+          {active ? (
+            <SkeletonBlock className="h-[28px] w-14 rounded-xl" />
+          ) : null}
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-3 border-t border-zinc-800 pt-3">
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-            Odds
-          </div>
-          <SkeletonBlock className="mt-2 h-4 w-12" />
-        </div>
-
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-            Stake
-          </div>
-          <SkeletonBlock className="mt-2 h-4 w-14" />
-        </div>
-
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-            Payout
-          </div>
-          <SkeletonBlock className="mt-2 h-4 w-16" />
-        </div>
+        <DetailSkeleton label="Odds" width="w-12" />
+        <DetailSkeleton label="Stake" width="w-14" />
+        <DetailSkeleton label="Payout" width="w-16" />
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-zinc-800 pt-3">
-        <SkeletonBlock className="h-4 w-24" />
+      {!active ? (
+        <div className="mt-3 grid grid-cols-2 gap-3 border-t border-zinc-800 pt-3">
+          <DetailSkeleton label="Settled" width="w-16" />
+          <DetailSkeleton label="P/L" width="w-14" />
+        </div>
+      ) : null}
+
+      <div className="mt-3 flex min-h-4 flex-wrap items-center justify-between gap-2 border-t border-zinc-800 pt-3">
+        <SkeletonBlock className="h-4 w-28" />
+
+        {active ? <SkeletonBlock className="h-4 w-24" /> : null}
       </div>
     </div>
   );
@@ -176,11 +253,11 @@ function BetCardSkeleton() {
 function PortfolioSkeleton() {
   return (
     <>
-      <div className="mb-6 grid grid-cols-3 gap-3 sm:mb-8 sm:gap-4">
+      <StatsGrid>
         <StatSkeleton label="Active" />
         <StatSkeleton label="Past" />
-        <StatSkeleton label="Risk" />
-      </div>
+        <StatSkeleton label="Risk" variant="money" />
+      </StatsGrid>
 
       <section>
         <div className="mb-4 flex items-end justify-between gap-4">
@@ -190,13 +267,15 @@ function PortfolioSkeleton() {
 
           <div className="text-sm text-zinc-500">
             pot. payout:{" "}
-            <SkeletonBlock className="inline-block h-4 w-20 align-middle" />
+            <span className="inline-flex h-5 items-center align-middle">
+              <SkeletonBlock className="h-4 w-20" />
+            </span>
           </div>
         </div>
 
         <div className="grid gap-3 lg:grid-cols-2">
-          <BetCardSkeleton />
-          <BetCardSkeleton />
+          <BetCardSkeleton active />
+          <BetCardSkeleton active />
         </div>
       </section>
 
@@ -234,19 +313,6 @@ function EmptyState({
       </p>
 
       {action ? <div className="mt-5">{action}</div> : null}
-    </div>
-  );
-}
-
-function StatItem({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div>
-      <div className="text-[9px] uppercase leading-4 tracking-[0.14em] text-zinc-500 sm:text-[11px] sm:tracking-[0.18em]">
-        {label}
-      </div>
-      <div className="mt-1.5 text-[24px] font-semibold leading-none text-zinc-100 sm:mt-2 sm:text-3xl">
-        {value}
-      </div>
     </div>
   );
 }
@@ -397,6 +463,9 @@ export default function PortfolioClient() {
   const [syncingBetId, setSyncingBetId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [contentMinHeight, setContentMinHeight] = useState<number | null>(null);
+
   const hasAnyBets = openBets.length > 0 || pastBets.length > 0;
 
   const totals = useMemo(() => {
@@ -513,6 +582,18 @@ export default function PortfolioClient() {
     }
   }
 
+  useLayoutEffect(() => {
+    if (!ready || loading) {
+      const height = contentRef.current?.getBoundingClientRect().height;
+
+      if (height) {
+        setContentMinHeight((current) =>
+          Math.max(current ?? 0, Math.ceil(height))
+        );
+      }
+    }
+  }, [ready, loading]);
+
   useEffect(() => {
     loadPortfolio();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -530,112 +611,117 @@ export default function PortfolioClient() {
         </p>
       </div>
 
-      {!ready || loading ? (
-        <PortfolioSkeleton />
-      ) : !authenticated ? (
-        <EmptyState
-          title="Sign in to view your portfolio"
-          description="Your active and past positions will appear here once you sign in."
-          action={
-            <button
-              type="button"
-              onClick={login}
-              className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-950"
-            >
-              Sign in
-            </button>
-          }
-        />
-      ) : (
-        <>
-          {error ? (
-            <div className="mb-5 rounded-[20px] border border-red-950 bg-red-950/20 p-4 text-sm text-red-300">
-              {error}
-            </div>
-          ) : null}
+      <div
+        ref={contentRef}
+        style={contentMinHeight ? { minHeight: contentMinHeight } : undefined}
+      >
+        {!ready || loading ? (
+          <PortfolioSkeleton />
+        ) : !authenticated ? (
+          <EmptyState
+            title="Sign in to view your portfolio"
+            description="Your active and past positions will appear here once you sign in."
+            action={
+              <button
+                type="button"
+                onClick={login}
+                className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-950"
+              >
+                Sign in
+              </button>
+            }
+          />
+        ) : (
+          <>
+            {error ? (
+              <div className="mb-5 rounded-[20px] border border-red-950 bg-red-950/20 p-4 text-sm text-red-300">
+                {error}
+              </div>
+            ) : null}
 
-          <div className="mb-6 grid grid-cols-3 gap-3 sm:mb-8 sm:gap-4">
-            <StatItem label="Active" value={totals.activeCount} />
-            <StatItem label="Past" value={totals.pastCount} />
-            <StatItem label="Risk" value={formatMoney(totals.activeRisk)} />
-          </div>
+            <StatsGrid>
+              <StatItem label="Active" value={totals.activeCount} />
+              <StatItem label="Past" value={totals.pastCount} />
+              <StatItem label="Risk" value={formatMoney(totals.activeRisk)} />
+            </StatsGrid>
 
-          {!hasAnyBets ? (
-            <EmptyState
-              title="No positions yet"
-              description="Once you place a bet from an event page, active positions will show here. Settled bets will move into your past positions."
-              action={
-                <Link
-                  href="/"
-                  className="inline-flex rounded-xl border border-zinc-800 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
-                >
-                  Browse markets
-                </Link>
-              }
-            />
-          ) : (
-            <>
-              <section>
-                <div className="mb-4 flex items-end justify-between gap-4">
-                  <h2 className="text-2xl font-semibold tracking-tight text-zinc-100">
-                    Active Positions
+            {!hasAnyBets ? (
+              <EmptyState
+                title="No positions yet"
+                description="Once you place a bet from an event page, active positions will show here. Settled bets will move into your past positions."
+                action={
+                  <Link
+                    href="/"
+                    className="inline-flex rounded-xl border border-zinc-800 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+                  >
+                    Browse markets
+                  </Link>
+                }
+              />
+            ) : (
+              <>
+                <section>
+                  <div className="mb-4 flex items-end justify-between gap-4">
+                    <h2 className="text-2xl font-semibold tracking-tight text-zinc-100">
+                      Active Positions
+                    </h2>
+
+                    <div className="text-sm text-zinc-500">
+                      pot. payout: {formatMoney(totals.possiblePayout)}
+                    </div>
+                  </div>
+
+                  {openBets.length ? (
+                    <div className="grid gap-3 lg:grid-cols-2">
+                      {openBets.map((bet) => (
+                        <BetCard
+                          key={bet.id}
+                          bet={bet}
+                          active
+                          onSyncPolymarket={syncPolymarketBet}
+                          isSyncing={syncingBetId === bet.id}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      title="No active positions"
+                      description="You do not have any open bets right now. New bets will appear here until they settle."
+                      action={
+                        <Link
+                          href="/"
+                          className="inline-flex rounded-xl border border-zinc-800 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+                        >
+                          Browse markets
+                        </Link>
+                      }
+                    />
+                  )}
+                </section>
+
+                <section className="mt-10">
+                  <h2 className="mb-4 text-2xl font-semibold tracking-tight text-zinc-100">
+                    Past Positions
                   </h2>
 
-                  <div className="text-sm text-zinc-500">
-                    pot. payout: {formatMoney(totals.possiblePayout)}
-                  </div>
-                </div>
-
-                {openBets.length ? (
-                  <div className="grid gap-3 lg:grid-cols-2">
-                    {openBets.map((bet) => (
-                      <BetCard
-                        key={bet.id}
-                        bet={bet}
-                        active
-                        onSyncPolymarket={syncPolymarketBet}
-                        isSyncing={syncingBetId === bet.id}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    title="No active positions"
-                    description="You do not have any open bets right now. New bets will appear here until they settle."
-                    action={
-                      <Link
-                        href="/"
-                        className="inline-flex rounded-xl border border-zinc-800 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
-                      >
-                        Browse markets
-                      </Link>
-                    }
-                  />
-                )}
-              </section>
-
-              <section className="mt-10">
-                <h2 className="mb-4 text-2xl font-semibold tracking-tight text-zinc-100">
-                  Past Positions
-                </h2>
-
-                {pastBets.length ? (
-                  <div className="grid gap-3 lg:grid-cols-2">
-                    {pastBets.map((bet) => (
-                      <BetCard key={bet.id} bet={bet} />
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    title="No past positions"
-                    description="Settled wins, losses, and voids will appear here after positions close."
-                  />
-                )}
-              </section>
-            </>
-          )}
-        </>
-      )}
+                  {pastBets.length ? (
+                    <div className="grid gap-3 lg:grid-cols-2">
+                      {pastBets.map((bet) => (
+                        <BetCard key={bet.id} bet={bet} />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      title="No past positions"
+                      description="Settled wins, losses, and voids will appear here after positions close."
+                    />
+                  )}
+                </section>
+              </>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
