@@ -91,7 +91,7 @@ function GoalSkeleton() {
 
         <div className="min-w-0 self-center">
           <SkeletonBlock className="h-9 w-40 sm:h-10 sm:w-44" />
-          <SkeletonBlock className="mt-2 h-3 w-32" />
+          <SkeletonBlock className="mt-1 h-3 w-32" />
         </div>
 
         <div className="grid grid-cols-2 gap-2">

@@ -608,11 +608,11 @@ export default async function AccountPage({ params }: AccountPageProps) {
                 </div>
 
                 <div className="min-w-0 self-center">
-                  <div className="truncate pb-1 text-[38px] font-semibold leading-none tracking-tight text-zinc-100 sm:text-[42px] lg:text-[34px]">
+                  <div className="truncate pb-1 text-[32px] font-semibold leading-none tracking-tight text-zinc-100 sm:text-[36px]">
                     {formatMoney(ruleEquity)}
                   </div>
 
-                  <div className="mt-2 truncate text-[13px] font-medium leading-none text-zinc-500">
+                  <div className="mt-1 truncate text-[13px] font-medium leading-none text-zinc-500">
                     of {formatMoney(profitTargetBalance)} goal
                   </div>
                 </div>
