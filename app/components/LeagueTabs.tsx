@@ -26,11 +26,11 @@ export default function LeagueTabs({
             key={item.league}
             href={`/?league=${item.league}`}
             className={[
-              "relative shrink-0 text-[13px] transition-colors",
+              "relative shrink-0 text-[13px] font-medium transition-colors",
               "sm:rounded-full sm:px-4 sm:py-2",
               isActive
-                ? "font-semibold text-white sm:text-zinc-100"
-                : "font-medium text-zinc-500 sm:text-zinc-300",
+                ? "text-white sm:text-zinc-100"
+                : "text-zinc-500 sm:text-zinc-300",
             ].join(" ")}
           >
             {isActive ? (
