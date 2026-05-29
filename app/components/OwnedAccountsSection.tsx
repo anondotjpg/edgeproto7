@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
-import { FiArrowUpRight, FiEdit2 } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiArrowRight,
+  FiArrowUpRight,
+  FiEdit2,
+} from "react-icons/fi";
 
 type ExistingAccount = {
   id: string;
@@ -19,13 +24,13 @@ type ExistingAccount = {
 const MAX_ACCOUNT_NAME_LENGTH = 15;
 
 const ACCOUNT_ROW_CLASS =
-  "flex snap-x gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+  "flex gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 const ACCOUNT_CARD_CLASS =
-  "group min-h-[72px] snap-start rounded-[14px] border border-zinc-900 bg-zinc-950 px-4 py-3 transition-colors hover:border-zinc-800 hover:bg-zinc-900/80";
+  "group min-h-[72px] shrink-0 rounded-[14px] border border-zinc-900 bg-zinc-950 px-4 py-3 transition-colors hover:border-zinc-800 hover:bg-zinc-900/80";
 
 const ACCOUNT_CARD_WIDTH_CLASS =
-  "flex-[0_0_100%] sm:flex-[0_0_calc((100%_-_8px)_/_2)] xl:flex-[0_0_calc((100%_-_16px)_/_3)]";
+  "w-full sm:w-[calc((100%_-_8px)_/_2)] xl:w-[calc((100%_-_16px)_/_3)]";
 
 function SkeletonBlock({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-md bg-zinc-900 ${className}`} />;
@@ -92,11 +97,15 @@ export default function OwnedAccountsSection() {
   const router = useRouter();
   const { ready, authenticated, getAccessToken } = usePrivy();
 
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
   const [accounts, setAccounts] = useState<ExistingAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
   const [savingAccountId, setSavingAccountId] = useState<string | null>(null);
+  const [canScrollBack, setCanScrollBack] = useState(false);
+  const [canScrollForward, setCanScrollForward] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -153,6 +162,39 @@ export default function OwnedAccountsSection() {
     };
   }, [ready, authenticated, getAccessToken]);
 
+  function updateScrollState() {
+    const row = rowRef.current;
+    if (!row) return;
+
+    const maxScrollLeft = row.scrollWidth - row.clientWidth;
+
+    setCanScrollBack(row.scrollLeft > 2);
+    setCanScrollForward(row.scrollLeft < maxScrollLeft - 2);
+  }
+
+  useEffect(() => {
+    updateScrollState();
+
+    const row = rowRef.current;
+    if (!row) return;
+
+    row.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+
+    return () => {
+      row.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [accounts.length, isLoading, ready, authenticated]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(updateScrollState);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [accounts.length, isLoading]);
+
   async function saveAccountName(accountId: string) {
     if (savingAccountId) return;
 
@@ -207,10 +249,25 @@ export default function OwnedAccountsSection() {
     router.push(`/accounts/${accountId}`);
   }
 
+  function scrollAccounts(direction: "back" | "forward") {
+    const row = rowRef.current;
+    if (!row) return;
+
+    row.scrollTo({
+      left:
+        direction === "back"
+          ? row.scrollLeft - row.clientWidth
+          : row.scrollLeft + row.clientWidth,
+      behavior: "smooth",
+    });
+  }
+
   const showSkeleton = !ready || isLoading;
   const showEmpty = !showSkeleton && (!authenticated || accounts.length === 0);
   const showAccounts = !showSkeleton && authenticated && accounts.length > 0;
-  const showScrollHint = showAccounts && accounts.length > 3;
+  const hasOverflowControls =
+    showAccounts && (canScrollBack || canScrollForward || accounts.length > 3);
+  const reserveArrowSpace = showSkeleton || hasOverflowControls;
 
   return (
     <div className="mb-6 min-h-[122px] md:pt-[5%] lg:pt-0">
@@ -222,15 +279,42 @@ export default function OwnedAccountsSection() {
           </span>
         </h2>
 
-        {showScrollHint ? (
-          <div className="shrink-0 text-[11px] font-medium text-zinc-500">
-            Scroll to view more
-          </div>
-        ) : null}
+        <div
+          className={[
+            "hidden h-7 w-[64px] shrink-0 items-center justify-end gap-2 sm:flex",
+            reserveArrowSpace ? "" : "invisible",
+          ].join(" ")}
+        >
+          <button
+            type="button"
+            aria-label="Previous accounts"
+            onClick={() => scrollAccounts("back")}
+            disabled={!hasOverflowControls || !canScrollBack}
+            className={[
+              "flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30",
+              hasOverflowControls ? "cursor-pointer" : "invisible",
+            ].join(" ")}
+          >
+            <FiArrowLeft className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            aria-label="Next accounts"
+            onClick={() => scrollAccounts("forward")}
+            disabled={!hasOverflowControls || !canScrollForward}
+            className={[
+              "flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30",
+              hasOverflowControls ? "cursor-pointer" : "invisible",
+            ].join(" ")}
+          >
+            <FiArrowRight className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {showSkeleton ? (
-        <div className={ACCOUNT_ROW_CLASS}>
+        <div ref={rowRef} className={ACCOUNT_ROW_CLASS}>
           <AccountSkeletonCard />
           <AccountSkeletonCard />
           <AccountSkeletonCard />
@@ -240,7 +324,7 @@ export default function OwnedAccountsSection() {
       {showEmpty ? <EmptyAccountCard authenticated={authenticated} /> : null}
 
       {showAccounts ? (
-        <div className={ACCOUNT_ROW_CLASS}>
+        <div ref={rowRef} className={ACCOUNT_ROW_CLASS}>
           {accounts.map((account) => {
             const plan = PLAN_CONFIG[account.plan_key as PlanKey];
 
