@@ -847,16 +847,9 @@ export default function BetSlipModal({
         >
           <DrawerContent
             ref={drawerContentRef}
-            className="overflow-visible border-zinc-800 bg-zinc-950 text-white outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 data-[state=open]:outline-none"
+            overlayClassName="bg-zinc-950 supports-backdrop-filter:backdrop-blur-none data-open:fade-in-0"
+            className="border-zinc-800 bg-zinc-950 text-white outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 data-[state=open]:outline-none"
           >
-            {/* Solid filler attached to the bottom of the drawer.
-                Covers any gap that appears between the drawer and the
-                keyboard / screen bottom. Same color as the drawer. */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-full h-screen bg-zinc-950"
-            />
-
             <DrawerHeader className="sr-only">
               <DrawerTitle>Place Bet</DrawerTitle>
               <DrawerDescription>
@@ -864,7 +857,7 @@ export default function BetSlipModal({
               </DrawerDescription>
             </DrawerHeader>
 
-            <div className="relative mx-auto flex max-h-full w-full max-w-2xl flex-col px-5 pb-[max(18px,env(safe-area-inset-bottom))] pt-2">
+            <div className="mx-auto flex max-h-full w-full max-w-2xl flex-col px-5 pb-[max(18px,env(safe-area-inset-bottom))] pt-2">
               <div className="mx-auto mb-5 h-1.5 w-12 shrink-0 rounded-full bg-zinc-800" />
 
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-1">
