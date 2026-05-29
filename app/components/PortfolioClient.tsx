@@ -120,15 +120,7 @@ function getBetPnl(bet: Bet) {
 }
 
 function SkeletonBlock({ className = "" }: { className?: string }) {
-  return (
-    <div
-      className={[
-        "animate-pulse rounded-md bg-zinc-700/70",
-        "shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]",
-        className,
-      ].join(" ")}
-    />
-  );
+  return <div className={`animate-pulse rounded-md bg-zinc-900 ${className}`} />;
 }
 
 function StatsGrid({ children }: { children: ReactNode }) {
@@ -189,63 +181,43 @@ function StatItem({ label, value }: { label: string; value: ReactNode }) {
 
 function DetailSkeleton({ label, width }: { label: string; width: string }) {
   return (
-    <div className="min-w-0">
-      <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-        {label}
-      </div>
-
-      <div className="mt-1 h-5">
-        <SkeletonBlock className={`h-4 ${width}`} />
-      </div>
+    <div className="rounded-2xl bg-black/30 p-3">
+      <div className="text-[11px] text-zinc-600">{label}</div>
+      <SkeletonBlock className={`mt-2 h-4 ${width}`} />
     </div>
   );
 }
 
 function BetCardSkeleton({ active }: { active?: boolean }) {
   return (
-    <div className="rounded-[22px] border border-zinc-800 bg-zinc-950 p-4">
+    <div className="rounded-[22px] bg-zinc-950/80 p-4 ring-1 ring-zinc-900">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="h-[14px]">
-            <SkeletonBlock className="h-3 w-24" />
-          </div>
-
-          <div className="mt-2 h-[25px]">
-            <SkeletonBlock className="h-6 w-36" />
-          </div>
-
-          <div className="mt-0.5 h-5">
-            <SkeletonBlock className="h-4 w-16" />
-          </div>
+        <div className="min-w-0 flex-1">
+          <SkeletonBlock className="h-5 w-36" />
+          <SkeletonBlock className="mt-2 h-3 w-32" />
+          <SkeletonBlock className="mt-2 h-3 w-16" />
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <SkeletonBlock className="h-[28px] w-14 rounded-full" />
-
-          {active ? (
-            <SkeletonBlock className="h-[28px] w-14 rounded-xl" />
-          ) : null}
+          <SkeletonBlock className="h-7 w-16 rounded-full" />
+          {active ? <SkeletonBlock className="h-7 w-14 rounded-xl" /> : null}
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3 border-t border-zinc-800 pt-3">
+      <div className="mt-4 grid grid-cols-3 gap-2">
         <DetailSkeleton label="Odds" width="w-12" />
         <DetailSkeleton label="Stake" width="w-14" />
         <DetailSkeleton label="Payout" width="w-16" />
       </div>
 
       {!active ? (
-        <div className="mt-3 grid grid-cols-2 gap-3 border-t border-zinc-800 pt-3">
+        <div className="mt-2 grid grid-cols-2 gap-2">
           <DetailSkeleton label="Settled" width="w-16" />
           <DetailSkeleton label="P/L" width="w-14" />
         </div>
       ) : null}
 
-      <div className="mt-3 flex min-h-4 flex-wrap items-center justify-between gap-2 border-t border-zinc-800 pt-3">
-        <SkeletonBlock className="h-4 w-28" />
-
-        {active ? <SkeletonBlock className="h-4 w-24" /> : null}
-      </div>
+      <SkeletonBlock className="mt-4 h-3 w-32" />
     </div>
   );
 }
@@ -265,11 +237,8 @@ function PortfolioSkeleton() {
             Active Positions
           </h2>
 
-          <div className="text-sm text-zinc-500">
-            pot. payout:{" "}
-            <span className="inline-flex h-5 items-center align-middle">
-              <SkeletonBlock className="h-4 w-20" />
-            </span>
+          <div className="hidden text-sm text-zinc-500 sm:block">
+            <SkeletonBlock className="inline-block h-4 w-28 align-middle" />
           </div>
         </div>
 
