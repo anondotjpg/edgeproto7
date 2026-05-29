@@ -18,6 +18,10 @@ type ExistingAccount = {
 
 const MAX_ACCOUNT_NAME_LENGTH = 15;
 
+function SkeletonBlock({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse rounded-md bg-zinc-900 ${className}`} />;
+}
+
 function getStatusLabel(status: string) {
   const normalizedStatus = status.toLowerCase();
 
@@ -37,15 +41,15 @@ function AccountSkeletonCard() {
     <div className="flex min-h-[72px] items-center justify-between rounded-[14px] bg-zinc-950 px-4 py-3 ring-1 ring-zinc-900">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <div className="h-5 w-24 animate-pulse rounded bg-zinc-800" />
-          <div className="h-5 w-16 animate-pulse rounded-full bg-zinc-900" />
+          <SkeletonBlock className="h-5 w-24" />
+          <SkeletonBlock className="h-5 w-16 rounded-full" />
         </div>
 
-        <div className="mt-2 h-3 w-24 animate-pulse rounded bg-zinc-900" />
+        <SkeletonBlock className="mt-2 h-3 w-24" />
       </div>
 
       <div className="ml-3 flex shrink-0 items-center gap-2">
-        <div className="h-7 w-7 animate-pulse rounded-full bg-zinc-900" />
+        <SkeletonBlock className="h-7 w-7 rounded-full" />
       </div>
     </div>
   );
@@ -72,6 +76,7 @@ function EmptyAccountCard({ authenticated }: { authenticated: boolean }) {
 export default function OwnedAccountsSection() {
   const router = useRouter();
   const { ready, authenticated, getAccessToken } = usePrivy();
+
   const [accounts, setAccounts] = useState<ExistingAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
