@@ -134,7 +134,7 @@ export default function LoadingAccountPage() {
                   <SkeletonBlock className="h-[66px] w-64 max-w-full sm:h-[86px] sm:w-80" />
                 </div>
 
-                <SkeletonBlock className="mt-2 h-4 w-36" />
+                <SkeletonBlock className="mt-[2px] h-4 w-36" />
 
                 <div className="mt-3 flex h-8 flex-wrap gap-2 sm:mt-4">
                   <SkeletonBlock className="h-8 w-20 rounded-full" />

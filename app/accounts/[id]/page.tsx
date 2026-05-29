@@ -573,7 +573,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
                   </div>
                 </div>
 
-                <div className="mt-2 text-[13px] font-medium text-zinc-500">
+                <div className="mt-[2px] text-[13px] font-medium text-zinc-500">
                   {formatMoney(currentBalance)} available
                 </div>
 
