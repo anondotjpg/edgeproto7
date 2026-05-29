@@ -336,7 +336,7 @@ function BetSlipContent({
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="shrink-0 text-[11px] font-medium leading-[18px] text-zinc-500"
               >
-                Scroll to view more
+                Scroll to view more →
               </motion.div>
             ) : null}
           </AnimatePresence>
@@ -946,7 +946,7 @@ export default function BetSlipModal({
           onOpenChange={handleOpenChange}
           repositionInputs={false}
         >
-          <DrawerContent className="overflow-x-hidden border-zinc-800 bg-zinc-950 text-white outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 data-[state=open]:outline-none data-[vaul-drawer-direction=bottom]:max-h-[calc(100svh-16px)]">
+          <DrawerContent className="overflow-hidden border-zinc-800 bg-zinc-950 text-white outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 data-[state=open]:outline-none data-[vaul-drawer-direction=bottom]:max-h-none">
             <DrawerHeader className="sr-only">
               <DrawerTitle>Place Bet</DrawerTitle>
               <DrawerDescription>
@@ -954,17 +954,15 @@ export default function BetSlipModal({
               </DrawerDescription>
             </DrawerHeader>
 
-            <div className="mx-auto w-full max-w-2xl overflow-x-hidden bg-zinc-950 px-5 pb-[max(18px,env(safe-area-inset-bottom))] pt-2">
+            <div className="mx-auto w-full max-w-2xl overflow-hidden bg-zinc-950 px-5 pb-[max(14px,env(safe-area-inset-bottom))] pt-2">
               <div className="mx-auto mb-5 h-1.5 w-12 shrink-0 rounded-full bg-zinc-800" />
 
-              <div className="max-h-[calc(100svh-92px)] overflow-y-auto overflow-x-hidden overscroll-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {content}
-              </div>
+              <div className="overflow-visible">{content}</div>
             </div>
           </DrawerContent>
         </Drawer>
       ) : open ? (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center overflow-x-hidden bg-black/75 px-4 pb-4 sm:items-center sm:pb-0">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center overflow-hidden bg-black/75 px-4 pb-4 sm:items-center sm:pb-0">
           <button
             type="button"
             aria-label="Close bet slip"
@@ -972,7 +970,7 @@ export default function BetSlipModal({
             onClick={closeBetSlip}
           />
 
-          <div className="relative w-full max-w-2xl overflow-x-hidden rounded-[28px] border border-zinc-800 bg-zinc-950 p-5 text-white shadow-2xl">
+          <div className="relative w-full max-w-2xl overflow-hidden rounded-[28px] border border-zinc-800 bg-zinc-950 p-5 text-white shadow-2xl">
             {content}
           </div>
         </div>
