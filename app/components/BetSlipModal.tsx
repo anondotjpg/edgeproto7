@@ -80,7 +80,6 @@ const ACCOUNT_CARD_STYLE: CSSProperties = {
 };
 
 const ACCOUNT_SELECT_SHELL_CLASS = "mt-5 h-[126px]";
-
 const ACCOUNT_LIST_CLASS = "mt-3 h-[96px] overflow-hidden";
 
 const QUICK_AMOUNT_OPTIONS = [
@@ -136,7 +135,7 @@ function formatCompactMoney(value: number | null | undefined) {
 }
 
 function getPlanLabel(account: OwnedAccount) {
-  return `$${Number(account.plan_size).toLocaleString()}`;
+  return formatCompactMoney(account.plan_size);
 }
 
 function getAccountDisplayName(account: OwnedAccount) {
@@ -145,16 +144,6 @@ function getAccountDisplayName(account: OwnedAccount) {
   if (accountName) return accountName;
 
   return getPlanLabel(account);
-}
-
-function getAccountMeta(account: OwnedAccount) {
-  const accountName = account.account_name?.trim();
-
-  if (accountName) {
-    return `${getPlanLabel(account)} · ${account.status}`;
-  }
-
-  return account.status;
 }
 
 function getMaxRiskAmount(account: OwnedAccount) {
@@ -216,8 +205,6 @@ function BetSlipContent({
   statusTone,
   ruleWarning,
   mobileLayout,
-  showCloseButton,
-  onClose,
   onToggleAccount,
   onAmountChange,
   onQuickAmount,
@@ -241,8 +228,6 @@ function BetSlipContent({
   statusTone: "warning" | "error" | null;
   ruleWarning: string | null;
   mobileLayout: boolean;
-  showCloseButton: boolean;
-  onClose: () => void;
   onToggleAccount: (accountId: string) => void;
   onAmountChange: (value: number | readonly number[]) => void;
   onQuickAmount: (percent: number) => void;
@@ -337,52 +322,24 @@ function BetSlipContent({
           </div>
         </div>
       ) : (
-        <div>
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                Place Bet
-              </div>
+        <div className="flex items-start justify-between gap-6">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-2xl font-semibold leading-tight tracking-tight text-zinc-100">
+              {team}
+            </h2>
 
-              <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-zinc-100">
-                {team}
-              </h2>
-
-              <p className="mt-1 text-sm leading-tight text-zinc-400">
-                {matchup}
-              </p>
-            </div>
-
-            {showCloseButton ? (
-              <button
-                type="button"
-                onClick={onClose}
-                className="shrink-0 cursor-pointer rounded-full border border-zinc-800 px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:text-white"
-              >
-                Close
-              </button>
-            ) : null}
+            <p className="mt-1 text-sm leading-tight text-zinc-400">
+              {matchup}
+            </p>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-500">
-                Moneyline
-              </div>
-
-              <div className="mt-1 text-xl font-semibold text-zinc-100">
-                {odds}
-              </div>
+          <div className="shrink-0 text-right leading-none">
+            <div className="text-[34px] font-semibold leading-none tracking-tight text-zinc-100">
+              {odds}
             </div>
 
-            <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-500">
-                Implied
-              </div>
-
-              <div className="mt-1 text-xl font-semibold text-zinc-100">
-                {impliedPercent}
-              </div>
+            <div className="mt-1.5 text-[22px] font-semibold leading-none text-zinc-500">
+              {impliedPercent}
             </div>
           </div>
         </div>
@@ -469,10 +426,6 @@ function BetSlipContent({
                     <div className="flex h-5 items-start justify-between gap-2">
                       <div className="min-w-0 flex-1 truncate text-[13px] font-semibold leading-5 text-zinc-100">
                         {getAccountDisplayName(account)}
-                        <span className="font-normal text-zinc-500">
-                          {" "}
-                          · {getAccountMeta(account)}
-                        </span>
                       </div>
 
                       <div
@@ -621,7 +574,7 @@ function BetSlipContent({
             className="[&_[data-slot=slider-range]]:bg-zinc-300 [&_[data-slot=slider-track]]:bg-zinc-700 [&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border-zinc-300 [&_[data-slot=slider-thumb]]:bg-zinc-100"
           />
 
-          <div className="mt-1.5 flex items-center justify-between text-[11px] text-zinc-500">
+          <div className="mt-1.5 flex items-center justify-between text-[11px] text-zinc-500 md:text-[13px]">
             <span>$0</span>
             <span>{formatMoney(maxBetAmount)}</span>
           </div>
@@ -1017,8 +970,6 @@ export default function BetSlipModal({
       statusTone={statusTone}
       ruleWarning={ruleWarning}
       mobileLayout={isMobile}
-      showCloseButton={!isMobile}
-      onClose={closeBetSlip}
       onToggleAccount={toggleAccount}
       onAmountChange={handleSliderAmountChange}
       onQuickAmount={handleQuickAmount}
