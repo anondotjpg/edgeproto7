@@ -213,7 +213,7 @@ export default function OwnedAccountsSection() {
   const showScrollHint = showAccounts && accounts.length > 3;
 
   return (
-    <div className="mb-6 min-h-[122px]">
+    <div className="mb-6 min-h-[122px] md:pt-[5%] xl:pt-0">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="min-w-0 text-[13px] font-medium uppercase tracking-[0.18em] text-zinc-500">
           Active Accounts{" "}
