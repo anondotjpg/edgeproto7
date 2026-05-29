@@ -336,7 +336,7 @@ function BetSlipContent({
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="shrink-0 text-[11px] font-medium leading-[18px] text-zinc-500"
               >
-                Scroll to view more →
+                Scroll to view more
               </motion.div>
             ) : null}
           </AnimatePresence>
