@@ -18,6 +18,15 @@ type ExistingAccount = {
 
 const MAX_ACCOUNT_NAME_LENGTH = 15;
 
+const ACCOUNT_ROW_CLASS =
+  "flex snap-x gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain px-px py-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
+const ACCOUNT_CARD_CLASS =
+  "group min-h-[72px] snap-start rounded-[14px] bg-zinc-950 px-4 py-3 ring-1 ring-zinc-900 transition-colors hover:bg-zinc-900/80 hover:ring-zinc-800";
+
+const ACCOUNT_CARD_WIDTH_CLASS =
+  "flex-[0_0_calc(100%_-_2px)] sm:flex-[0_0_calc((100%_-_10px)_/_2)] xl:flex-[0_0_calc((100%_-_18px)_/_3)]";
+
 function SkeletonBlock({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-md bg-zinc-900 ${className}`} />;
 }
@@ -38,7 +47,13 @@ function getStatusLabel(status: string) {
 
 function AccountSkeletonCard() {
   return (
-    <div className="flex min-h-[72px] items-center justify-between rounded-[14px] bg-zinc-950 px-4 py-3 ring-1 ring-zinc-900">
+    <div
+      className={[
+        ACCOUNT_CARD_CLASS,
+        ACCOUNT_CARD_WIDTH_CLASS,
+        "flex items-center justify-between",
+      ].join(" ")}
+    >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <SkeletonBlock className="h-5 w-24" />
@@ -195,34 +210,38 @@ export default function OwnedAccountsSection() {
   const showSkeleton = !ready || isLoading;
   const showEmpty = !showSkeleton && (!authenticated || accounts.length === 0);
   const showAccounts = !showSkeleton && authenticated && accounts.length > 0;
+  const showScrollHint = showAccounts && accounts.length > 3;
 
   return (
     <div className="mb-6 min-h-[122px]">
-      <div className="mb-3 flex items-center">
-        <h2 className="text-[13px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="min-w-0 text-[13px] font-medium uppercase tracking-[0.18em] text-zinc-500">
           Active Accounts{" "}
           <span className="tracking-normal text-zinc-600">
             ({showSkeleton ? "..." : showAccounts ? accounts.length : 0})
           </span>
         </h2>
+
+        {showScrollHint ? (
+          <div className="shrink-0 text-[11px] font-medium text-zinc-500">
+            Scroll to view more
+          </div>
+        ) : null}
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        {showSkeleton && (
-          <>
-            <AccountSkeletonCard />
-            <AccountSkeletonCard />
+      {showSkeleton ? (
+        <div className={ACCOUNT_ROW_CLASS}>
+          <AccountSkeletonCard />
+          <AccountSkeletonCard />
+          <AccountSkeletonCard />
+        </div>
+      ) : null}
 
-            <div className="hidden xl:block">
-              <AccountSkeletonCard />
-            </div>
-          </>
-        )}
+      {showEmpty ? <EmptyAccountCard authenticated={authenticated} /> : null}
 
-        {showEmpty && <EmptyAccountCard authenticated={authenticated} />}
-
-        {showAccounts &&
-          accounts.map((account) => {
+      {showAccounts ? (
+        <div className={ACCOUNT_ROW_CLASS}>
+          {accounts.map((account) => {
             const plan = PLAN_CONFIG[account.plan_key as PlanKey];
 
             const sizeLabel =
@@ -257,7 +276,8 @@ export default function OwnedAccountsSection() {
                   }
                 }}
                 className={[
-                  "group rounded-[14px] bg-zinc-950 px-4 py-3 ring-1 ring-zinc-900 transition-colors hover:bg-zinc-900/80 hover:ring-zinc-800",
+                  ACCOUNT_CARD_CLASS,
+                  ACCOUNT_CARD_WIDTH_CLASS,
                   isEditing ? "" : "cursor-pointer",
                 ].join(" ")}
               >
@@ -371,7 +391,8 @@ export default function OwnedAccountsSection() {
               </div>
             );
           })}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }
