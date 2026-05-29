@@ -791,12 +791,7 @@ export default function BetSlipModal({
           onOpenChange={handleOpenChange}
           repositionInputs={false}
         >
-          <DrawerContent className="relative overflow-visible border-zinc-800 bg-zinc-950 text-white outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 data-[state=open]:outline-none data-[vaul-drawer-direction=bottom]:max-h-none">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-[calc(100%-1px)] h-[160svh] bg-zinc-950"
-            />
-
+          <DrawerContent className="overflow-visible border-zinc-800 bg-zinc-950 text-white outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 data-[state=open]:outline-none data-[vaul-drawer-direction=bottom]:max-h-none">
             <DrawerHeader className="sr-only">
               <DrawerTitle>Place Bet</DrawerTitle>
               <DrawerDescription>
@@ -804,7 +799,7 @@ export default function BetSlipModal({
               </DrawerDescription>
             </DrawerHeader>
 
-            <div className="relative z-10 mx-auto w-full max-w-2xl px-5 pb-[max(18px,env(safe-area-inset-bottom))] pt-2">
+            <div className="mx-auto w-full max-w-2xl bg-zinc-950 px-5 pb-[calc(max(18px,env(safe-area-inset-bottom))+100svh)] pt-2 -mb-[100svh]">
               <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-zinc-800" />
 
               <div className="max-h-[calc(100svh-92px)] overflow-y-auto overscroll-contain pb-1">
