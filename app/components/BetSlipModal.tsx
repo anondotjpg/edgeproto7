@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  memo,
   type CSSProperties,
   type PointerEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -190,6 +192,92 @@ function AccountOptionSkeleton() {
   );
 }
 
+const BetSlipHeader = memo(function BetSlipHeader({
+  team,
+  matchup,
+  odds,
+  impliedPercent,
+  mobileLayout,
+  panelMode,
+}: {
+  team: string;
+  matchup: string;
+  odds: string;
+  impliedPercent: string;
+  mobileLayout: boolean;
+  panelMode: "modal" | "sidebar";
+}) {
+  return (
+    <div
+      className={[
+        "relative pr-[122px]",
+        panelMode === "sidebar"
+          ? "min-h-[86px] px-5 py-4"
+          : mobileLayout
+            ? "min-h-[64px] pt-[2px]"
+            : "min-h-[72px]",
+      ].join(" ")}
+    >
+      <div className="min-w-0 max-w-full">
+        <h2
+          className={[
+            "truncate font-semibold tracking-tight text-zinc-100",
+            panelMode === "sidebar"
+              ? "text-[22px] leading-[1.12]"
+              : mobileLayout
+                ? "text-2xl leading-[1.15]"
+                : "text-2xl leading-tight",
+          ].join(" ")}
+        >
+          {team}
+        </h2>
+
+        <p
+          className={[
+            "mt-1 truncate text-zinc-400",
+            panelMode === "sidebar"
+              ? "text-[13px] leading-[1.2]"
+              : mobileLayout
+                ? "text-sm leading-[1.25]"
+                : "text-sm leading-tight",
+          ].join(" ")}
+        >
+          {matchup}
+        </p>
+      </div>
+
+      <div
+        className={[
+          "absolute text-right leading-none",
+          panelMode === "sidebar" ? "right-5 top-4" : "right-0 top-0",
+        ].join(" ")}
+      >
+        <div
+          className={[
+            "font-semibold leading-none tracking-tight text-zinc-100",
+            panelMode === "sidebar"
+              ? "text-[26px]"
+              : mobileLayout
+                ? "text-[30px]"
+                : "text-[34px]",
+          ].join(" ")}
+        >
+          {odds}
+        </div>
+
+        <div
+          className={[
+            "mt-1.5 font-semibold leading-none text-zinc-500",
+            panelMode === "sidebar" ? "text-[18px]" : "text-[22px]",
+          ].join(" ")}
+        >
+          {impliedPercent}
+        </div>
+      </div>
+    </div>
+  );
+});
+
 function OffsetPlaceBetButton({
   disabled,
   isPlacing,
@@ -286,73 +374,28 @@ function OffsetPlaceBetButton({
   );
 }
 
-function BetSlipContent({
-  team,
-  matchup,
-  odds,
-  impliedPercent,
+const AccountSelectSection = memo(function AccountSelectSection({
   ready,
   authenticated,
   login,
   accounts,
   selectedAccountIds,
   isLoadingAccounts,
-  isPlacing,
-  amountValue,
-  maxBetAmount,
-  possiblePayout,
-  statusMessage,
-  statusTone,
-  ruleWarning,
   mobileLayout,
-  panelMode,
   onToggleAccount,
-  onAmountChange,
-  onQuickAmount,
-  onPlaceBet,
 }: {
-  team: string;
-  matchup: string;
-  odds: string;
-  impliedPercent: string;
   ready: boolean;
   authenticated: boolean;
   login: () => void;
   accounts: OwnedAccount[];
   selectedAccountIds: string[];
   isLoadingAccounts: boolean;
-  isPlacing: boolean;
-  amountValue: number;
-  maxBetAmount: number;
-  possiblePayout: string;
-  statusMessage: string | null;
-  statusTone: "warning" | "error" | null;
-  ruleWarning: string | null;
   mobileLayout: boolean;
-  panelMode: "modal" | "sidebar";
   onToggleAccount: (accountId: string) => void;
-  onAmountChange: (value: number | readonly number[]) => void;
-  onQuickAmount: (percent: number) => void;
-  onPlaceBet: () => void;
 }) {
   const accountRowRef = useRef<HTMLDivElement | null>(null);
-  const holdFrameRef = useRef<number | null>(null);
-  const holdStartRef = useRef<number | null>(null);
-  const holdCompletedRef = useRef(false);
-
   const [canScrollBack, setCanScrollBack] = useState(false);
   const [canScrollForward, setCanScrollForward] = useState(false);
-  const [holdProgress, setHoldProgress] = useState(0);
-
-  const sliderDisabled = maxBetAmount <= 0;
-  const showQuickAmounts = maxBetAmount > 0 && selectedAccountIds.length > 0;
-  const showPotentialPayout = amountValue > 0 && possiblePayout !== "—";
-
-  const placeBetDisabled =
-    isPlacing ||
-    amountValue <= 0 ||
-    !selectedAccountIds.length ||
-    Boolean(ruleWarning);
 
   function updateAccountScrollState() {
     const row = accountRowRef.current;
@@ -376,6 +419,225 @@ function BetSlipContent({
       behavior: "smooth",
     });
   }
+
+  useEffect(() => {
+    updateAccountScrollState();
+
+    const row = accountRowRef.current;
+    if (!row) return;
+
+    row.addEventListener("scroll", updateAccountScrollState, { passive: true });
+    window.addEventListener("resize", updateAccountScrollState);
+
+    return () => {
+      row.removeEventListener("scroll", updateAccountScrollState);
+      window.removeEventListener("resize", updateAccountScrollState);
+    };
+  }, [ready, authenticated, isLoadingAccounts, accounts.length]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(updateAccountScrollState);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [ready, authenticated, isLoadingAccounts, accounts.length]);
+
+  const showAccountScrollHint =
+    ready &&
+    authenticated &&
+    !isLoadingAccounts &&
+    mobileLayout &&
+    accounts.length > 3;
+
+  const showAccountControls =
+    ready &&
+    authenticated &&
+    !isLoadingAccounts &&
+    !mobileLayout &&
+    accounts.length > 3;
+
+  const reserveAccountControlSpace = authenticated;
+
+  return (
+    <div className={ACCOUNT_SELECT_SHELL_CLASS}>
+      <div className="flex h-[18px] items-center justify-between gap-3">
+        <div className="text-sm font-medium leading-[18px] text-zinc-300">
+          Select account
+        </div>
+
+        {showAccountScrollHint ? (
+          <div className="shrink-0 text-[11px] font-medium leading-[18px] text-zinc-500">
+            Scroll to view more
+          </div>
+        ) : reserveAccountControlSpace ? (
+          <div
+            className={[
+              "flex h-[18px] w-[54px] shrink-0 items-center justify-end gap-2",
+              showAccountControls ? "" : "invisible",
+            ].join(" ")}
+          >
+            <button
+              type="button"
+              aria-label="Previous accounts"
+              onClick={() => scrollAccounts("back")}
+              disabled={!canScrollBack}
+              className="flex h-[18px] w-5 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <FiArrowLeft className="h-3.5 w-3.5" />
+            </button>
+
+            <button
+              type="button"
+              aria-label="Next accounts"
+              onClick={() => scrollAccounts("forward")}
+              disabled={!canScrollForward}
+              className="flex h-[18px] w-5 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <FiArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      <div className={ACCOUNT_LIST_CLASS}>
+        {!ready || isLoadingAccounts ? (
+          <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <AccountOptionSkeleton key={index} />
+            ))}
+          </div>
+        ) : !authenticated ? (
+          <button
+            type="button"
+            onClick={login}
+            className="h-[92px] w-full cursor-pointer rounded-2xl border border-zinc-800 bg-black/30 p-4 text-left text-sm text-zinc-300"
+          >
+            Sign in to select an account.
+          </button>
+        ) : accounts.length ? (
+          <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
+            {accounts.map((account) => {
+              const selected = selectedAccountIds.includes(account.id);
+              const active = ["active", "active_dev"].includes(account.status);
+              const maxRiskAmount = getMaxRiskAmount(account);
+
+              return (
+                <button
+                  key={account.id}
+                  type="button"
+                  style={ACCOUNT_CARD_STYLE}
+                  onClick={() => {
+                    if (active) onToggleAccount(account.id);
+                  }}
+                  disabled={!active}
+                  className={[
+                    ACCOUNT_CARD_CLASS,
+                    "cursor-pointer disabled:cursor-not-allowed disabled:opacity-50",
+                    selected
+                      ? "border-zinc-400 bg-zinc-900"
+                      : "border-zinc-800 bg-black/30 hover:border-zinc-700",
+                  ].join(" ")}
+                >
+                  <div className="flex h-5 items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1 truncate text-[13px] font-semibold leading-5 text-zinc-100">
+                      {getAccountDisplayName(account)}
+                    </div>
+
+                    <div
+                      className={[
+                        "mt-1 h-3.5 w-3.5 shrink-0 rounded-full border",
+                        selected
+                          ? "border-zinc-100 bg-zinc-100"
+                          : "border-zinc-700",
+                      ].join(" ")}
+                    />
+                  </div>
+
+                  <div className="mt-3 space-y-1.5 text-[12px] leading-4">
+                    <div className="flex h-4 items-center justify-between gap-2">
+                      <span className="text-zinc-500">Avail</span>
+                      <span className="font-medium text-zinc-300">
+                        {formatCompactMoney(account.current_balance)}
+                      </span>
+                    </div>
+
+                    <div className="flex h-4 items-center justify-between gap-2">
+                      <span className="text-zinc-500">Max</span>
+                      <span className="font-medium text-zinc-300">
+                        {formatCompactMoney(maxRiskAmount)}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex h-[92px] items-center rounded-2xl border border-zinc-800 bg-black/30 p-4 text-sm text-zinc-500">
+            No accounts found. Start a challenge first.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+function BetSlipControls({
+  ready,
+  authenticated,
+  login,
+  accounts,
+  selectedAccountIds,
+  isLoadingAccounts,
+  isPlacing,
+  amountValue,
+  maxBetAmount,
+  possiblePayout,
+  statusMessage,
+  statusTone,
+  ruleWarning,
+  mobileLayout,
+  panelMode,
+  onToggleAccount,
+  onAmountChange,
+  onQuickAmount,
+  onPlaceBet,
+}: {
+  ready: boolean;
+  authenticated: boolean;
+  login: () => void;
+  accounts: OwnedAccount[];
+  selectedAccountIds: string[];
+  isLoadingAccounts: boolean;
+  isPlacing: boolean;
+  amountValue: number;
+  maxBetAmount: number;
+  possiblePayout: string;
+  statusMessage: string | null;
+  statusTone: "warning" | "error" | null;
+  ruleWarning: string | null;
+  mobileLayout: boolean;
+  panelMode: "modal" | "sidebar";
+  onToggleAccount: (accountId: string) => void;
+  onAmountChange: (value: number | readonly number[]) => void;
+  onQuickAmount: (percent: number) => void;
+  onPlaceBet: () => void;
+}) {
+  const holdFrameRef = useRef<number | null>(null);
+  const holdStartRef = useRef<number | null>(null);
+  const holdCompletedRef = useRef(false);
+  const [holdProgress, setHoldProgress] = useState(0);
+
+  const sliderDisabled = maxBetAmount <= 0;
+  const showQuickAmounts = maxBetAmount > 0 && selectedAccountIds.length > 0;
+  const showPotentialPayout = amountValue > 0 && possiblePayout !== "—";
+
+  const placeBetDisabled =
+    isPlacing ||
+    amountValue <= 0 ||
+    !selectedAccountIds.length ||
+    Boolean(ruleWarning);
 
   function clearHold(resetProgress = true) {
     if (holdFrameRef.current !== null) {
@@ -434,29 +696,6 @@ function BetSlipContent({
   }
 
   useEffect(() => {
-    updateAccountScrollState();
-
-    const row = accountRowRef.current;
-    if (!row) return;
-
-    row.addEventListener("scroll", updateAccountScrollState, { passive: true });
-    window.addEventListener("resize", updateAccountScrollState);
-
-    return () => {
-      row.removeEventListener("scroll", updateAccountScrollState);
-      window.removeEventListener("resize", updateAccountScrollState);
-    };
-  }, [ready, authenticated, isLoadingAccounts, accounts.length]);
-
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(updateAccountScrollState);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-    };
-  }, [ready, authenticated, isLoadingAccounts, accounts.length]);
-
-  useEffect(() => {
     if (!mobileLayout || placeBetDisabled) {
       clearHold();
     }
@@ -468,370 +707,279 @@ function BetSlipContent({
     };
   }, []);
 
-  const showAccountScrollHint =
-    ready &&
-    authenticated &&
-    !isLoadingAccounts &&
-    mobileLayout &&
-    accounts.length > 3;
-
-  const showAccountControls =
-    ready &&
-    authenticated &&
-    !isLoadingAccounts &&
-    !mobileLayout &&
-    accounts.length > 3;
-
-  const reserveAccountControlSpace = authenticated;
-
   return (
-    <>
-      <div
-        className={[
-          "relative pr-[122px]",
-          panelMode === "sidebar"
-            ? "min-h-[86px] px-5 py-4"
-            : mobileLayout
-              ? "min-h-[64px] pt-[2px]"
-              : "min-h-[72px]",
-        ].join(" ")}
-      >
-        <div className="min-w-0 max-w-full">
-          <h2
-            className={[
-              "truncate font-semibold tracking-tight text-zinc-100",
-              panelMode === "sidebar"
-                ? "text-[22px] leading-[1.12]"
-                : mobileLayout
-                  ? "text-2xl leading-[1.15]"
-                  : "text-2xl leading-tight",
-            ].join(" ")}
-          >
-            {team}
-          </h2>
+    <div className={panelMode === "sidebar" ? "px-5" : ""}>
+      <AccountSelectSection
+        ready={ready}
+        authenticated={authenticated}
+        login={login}
+        accounts={accounts}
+        selectedAccountIds={selectedAccountIds}
+        isLoadingAccounts={isLoadingAccounts}
+        mobileLayout={mobileLayout}
+        onToggleAccount={onToggleAccount}
+      />
 
-          <p
-            className={[
-              "mt-1 truncate text-zinc-400",
-              panelMode === "sidebar"
-                ? "text-[13px] leading-[1.2]"
-                : mobileLayout
-                  ? "text-sm leading-[1.25]"
-                  : "text-sm leading-tight",
-            ].join(" ")}
-          >
-            {matchup}
-          </p>
-        </div>
+      <motion.div layout className="mt-5 overflow-x-hidden">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-sm font-medium leading-none text-zinc-300">
+              Bet amount
+            </div>
 
-        <div
-          className={[
-            "absolute text-right leading-none",
-            panelMode === "sidebar" ? "right-5 top-4" : "right-0 top-0",
-          ].join(" ")}
-        >
-          <div
-            className={[
-              "font-semibold leading-none tracking-tight text-zinc-100",
-              panelMode === "sidebar"
-                ? "text-[26px]"
-                : mobileLayout
-                  ? "text-[30px]"
-                  : "text-[34px]",
-            ].join(" ")}
-          >
-            {odds}
+            <motion.div
+              layout
+              key={amountValue}
+              initial={{ opacity: 0.75, y: 2 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="mt-2 text-[34px] font-semibold leading-none tracking-tight text-zinc-100"
+            >
+              {formatMoney(amountValue)}
+            </motion.div>
           </div>
 
-          <div
-            className={[
-              "mt-1.5 font-semibold leading-none text-zinc-500",
-              panelMode === "sidebar" ? "text-[18px]" : "text-[22px]",
-            ].join(" ")}
-          >
-            {impliedPercent}
+          <div className="pt-[1px] text-right">
+            <div className="text-[12px] leading-none text-zinc-500">
+              Max{" "}
+              <span className="font-semibold text-zinc-300">
+                {formatMoney(maxBetAmount)}
+              </span>
+            </div>
+
+            <motion.div
+              animate={{
+                opacity: showPotentialPayout ? 1 : 0,
+                y: showPotentialPayout ? 0 : 3,
+              }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              aria-hidden={!showPotentialPayout}
+              className="mt-2 text-[12px] leading-none text-zinc-500"
+            >
+              Pot. payout{" "}
+              <span className="font-semibold text-zinc-300">
+                {possiblePayout}
+              </span>
+            </motion.div>
           </div>
         </div>
-      </div>
-
-      <div className={panelMode === "sidebar" ? "px-5" : ""}>
-        <div className={ACCOUNT_SELECT_SHELL_CLASS}>
-          <div className="flex h-[18px] items-center justify-between gap-3">
-            <div className="text-sm font-medium leading-[18px] text-zinc-300">
-              Select account
-            </div>
-
-            {showAccountScrollHint ? (
-              <div className="shrink-0 text-[11px] font-medium leading-[18px] text-zinc-500">
-                Scroll to view more
-              </div>
-            ) : reserveAccountControlSpace ? (
-              <div
-                className={[
-                  "flex h-[18px] w-[54px] shrink-0 items-center justify-end gap-2",
-                  showAccountControls ? "" : "invisible",
-                ].join(" ")}
-              >
-                <button
-                  type="button"
-                  aria-label="Previous accounts"
-                  onClick={() => scrollAccounts("back")}
-                  disabled={!canScrollBack}
-                  className="flex h-[18px] w-5 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <FiArrowLeft className="h-3.5 w-3.5" />
-                </button>
-
-                <button
-                  type="button"
-                  aria-label="Next accounts"
-                  onClick={() => scrollAccounts("forward")}
-                  disabled={!canScrollForward}
-                  className="flex h-[18px] w-5 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <FiArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ) : null}
-          </div>
-
-          <div className={ACCOUNT_LIST_CLASS}>
-            {!ready || isLoadingAccounts ? (
-              <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <AccountOptionSkeleton key={index} />
-                ))}
-              </div>
-            ) : !authenticated ? (
-              <button
-                type="button"
-                onClick={login}
-                className="h-[92px] w-full cursor-pointer rounded-2xl border border-zinc-800 bg-black/30 p-4 text-left text-sm text-zinc-300"
-              >
-                Sign in to select an account.
-              </button>
-            ) : accounts.length ? (
-              <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
-                {accounts.map((account) => {
-                  const selected = selectedAccountIds.includes(account.id);
-                  const active = ["active", "active_dev"].includes(
-                    account.status
-                  );
-
-                  const maxRiskAmount = getMaxRiskAmount(account);
-
-                  return (
-                    <button
-                      key={account.id}
-                      type="button"
-                      style={ACCOUNT_CARD_STYLE}
-                      onClick={() => {
-                        if (active) onToggleAccount(account.id);
-                      }}
-                      disabled={!active}
-                      className={[
-                        ACCOUNT_CARD_CLASS,
-                        "cursor-pointer disabled:cursor-not-allowed disabled:opacity-50",
-                        selected
-                          ? "border-zinc-400 bg-zinc-900"
-                          : "border-zinc-800 bg-black/30 hover:border-zinc-700",
-                      ].join(" ")}
-                    >
-                      <div className="flex h-5 items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1 truncate text-[13px] font-semibold leading-5 text-zinc-100">
-                          {getAccountDisplayName(account)}
-                        </div>
-
-                        <div
-                          className={[
-                            "mt-1 h-3.5 w-3.5 shrink-0 rounded-full border",
-                            selected
-                              ? "border-zinc-100 bg-zinc-100"
-                              : "border-zinc-700",
-                          ].join(" ")}
-                        />
-                      </div>
-
-                      <div className="mt-3 space-y-1.5 text-[12px] leading-4">
-                        <div className="flex h-4 items-center justify-between gap-2">
-                          <span className="text-zinc-500">Avail</span>
-                          <span className="font-medium text-zinc-300">
-                            {formatCompactMoney(account.current_balance)}
-                          </span>
-                        </div>
-
-                        <div className="flex h-4 items-center justify-between gap-2">
-                          <span className="text-zinc-500">Max</span>
-                          <span className="font-medium text-zinc-300">
-                            {formatCompactMoney(maxRiskAmount)}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex h-[92px] items-center rounded-2xl border border-zinc-800 bg-black/30 p-4 text-sm text-zinc-500">
-                No accounts found. Start a challenge first.
-              </div>
-            )}
-          </div>
-        </div>
-
-        <motion.div layout className="mt-5 overflow-x-hidden">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-sm font-medium leading-none text-zinc-300">
-                Bet amount
-              </div>
-
-              <motion.div
-                layout
-                key={amountValue}
-                initial={{ opacity: 0.75, y: 2 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                className="mt-2 text-[34px] font-semibold leading-none tracking-tight text-zinc-100"
-              >
-                {formatMoney(amountValue)}
-              </motion.div>
-            </div>
-
-            <div className="pt-[1px] text-right">
-              <div className="text-[12px] leading-none text-zinc-500">
-                Max{" "}
-                <span className="font-semibold text-zinc-300">
-                  {formatMoney(maxBetAmount)}
-                </span>
-              </div>
-
-              <motion.div
-                animate={{
-                  opacity: showPotentialPayout ? 1 : 0,
-                  y: showPotentialPayout ? 0 : 3,
-                }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                aria-hidden={!showPotentialPayout}
-                className="mt-2 text-[12px] leading-none text-zinc-500"
-              >
-                Pot. payout{" "}
-                <span className="font-semibold text-zinc-300">
-                  {possiblePayout}
-                </span>
-              </motion.div>
-            </div>
-          </div>
-
-          <AnimatePresence initial={false}>
-            {showQuickAmounts ? (
-              <motion.div
-                key="quick-amount-options"
-                initial={{ height: 0, opacity: 0, y: -6 }}
-                animate={{ height: "auto", opacity: 1, y: 0 }}
-                exit={{ height: 0, opacity: 0, y: -6 }}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden"
-              >
-                <motion.div
-                  layout
-                  className="mt-4 grid grid-cols-4 gap-2"
-                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  {QUICK_AMOUNT_OPTIONS.map((option, index) => {
-                    const optionAmount = Math.round(maxBetAmount * option.value);
-                    const selected = amountValue === optionAmount;
-
-                    return (
-                      <motion.button
-                        key={option.label}
-                        type="button"
-                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                        transition={{
-                          duration: 0.2,
-                          delay: index * 0.025,
-                          ease: [0.22, 1, 0.36, 1],
-                        }}
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => onQuickAmount(option.value)}
-                        className={[
-                          "h-9 cursor-pointer rounded-full text-[13px] font-semibold transition-colors",
-                          selected
-                            ? "bg-zinc-100 text-zinc-950"
-                            : "bg-zinc-900 text-zinc-300 hover:bg-zinc-800",
-                        ].join(" ")}
-                      >
-                        {option.label}
-                      </motion.button>
-                    );
-                  })}
-                </motion.div>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-
-          <div
-            className="-mx-1 mt-4 overflow-hidden px-5"
-            data-vaul-no-drag=""
-            onPointerDown={(event) => event.stopPropagation()}
-            onTouchStart={(event) => event.stopPropagation()}
-          >
-            <Slider
-              value={amountValue}
-              min={0}
-              max={Math.max(maxBetAmount, 1)}
-              step={1}
-              disabled={sliderDisabled}
-              onValueChange={onAmountChange}
-              className="[&_[data-slot=slider-range]]:bg-zinc-300 [&_[data-slot=slider-track]]:bg-zinc-700 [&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border-zinc-300 [&_[data-slot=slider-thumb]]:bg-zinc-100"
-            />
-
-            <div className="mt-1.5 flex items-center justify-between text-[11px] text-zinc-500 md:text-[13px]">
-              <span>$0</span>
-              <span>{formatMoney(maxBetAmount)}</span>
-            </div>
-          </div>
-        </motion.div>
 
         <AnimatePresence initial={false}>
-          {statusMessage ? (
+          {showQuickAmounts ? (
             <motion.div
-              key={statusMessage}
-              initial={{ height: 0, opacity: 0, marginTop: 0 }}
-              animate={{ height: "auto", opacity: 1, marginTop: 16 }}
-              exit={{ height: 0, opacity: 0, marginTop: 0 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
+              key="quick-amount-options"
+              initial={{ height: 0, opacity: 0, y: -6 }}
+              animate={{ height: "auto", opacity: 1, y: 0 }}
+              exit={{ height: 0, opacity: 0, y: -6 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="overflow-hidden"
             >
-              <div
-                className={[
-                  "rounded-2xl border p-3 text-sm",
-                  statusTone === "warning"
-                    ? "border-yellow-950 bg-yellow-950/20 text-yellow-200"
-                    : "border-red-950 bg-red-950/20 text-red-300",
-                ].join(" ")}
+              <motion.div
+                layout
+                className="mt-4 grid grid-cols-4 gap-2"
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               >
-                {statusMessage}
-              </div>
+                {QUICK_AMOUNT_OPTIONS.map((option, index) => {
+                  const optionAmount = Math.round(maxBetAmount * option.value);
+                  const selected = amountValue === optionAmount;
+
+                  return (
+                    <motion.button
+                      key={option.label}
+                      type="button"
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                      transition={{
+                        duration: 0.2,
+                        delay: index * 0.025,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => onQuickAmount(option.value)}
+                      className={[
+                        "h-9 cursor-pointer rounded-full text-[13px] font-semibold transition-colors",
+                        selected
+                          ? "bg-zinc-100 text-zinc-950"
+                          : "bg-zinc-900 text-zinc-300 hover:bg-zinc-800",
+                      ].join(" ")}
+                    >
+                      {option.label}
+                    </motion.button>
+                  );
+                })}
+              </motion.div>
             </motion.div>
           ) : null}
         </AnimatePresence>
 
-        <OffsetPlaceBetButton
-          disabled={placeBetDisabled}
-          isPlacing={isPlacing}
-          mobileLayout={mobileLayout}
-          holdProgress={holdProgress}
-          panelMode={panelMode}
-          onPlaceBet={onPlaceBet}
-          onPointerDown={beginHoldToPlace}
-          onPointerUp={cancelHoldToPlace}
-          onPointerLeave={cancelHoldToPlace}
-          onPointerCancel={cancelHoldToPlace}
-        />
-      </div>
+        <div
+          className="-mx-1 mt-4 overflow-hidden px-5"
+          data-vaul-no-drag=""
+          onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
+        >
+          <Slider
+            value={amountValue}
+            min={0}
+            max={Math.max(maxBetAmount, 1)}
+            step={1}
+            disabled={sliderDisabled}
+            onValueChange={onAmountChange}
+            className="[&_[data-slot=slider-range]]:bg-zinc-300 [&_[data-slot=slider-track]]:bg-zinc-700 [&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border-zinc-300 [&_[data-slot=slider-thumb]]:bg-zinc-100"
+          />
+
+          <div className="mt-1.5 flex items-center justify-between text-[11px] text-zinc-500 md:text-[13px]">
+            <span>$0</span>
+            <span>{formatMoney(maxBetAmount)}</span>
+          </div>
+        </div>
+      </motion.div>
+
+      <AnimatePresence initial={false}>
+        {statusMessage ? (
+          <motion.div
+            key={statusMessage}
+            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+            animate={{ height: "auto", opacity: 1, marginTop: 16 }}
+            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <div
+              className={[
+                "rounded-2xl border p-3 text-sm",
+                statusTone === "warning"
+                  ? "border-yellow-950 bg-yellow-950/20 text-yellow-200"
+                  : "border-red-950 bg-red-950/20 text-red-300",
+              ].join(" ")}
+            >
+              {statusMessage}
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <OffsetPlaceBetButton
+        disabled={placeBetDisabled}
+        isPlacing={isPlacing}
+        mobileLayout={mobileLayout}
+        holdProgress={holdProgress}
+        panelMode={panelMode}
+        onPlaceBet={onPlaceBet}
+        onPointerDown={beginHoldToPlace}
+        onPointerUp={cancelHoldToPlace}
+        onPointerLeave={cancelHoldToPlace}
+        onPointerCancel={cancelHoldToPlace}
+      />
+    </div>
+  );
+}
+
+const MemoBetSlipControls = memo(BetSlipControls, (prev, next) => {
+  return (
+    prev.ready === next.ready &&
+    prev.authenticated === next.authenticated &&
+    prev.login === next.login &&
+    prev.accounts === next.accounts &&
+    prev.selectedAccountIds === next.selectedAccountIds &&
+    prev.isLoadingAccounts === next.isLoadingAccounts &&
+    prev.isPlacing === next.isPlacing &&
+    prev.amountValue === next.amountValue &&
+    prev.maxBetAmount === next.maxBetAmount &&
+    prev.statusMessage === next.statusMessage &&
+    prev.statusTone === next.statusTone &&
+    prev.ruleWarning === next.ruleWarning &&
+    prev.mobileLayout === next.mobileLayout &&
+    prev.panelMode === next.panelMode &&
+    prev.onToggleAccount === next.onToggleAccount &&
+    prev.onAmountChange === next.onAmountChange &&
+    prev.onQuickAmount === next.onQuickAmount &&
+    prev.onPlaceBet === next.onPlaceBet
+  );
+});
+
+function BetSlipContent({
+  team,
+  matchup,
+  odds,
+  impliedPercent,
+  ready,
+  authenticated,
+  login,
+  accounts,
+  selectedAccountIds,
+  isLoadingAccounts,
+  isPlacing,
+  amountValue,
+  maxBetAmount,
+  possiblePayout,
+  statusMessage,
+  statusTone,
+  ruleWarning,
+  mobileLayout,
+  panelMode,
+  onToggleAccount,
+  onAmountChange,
+  onQuickAmount,
+  onPlaceBet,
+}: {
+  team: string;
+  matchup: string;
+  odds: string;
+  impliedPercent: string;
+  ready: boolean;
+  authenticated: boolean;
+  login: () => void;
+  accounts: OwnedAccount[];
+  selectedAccountIds: string[];
+  isLoadingAccounts: boolean;
+  isPlacing: boolean;
+  amountValue: number;
+  maxBetAmount: number;
+  possiblePayout: string;
+  statusMessage: string | null;
+  statusTone: "warning" | "error" | null;
+  ruleWarning: string | null;
+  mobileLayout: boolean;
+  panelMode: "modal" | "sidebar";
+  onToggleAccount: (accountId: string) => void;
+  onAmountChange: (value: number | readonly number[]) => void;
+  onQuickAmount: (percent: number) => void;
+  onPlaceBet: () => void;
+}) {
+  return (
+    <>
+      <BetSlipHeader
+        team={team}
+        matchup={matchup}
+        odds={odds}
+        impliedPercent={impliedPercent}
+        mobileLayout={mobileLayout}
+        panelMode={panelMode}
+      />
+
+      <MemoBetSlipControls
+        ready={ready}
+        authenticated={authenticated}
+        login={login}
+        accounts={accounts}
+        selectedAccountIds={selectedAccountIds}
+        isLoadingAccounts={isLoadingAccounts}
+        isPlacing={isPlacing}
+        amountValue={amountValue}
+        maxBetAmount={maxBetAmount}
+        possiblePayout={possiblePayout}
+        statusMessage={statusMessage}
+        statusTone={statusTone}
+        ruleWarning={ruleWarning}
+        mobileLayout={mobileLayout}
+        panelMode={panelMode}
+        onToggleAccount={onToggleAccount}
+        onAmountChange={onAmountChange}
+        onQuickAmount={onQuickAmount}
+        onPlaceBet={onPlaceBet}
+      />
     </>
   );
 }
@@ -848,6 +996,7 @@ export function BetSlipPanel({
 }) {
   const { ready, authenticated, login, getAccessToken } = usePrivy();
   const isMobile = useIsMobile();
+  const betRef = useRef(bet);
 
   const [amount, setAmount] = useState("");
   const [accounts, setAccounts] = useState<OwnedAccount[]>([]);
@@ -860,7 +1009,9 @@ export function BetSlipPanel({
   const stake = Number(amount);
   const amountValue = Number.isFinite(stake) ? stake : 0;
 
-  const betKey = `${bet.gameId}:${bet.team}:${bet.polymarketTokenId ?? ""}`;
+  useEffect(() => {
+    betRef.current = bet;
+  }, [bet]);
 
   const selectedAccounts = useMemo(() => {
     return accounts.filter((account) => selectedAccountIds.includes(account.id));
@@ -922,11 +1073,6 @@ export function BetSlipPanel({
 
   const statusMessage = ruleWarning ?? error;
   const statusTone = ruleWarning ? "warning" : error ? "error" : null;
-
-  useEffect(() => {
-    setAmount("");
-    setError(null);
-  }, [betKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -996,7 +1142,7 @@ export function BetSlipPanel({
     return () => {
       cancelled = true;
     };
-  }, [enabled, ready, authenticated, getAccessToken, betKey]);
+  }, [enabled, ready, authenticated, getAccessToken]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -1011,37 +1157,46 @@ export function BetSlipPanel({
     }
   }, [amount, amountValue, maxBetAmount, enabled, selectedAccounts.length]);
 
-  function toggleAccount(accountId: string) {
+  const toggleAccount = useCallback((accountId: string) => {
     setSelectedAccountIds((current) =>
       current.includes(accountId)
         ? current.filter((id) => id !== accountId)
         : [...current, accountId]
     );
-  }
+  }, []);
 
-  function handleSliderAmountChange(value: number | readonly number[]) {
-    const rawValue = Array.isArray(value) ? value[0] : value;
-    const nextRawValue = Number(rawValue ?? 0);
+  const handleSliderAmountChange = useCallback(
+    (value: number | readonly number[]) => {
+      const rawValue = Array.isArray(value) ? value[0] : value;
+      const nextRawValue = Number(rawValue ?? 0);
 
-    const nextValue = Math.round(
-      Math.min(Math.max(nextRawValue, 0), Math.max(maxBetAmount, 0))
-    );
+      const nextValue = Math.round(
+        Math.min(Math.max(nextRawValue, 0), Math.max(maxBetAmount, 0))
+      );
 
-    setAmount(nextValue > 0 ? String(nextValue) : "");
-  }
+      setAmount(nextValue > 0 ? String(nextValue) : "");
+    },
+    [maxBetAmount]
+  );
 
-  function handleQuickAmount(percent: number) {
-    const nextValue = Math.round(maxBetAmount * percent);
-    setAmount(nextValue > 0 ? String(nextValue) : "");
-  }
+  const handleQuickAmount = useCallback(
+    (percent: number) => {
+      const nextValue = Math.round(maxBetAmount * percent);
+      setAmount(nextValue > 0 ? String(nextValue) : "");
+    },
+    [maxBetAmount]
+  );
 
-  async function placeBet() {
+  const placeBet = useCallback(async () => {
     if (!ready) return;
 
     if (!authenticated) {
       login();
       return;
     }
+
+    const currentBet = betRef.current;
+    const currentNumericOdds = parseOdds(currentBet.odds);
 
     try {
       setIsPlacing(true);
@@ -1059,7 +1214,7 @@ export function BetSlipPanel({
         throw new Error(ruleWarning);
       }
 
-      if (!bet.polymarketConditionId || !bet.polymarketTokenId) {
+      if (!currentBet.polymarketConditionId || !currentBet.polymarketTokenId) {
         throw new Error(
           "Missing Polymarket settlement data. Refresh and try again."
         );
@@ -1079,21 +1234,21 @@ export function BetSlipPanel({
         },
         body: JSON.stringify({
           accountIds: selectedAccountIds,
-          gameId: bet.gameId,
-          league: bet.league,
-          market: bet.market,
-          selection: bet.team,
-          odds: numericOdds,
+          gameId: currentBet.gameId,
+          league: currentBet.league,
+          market: currentBet.market,
+          selection: currentBet.team,
+          odds: currentNumericOdds,
           stake,
 
-          polymarketEventId: bet.polymarketEventId,
-          polymarketEventSlug: bet.polymarketEventSlug,
-          polymarketMarketId: bet.polymarketMarketId,
-          polymarketConditionId: bet.polymarketConditionId,
-          polymarketMarketSlug: bet.polymarketMarketSlug,
-          polymarketOutcome: bet.polymarketOutcome ?? bet.team,
-          polymarketOutcomeIndex: bet.polymarketOutcomeIndex,
-          polymarketTokenId: bet.polymarketTokenId,
+          polymarketEventId: currentBet.polymarketEventId,
+          polymarketEventSlug: currentBet.polymarketEventSlug,
+          polymarketMarketId: currentBet.polymarketMarketId,
+          polymarketConditionId: currentBet.polymarketConditionId,
+          polymarketMarketSlug: currentBet.polymarketMarketSlug,
+          polymarketOutcome: currentBet.polymarketOutcome ?? currentBet.team,
+          polymarketOutcomeIndex: currentBet.polymarketOutcomeIndex,
+          polymarketTokenId: currentBet.polymarketTokenId,
         }),
       });
 
@@ -1104,7 +1259,7 @@ export function BetSlipPanel({
       }
 
       toast("Bet placed", {
-        description: `${formatMoney(stake)} on ${bet.team}`,
+        description: `${formatMoney(stake)} on ${currentBet.team}`,
       });
 
       setAmount("");
@@ -1116,7 +1271,16 @@ export function BetSlipPanel({
     } finally {
       setIsPlacing(false);
     }
-  }
+  }, [
+    ready,
+    authenticated,
+    login,
+    selectedAccountIds,
+    stake,
+    ruleWarning,
+    getAccessToken,
+    onPlaced,
+  ]);
 
   return (
     <BetSlipContent
