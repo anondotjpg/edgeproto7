@@ -121,11 +121,13 @@ function buildBetData({
   team,
   outcome,
   side,
+  info,
 }: {
   game: Game;
   team: string;
   outcome?: OddsOutcome;
   side: "away" | "home";
+  info?: TeamInfo;
 }): BetSlipData {
   const odds = formatPrice(outcome?.price);
   const impliedPercent = formatImpliedPercent(outcome?.price);
@@ -151,6 +153,8 @@ function buildBetData({
     polymarketOutcome: team,
     polymarketOutcomeIndex: side === "away" ? 0 : 1,
     polymarketTokenId: polymarketTokenId ?? null,
+    teamLogo: info?.logo ?? null,
+    teamLogoAlt: info?.name ?? team,
   };
 }
 
@@ -250,7 +254,8 @@ function MoneylineCell({
   selected: boolean;
   onSelect: (data: BetSlipData) => void;
 }) {
-  const betData = buildBetData({ game, team, outcome, side });
+  const teamInfo = side === "away" ? game.away_team_info : game.home_team_info;
+  const betData = buildBetData({ game, team, outcome, side, info: teamInfo });
 
   return (
     <>
@@ -396,6 +401,7 @@ export default function GamesClient({
       team: firstGame.away_team,
       outcome: awayMoneyline,
       side: "away",
+      info: firstGame.away_team_info,
     });
   }, [league]);
 

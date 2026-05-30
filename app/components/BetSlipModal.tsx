@@ -68,6 +68,8 @@ export type BetSlipData = {
   polymarketOutcome?: string | null;
   polymarketOutcomeIndex?: number | null;
   polymarketTokenId?: string | null;
+  teamLogo?: string | null;
+  teamLogoAlt?: string | null;
 };
 
 type BetSlipModalProps = BetSlipData & {
@@ -290,6 +292,8 @@ const BetSlipHeader = memo(function BetSlipHeader({
   matchup,
   odds,
   impliedPercent,
+  teamLogo,
+  teamLogoAlt,
   mobileLayout,
   panelMode,
 }: {
@@ -297,6 +301,8 @@ const BetSlipHeader = memo(function BetSlipHeader({
   matchup: string;
   odds: string;
   impliedPercent: string;
+  teamLogo?: string | null;
+  teamLogoAlt?: string | null;
   mobileLayout: boolean;
   panelMode: "modal" | "sidebar";
 }) {
@@ -311,38 +317,51 @@ const BetSlipHeader = memo(function BetSlipHeader({
             : "min-h-[72px]",
       ].join(" ")}
     >
-      <div className="min-w-0 max-w-full">
-        <h2
-          className={[
-            "truncate font-semibold tracking-tight text-zinc-100",
-            panelMode === "sidebar"
-              ? "text-[22px] leading-[1.12]"
-              : mobileLayout
-                ? "text-2xl leading-[1.15]"
-                : "text-2xl leading-tight",
-          ].join(" ")}
-        >
-          {team}
-        </h2>
+      <div className="flex min-w-0 max-w-full items-start gap-3">
+        {teamLogo ? (
+          <img
+            src={teamLogo}
+            alt={teamLogoAlt ?? team}
+            className={[
+              "shrink-0 object-contain rounded-md",
+              panelMode === "sidebar" ? "h-11 w-11" : "h-13 w-13",
+            ].join(" ")}
+          />
+        ) : null}
 
-        <p
-          className={[
-            "mt-1 truncate text-zinc-400",
-            panelMode === "sidebar"
-              ? "text-[13px] leading-[1.2]"
-              : mobileLayout
-                ? "text-sm leading-[1.25]"
-                : "text-sm leading-tight",
-          ].join(" ")}
-        >
-          {matchup}
-        </p>
+        <div className="min-w-0 flex-1">
+          <h2
+            className={[
+              "truncate font-semibold tracking-tight text-zinc-100",
+              panelMode === "sidebar"
+                ? "text-[22px] leading-[1.12]"
+                : mobileLayout
+                  ? "text-2xl leading-[1.15]"
+                  : "text-2xl leading-tight",
+            ].join(" ")}
+          >
+            {team}
+          </h2>
+
+          <p
+            className={[
+              "mt-1 truncate text-zinc-400",
+              panelMode === "sidebar"
+                ? "text-[13px] leading-[1.2]"
+                : mobileLayout
+                  ? "text-sm leading-[1.25]"
+                  : "text-sm leading-tight",
+            ].join(" ")}
+          >
+            {matchup}
+          </p>
+        </div>
       </div>
 
       <div
         className={[
           "absolute text-right leading-none",
-          panelMode === "sidebar" ? "right-5 top-4" : "right-0 top-0",
+          panelMode === "sidebar" ? "right-5 top-2" : "right-0 -top-2",
         ].join(" ")}
       >
         <div
@@ -1089,6 +1108,8 @@ function BetSlipContent({
   matchup,
   odds,
   impliedPercent,
+  teamLogo,
+  teamLogoAlt,
   ready,
   authenticated,
   login,
@@ -1114,6 +1135,8 @@ function BetSlipContent({
   matchup: string;
   odds: string;
   impliedPercent: string;
+  teamLogo?: string | null;
+  teamLogoAlt?: string | null;
   ready: boolean;
   authenticated: boolean;
   login: () => void;
@@ -1142,6 +1165,8 @@ function BetSlipContent({
         matchup={matchup}
         odds={odds}
         impliedPercent={impliedPercent}
+        teamLogo={teamLogo}
+        teamLogoAlt={teamLogoAlt}
         mobileLayout={mobileLayout}
         panelMode={panelMode}
       />
@@ -1480,6 +1505,8 @@ export function BetSlipPanel({
       matchup={bet.matchup}
       odds={bet.odds}
       impliedPercent={bet.impliedPercent}
+      teamLogo={bet.teamLogo}
+      teamLogoAlt={bet.teamLogoAlt}
       ready={ready}
       authenticated={authenticated}
       login={login}

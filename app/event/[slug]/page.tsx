@@ -173,10 +173,36 @@ function TeamPanel({
   const impliedPercent = formatImpliedPercent(price);
   const americanOdds = formatPrice(price);
 
+  const selectedTeamInfo =
+    side === "away" ? game.away_team_info : game.home_team_info;
+
+  const selectedTeamLogo = selectedTeamInfo?.logo ?? info?.logo ?? null;
+  const selectedTeamLogoAlt = selectedTeamInfo?.name || info?.name || team;
+
   const polymarketTokenId =
     side === "away"
       ? game.outcome_token_ids?.away
       : game.outcome_token_ids?.home;
+
+  const betData = {
+    team,
+    gameId: game.id,
+    league: game.sport_key,
+    market: "h2h",
+    odds: americanOdds,
+    impliedPercent,
+    matchup: `${game.away_team} vs. ${game.home_team}`,
+    polymarketEventId: game.polymarket?.event_id ?? null,
+    polymarketEventSlug: game.polymarket?.event_slug ?? null,
+    polymarketMarketId: game.polymarket?.market_id ?? null,
+    polymarketConditionId: game.polymarket?.condition_id ?? null,
+    polymarketMarketSlug: game.polymarket?.market_slug ?? null,
+    polymarketOutcome: team,
+    polymarketOutcomeIndex: side === "away" ? 0 : 1,
+    polymarketTokenId: polymarketTokenId ?? null,
+    teamLogo: selectedTeamLogo,
+    teamLogoAlt: selectedTeamLogoAlt,
+  };
 
   return (
     <div className="min-w-0 rounded-[28px] border border-zinc-800 bg-zinc-950 p-5">
@@ -214,23 +240,7 @@ function TeamPanel({
             Moneyline
           </div>
 
-          <BetSlipModal
-            team={team}
-            gameId={game.id}
-            league={game.sport_key}
-            market="h2h"
-            odds={americanOdds}
-            impliedPercent={impliedPercent}
-            matchup={`${game.away_team} vs. ${game.home_team}`}
-            polymarketEventId={game.polymarket?.event_id ?? null}
-            polymarketEventSlug={game.polymarket?.event_slug ?? null}
-            polymarketMarketId={game.polymarket?.market_id ?? null}
-            polymarketConditionId={game.polymarket?.condition_id ?? null}
-            polymarketMarketSlug={game.polymarket?.market_slug ?? null}
-            polymarketOutcome={team}
-            polymarketOutcomeIndex={side === "away" ? 0 : 1}
-            polymarketTokenId={polymarketTokenId ?? null}
-          />
+          <BetSlipModal {...betData} />
         </div>
       </div>
     </div>
