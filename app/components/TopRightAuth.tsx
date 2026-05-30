@@ -40,16 +40,15 @@ export default function TopRightAuth() {
   const signedInControls = (
     <>
       <div
-        className="inline-flex shrink-0 items-center rounded-full"
+        className="inline-flex h-9 shrink-0 items-start rounded-full pt-[2px]"
         style={{
           background: "#6b5520",
-          paddingBottom: "2px",
           lineHeight: 0,
         }}
       >
         <Link
           href="/accounts"
-          className="relative inline-flex h-8 cursor-pointer items-center overflow-hidden rounded-full bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold text-[#120d02] transition-transform duration-100 hover:translate-y-px active:translate-y-0 whitespace-nowrap"
+          className="relative inline-flex h-[34px] cursor-pointer items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] transition-transform duration-100 hover:translate-y-px active:translate-y-0 whitespace-nowrap"
           style={{
             transform: "translateY(-2px)",
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)",
