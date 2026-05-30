@@ -652,7 +652,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
                       ].join(" ")}
                     >
                       {selected ? (
-                        <div className="h-2 w-2 rounded-full bg-zinc-100" />
+                        <div className="h-[6px] w-[6px] rounded-full bg-zinc-100" />
                       ) : null}
                     </div>
                   </div>
