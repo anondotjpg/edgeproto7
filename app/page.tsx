@@ -150,13 +150,11 @@ function MoneylineCell({
   team,
   outcome,
   side,
-  isTop = false,
 }: {
   game: Game;
   team: string;
   outcome?: OddsOutcome;
   side: "away" | "home";
-  isTop?: boolean;
 }) {
   const odds = formatPrice(outcome?.price);
   const impliedPercent = formatImpliedPercent(outcome?.price);
@@ -167,7 +165,13 @@ function MoneylineCell({
       : game.outcome_token_ids?.home;
 
   return (
-    <div className={isTop ? "" : "border-t border-zinc-800/60"}>
+    <div
+      className="rounded-xl bg-zinc-800"
+      style={{
+        paddingBottom: "2px",
+        lineHeight: 0,
+      }}
+    >
       <BetSlipModal
         team={team}
         gameId={game.id}
@@ -176,7 +180,7 @@ function MoneylineCell({
         odds={odds}
         impliedPercent={impliedPercent}
         matchup={`${game.away_team} vs. ${game.home_team}`}
-        triggerClassName="flex min-h-[56px] w-full cursor-pointer items-center justify-center bg-transparent px-3 py-2 text-center transition-colors hover:bg-zinc-800/50"
+        triggerClassName="flex h-[56px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-center transition-[transform,border-color] duration-100 hover:translate-y-[-1px] active:translate-y-0"
         triggerContentClassName="text-[14px] font-semibold tracking-tight text-zinc-100"
         polymarketEventId={game.polymarket?.event_id ?? null}
         polymarketEventSlug={game.polymarket?.event_slug ?? null}
@@ -234,7 +238,7 @@ function GameCard({ game }: { game: Game }) {
   const eventHref = `/event/${game.slug}`;
 
   return (
-    <article className="relative pb-9 md:rounded-xl md:border md:border-zinc-900 md:p-4 md:pb-12">
+    <article className="relative pb-9 md:rounded-2xl md:border md:border-zinc-900 md:p-4 md:pb-12">
       <div className="mb-2 grid grid-cols-[minmax(0,1fr)_96px]">
         <div className="pl-1 text-[9px] font-medium uppercase tracking-[0.14em] text-zinc-500">
           Teams
@@ -260,13 +264,12 @@ function GameCard({ game }: { game: Game }) {
           />
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/70">
+        <div className="flex flex-col gap-2">
           <MoneylineCell
             game={game}
             team={game.away_team}
             outcome={awayMoneyline}
             side="away"
-            isTop
           />
 
           <MoneylineCell
