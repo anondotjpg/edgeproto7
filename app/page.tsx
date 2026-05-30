@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { FiArrowUpRight } from "react-icons/fi";
-import { FaChevronRight } from "react-icons/fa";
 import LastUpdatedAgo from "./components/LastUpdatedAgo";
 import LeagueTabs from "./components/LeagueTabs";
 import BetSlipModal from "@/app/components/BetSlipModal";
@@ -136,14 +135,14 @@ function formatGameTime(date: string) {
 
 function getLogoClassName(sportKey: string) {
   return sportKey === "mlb"
-    ? "h-8 w-8 object-contain"
-    : "h-8 w-8 rounded-sm bg-white/5 object-contain";
+    ? "h-7 w-7 object-contain"
+    : "h-7 w-7 rounded-sm bg-white/5 object-contain";
 }
 
 function getLogoFallbackClassName(sportKey: string) {
   return sportKey === "mlb"
-    ? "h-9 w-9 bg-zinc-950"
-    : "h-9 w-9 rounded-sm bg-zinc-950";
+    ? "h-8 w-8 bg-zinc-950"
+    : "h-8 w-8 rounded-sm bg-zinc-950";
 }
 
 function MoneylineCell({
@@ -181,8 +180,8 @@ function MoneylineCell({
         odds={odds}
         impliedPercent={impliedPercent}
         matchup={`${game.away_team} vs. ${game.home_team}`}
-        triggerClassName="flex h-[56px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-center transition-[transform,border-color] duration-100 hover:translate-y-[-1px] active:translate-y-0"
-        triggerContentClassName="text-[14px] font-semibold tracking-tight text-zinc-100"
+        triggerClassName="flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 px-2.5 text-center transition-[transform,border-color] duration-100 hover:translate-y-[-1px] hover:border-zinc-700 active:translate-y-0"
+        triggerContentClassName="text-[13px] font-semibold tracking-tight text-zinc-100"
         polymarketEventId={game.polymarket?.event_id ?? null}
         polymarketEventSlug={game.polymarket?.event_slug ?? null}
         polymarketMarketId={game.polymarket?.market_id ?? null}
@@ -206,7 +205,7 @@ function TeamRow({
   sportKey: string;
 }) {
   return (
-    <div className="flex min-h-[56px] items-center gap-3 px-3 py-2">
+    <div className="flex h-[46px] items-center gap-2.5 px-2 py-1.5">
       {info?.logo ? (
         <img
           src={info.logo}
@@ -218,11 +217,11 @@ function TeamRow({
       )}
 
       <div className="min-w-0">
-        <div className="truncate text-[15px] font-medium text-zinc-100">
+        <div className="truncate text-[14px] font-medium leading-tight text-zinc-100">
           {info?.name || team}
         </div>
 
-        <div className="truncate text-[12px] text-zinc-400">
+        <div className="mt-0.5 truncate text-[12px] leading-none text-zinc-500">
           {info?.record || info?.abbreviation || info?.alias || "—"}
         </div>
       </div>
@@ -239,8 +238,8 @@ function GameCard({ game }: { game: Game }) {
   const eventHref = `/event/${game.slug}`;
 
   return (
-    <article className="relative pb-9 md:rounded-2xl md:border md:border-zinc-900 md:p-4 md:pb-12">
-      <div className="mb-2 grid grid-cols-[minmax(0,1fr)_96px]">
+    <article className="relative pb-7 md:rounded-xl md:border md:border-zinc-900 md:p-3 md:pb-9">
+      <div className="mb-1.5 grid grid-cols-[minmax(0,1fr)_84px]">
         <div className="pl-1 text-[9px] font-medium uppercase tracking-[0.14em] text-zinc-500">
           Teams
         </div>
@@ -250,7 +249,7 @@ function GameCard({ game }: { game: Game }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)_96px]">
+      <div className="grid grid-cols-[minmax(0,1fr)_84px] gap-2">
         <div>
           <TeamRow
             team={game.away_team}
@@ -282,16 +281,16 @@ function GameCard({ game }: { game: Game }) {
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-1 text-[13px] text-zinc-400 md:bottom-4 md:left-4">
+      <div className="absolute bottom-0 left-1 text-[12px] text-zinc-500 md:bottom-3 md:left-3">
         {formatGameTime(game.commence_time)}
       </div>
 
       <Link
         href={eventHref}
-        className="absolute bottom-0 right-1 inline-flex items-center gap-1.5 text-[12px] font-medium text-zinc-400 transition-colors hover:text-white md:bottom-4 md:right-4"
+        className="absolute bottom-0 right-1 inline-flex items-center gap-1.5 text-[12px] font-medium text-zinc-500 transition-colors hover:text-white md:bottom-3 md:right-3"
       >
         <span>View</span>
-        <FaChevronRight className="h-2.5 w-2.5" />
+        <FiArrowUpRight className="h-3.5 w-3.5" />
       </Link>
     </article>
   );
@@ -353,11 +352,11 @@ export default async function Home({
             </div>
 
             {!league || league.games.length === 0 ? (
-              <div className="rounded-[18px] border border-zinc-800 p-5 text-[13px] text-zinc-400">
+              <div className="rounded-xl border border-zinc-900 p-4 text-[13px] text-zinc-400">
                 No active {selectedLeagueMeta.label} markets right now.
               </div>
             ) : (
-              <div className="grid gap-6 md:gap-3 lg:grid-cols-2">
+              <div className="grid gap-5 md:gap-3 lg:grid-cols-2">
                 {league.games.map((game) => (
                   <GameCard key={game.id} game={game} />
                 ))}
