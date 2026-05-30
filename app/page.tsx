@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { FiArrowUpRight } from "react-icons/fi";
+import { FaChevronRight } from "react-icons/fa";
 import LastUpdatedAgo from "./components/LastUpdatedAgo";
 import LeagueTabs from "./components/LeagueTabs";
 import BetSlipModal from "@/app/components/BetSlipModal";
@@ -290,7 +291,7 @@ function GameCard({ game }: { game: Game }) {
         className="absolute bottom-0 right-1 inline-flex items-center gap-1.5 text-[12px] font-medium text-zinc-400 transition-colors hover:text-white md:bottom-4 md:right-4"
       >
         <span>View</span>
-        <FiArrowUpRight className="h-3.5 w-3.5" />
+        <FaChevronRight className="h-3.5 w-3.5" />
       </Link>
     </article>
   );
