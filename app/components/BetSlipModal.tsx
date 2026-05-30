@@ -553,12 +553,14 @@ const AccountSelectSection = memo(function AccountSelectSection({
 
                     <div
                       className={[
-                        "mt-1 h-3.5 w-3.5 shrink-0 rounded-full border",
-                        selected
-                          ? "border-zinc-100 bg-zinc-100"
-                          : "border-zinc-700",
+                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
+                        selected ? "border-zinc-100" : "border-zinc-700",
                       ].join(" ")}
-                    />
+                    >
+                      {selected ? (
+                        <div className="h-2 w-2 rounded-full bg-zinc-100" />
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="mt-3 space-y-1.5 text-[12px] leading-4">
