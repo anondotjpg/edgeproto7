@@ -369,6 +369,9 @@ function BetSlipContent({
     };
   }, []);
 
+  const showAccountScrollHint =
+    ready && authenticated && !isLoadingAccounts && mobileLayout && accounts.length > 3;
+
   const showAccountControls =
     ready &&
     authenticated &&
@@ -376,7 +379,7 @@ function BetSlipContent({
     !mobileLayout &&
     accounts.length > 3;
 
-  const reserveAccountControlSpace = !mobileLayout && authenticated;
+  const reserveAccountControlSpace = authenticated;
 
   return (
     <>
@@ -432,7 +435,11 @@ function BetSlipContent({
             Select account
           </div>
 
-          {reserveAccountControlSpace ? (
+          {showAccountScrollHint ? (
+            <div className="shrink-0 text-[11px] font-medium leading-[18px] text-zinc-500">
+              Scroll to view more
+            </div>
+          ) : reserveAccountControlSpace ? (
             <div
               className={[
                 "flex h-[18px] w-[54px] shrink-0 items-center justify-end gap-2",
