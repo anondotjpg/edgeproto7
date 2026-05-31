@@ -105,7 +105,7 @@ function resultLabel(status: string) {
 }
 
 function accountStatusClassName() {
-  return "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800";
+  return "bg-zinc-900 text-zinc-400";
 }
 
 function statusClassName(status: string) {
@@ -115,18 +115,18 @@ function statusClassName(status: string) {
     status === "passed" ||
     status === "won"
   ) {
-    return "bg-green-950/35 text-green-500 ring-1 ring-green-950/70";
+    return "bg-green-950/35 text-green-500";
   }
 
   if (status === "failed" || status === "lost") {
-    return "bg-red-900/25 text-red-400 ring-1 ring-red-900/50";
+    return "bg-red-900/25 text-red-400";
   }
 
   if (status === "void") {
-    return "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800";
+    return "bg-zinc-900 text-zinc-400";
   }
 
-  return "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800";
+  return "bg-zinc-900 text-zinc-400";
 }
 
 function pnlColor(value: number) {
@@ -146,19 +146,19 @@ function getHealthLabel(room: number, limit: number) {
 }
 
 function getHealthClassName(room: number, limit: number) {
-  if (room <= 0) return "text-red-400 bg-red-900/25 ring-red-900/50";
+  if (room <= 0) return "text-red-400 bg-red-900/25";
 
   const ratio = limit > 0 ? room / limit : 1;
 
   if (ratio <= 0.25) {
-    return "text-red-400 bg-red-900/25 ring-red-900/50";
+    return "text-red-400 bg-red-900/25";
   }
 
   if (ratio <= 0.5) {
-    return "text-amber-500 bg-amber-950/30 ring-amber-950/60";
+    return "text-amber-500 bg-amber-950/30";
   }
 
-  return "text-green-500 bg-green-950/35 ring-green-950/70";
+  return "text-green-500 bg-green-950/35";
 }
 
 function ProgressBar({
@@ -257,7 +257,7 @@ function RuleRoomCard({
       : 0;
 
   const healthLabel = getHealthLabel(room, limit);
-  const healthClassName = "bg-zinc-900 text-zinc-400 ring-zinc-800";
+  const healthClassName = "bg-zinc-900 text-zinc-400";
 
   return (
     <div className="h-[178px] rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
@@ -275,7 +275,7 @@ function RuleRoomCard({
         </div>
 
         <div
-          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ${healthClassName}`}
+          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${healthClassName}`}
         >
           {healthLabel}
         </div>
