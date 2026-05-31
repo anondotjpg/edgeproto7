@@ -785,7 +785,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
 
             <div className="flex h-[142px] flex-col justify-between rounded-[26px] bg-black/30 p-5 ring-1 ring-zinc-900 lg:h-[146px]">
               <div className="flex items-start justify-between gap-4">
-                <div className="text-[13px] font-medium leading-none text-zinc-500">
+                <div className="text-[17px] font-medium leading-none text-zinc-500">
                   Goal
                 </div>
 
