@@ -810,7 +810,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
 
                   <div
                     className={[
-                      "mb-2 shrink-0 text-[12px] font-semibold leading-none sm:mb-2.5",
+                      "mb-2 shrink-0 text-[15px] font-semibold leading-none sm:mb-2.5",
                       pnlColor(realizedPnl),
                     ].join(" ")}
                   >
