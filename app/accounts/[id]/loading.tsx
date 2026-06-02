@@ -25,21 +25,35 @@ function TopSummarySkeleton() {
   );
 }
 
-function GoalBarsSkeleton() {
-  const barCount = 42;
-
+function SegmentedBarsSkeleton({ barCount }: { barCount: number }) {
   return (
-    <div className="flex h-10 w-full items-center sm:h-11">
-      <div
-        className="grid h-7 w-full items-stretch gap-1.5 sm:h-[31px]"
-        style={{ gridTemplateColumns: `repeat(${barCount}, minmax(0, 1fr))` }}
-      >
-        {Array.from({ length: barCount }).map((_, index) => (
-          <SkeletonBlock key={index} className="min-w-0 rounded-full" />
-        ))}
-      </div>
+    <div
+      className="grid h-7 w-full items-stretch gap-1.5 sm:h-[31px] lg:h-7"
+      style={{ gridTemplateColumns: `repeat(${barCount}, minmax(0, 1fr))` }}
+    >
+      {Array.from({ length: barCount }).map((_, index) => (
+        <SkeletonBlock key={index} className="min-w-0 rounded-full" />
+      ))}
     </div>
   );
+}
+
+function ResponsiveBarsSkeleton() {
+  return (
+    <>
+      <div className="flex h-10 w-full items-center sm:h-11 lg:hidden">
+        <SegmentedBarsSkeleton barCount={28} />
+      </div>
+
+      <div className="hidden h-8 w-full items-center lg:flex">
+        <SegmentedBarsSkeleton barCount={42} />
+      </div>
+    </>
+  );
+}
+
+function GoalBarsSkeleton() {
+  return <ResponsiveBarsSkeleton />;
 }
 
 function GoalSkeleton() {
@@ -64,20 +78,7 @@ function GoalSkeleton() {
 }
 
 function LossRuleBarsSkeleton() {
-  const barCount = 42;
-
-  return (
-    <div className="flex h-10 w-full items-center sm:h-11">
-      <div
-        className="grid h-7 w-full items-stretch gap-1.5 sm:h-[31px]"
-        style={{ gridTemplateColumns: `repeat(${barCount}, minmax(0, 1fr))` }}
-      >
-        {Array.from({ length: barCount }).map((_, index) => (
-          <SkeletonBlock key={index} className="min-w-0 rounded-full" />
-        ))}
-      </div>
-    </div>
-  );
+  return <ResponsiveBarsSkeleton />;
 }
 
 function RuleSkeleton({ label }: { label: string }) {

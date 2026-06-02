@@ -201,32 +201,31 @@ function ProgressBar({
   );
 }
 
-function GoalProgressBar({ value }: { value: number }) {
+function SegmentedProgressBar({
+  value,
+  getBarColor,
+}: {
+  value: number;
+  getBarColor: (index: number, barCount: number) => string;
+}) {
   const progress = Math.min(Math.max(value, 0), 100);
-  const barCount = 42;
-  const step = 100 / barCount;
 
-  const getBarFill = (index: number) => {
-    const barStart = index * step;
-    const barEnd = barStart + step;
+  const renderBars = (barCount: number) => {
+    const step = 100 / barCount;
 
-    if (progress >= barEnd) return 1;
-    if (progress <= barStart) return 0;
+    const getBarFill = (index: number) => {
+      const barStart = index * step;
+      const barEnd = barStart + step;
 
-    return (progress - barStart) / step;
-  };
+      if (progress >= barEnd) return 1;
+      if (progress <= barStart) return 0;
 
-  const getBarColor = (index: number) => {
-    const ratio = barCount <= 1 ? 1 : index / (barCount - 1);
-    const hue = 42 + ratio * 98;
+      return (progress - barStart) / step;
+    };
 
-    return `hsl(${hue} 82% 52%)`;
-  };
-
-  return (
-    <div className="flex h-8 w-full items-center sm:h-9">
+    return (
       <div
-        className="grid h-6 w-full items-stretch gap-1.5 sm:h-7"
+        className="grid h-6 w-full items-stretch gap-1.5 sm:h-7 lg:h-7"
         style={{ gridTemplateColumns: `repeat(${barCount}, minmax(0, 1fr))` }}
       >
         {Array.from({ length: barCount }).map((_, index) => {
@@ -239,7 +238,7 @@ function GoalProgressBar({ value }: { value: number }) {
             >
               <div
                 className="absolute inset-0 rounded-full"
-                style={{ backgroundColor: getBarColor(index) }}
+                style={{ backgroundColor: getBarColor(index, barCount) }}
               />
 
               <div
@@ -250,60 +249,47 @@ function GoalProgressBar({ value }: { value: number }) {
           );
         })}
       </div>
-    </div>
+    );
+  };
+
+  return (
+    <>
+      <div className="flex h-8 w-full items-center sm:h-9 lg:hidden">
+        {renderBars(28)}
+      </div>
+
+      <div className="hidden h-8 w-full items-center lg:flex">
+        {renderBars(42)}
+      </div>
+    </>
+  );
+}
+
+function GoalProgressBar({ value }: { value: number }) {
+  return (
+    <SegmentedProgressBar
+      value={value}
+      getBarColor={(index, barCount) => {
+        const ratio = barCount <= 1 ? 1 : index / (barCount - 1);
+        const hue = 42 + ratio * 98;
+
+        return `hsl(${hue} 82% 52%)`;
+      }}
+    />
   );
 }
 
 function LossRuleProgressBar({ value }: { value: number }) {
-  const progress = Math.min(Math.max(value, 0), 100);
-  const barCount = 42;
-  const step = 100 / barCount;
-
-  const getBarFill = (index: number) => {
-    const barStart = index * step;
-    const barEnd = barStart + step;
-
-    if (progress >= barEnd) return 1;
-    if (progress <= barStart) return 0;
-
-    return (progress - barStart) / step;
-  };
-
-  const getBarColor = (index: number) => {
-    const ratio = barCount <= 1 ? 1 : index / (barCount - 1);
-    const hue = 48 - ratio * 48;
-
-    return `hsl(${hue} 92% 55%)`;
-  };
-
   return (
-    <div className="flex h-8 w-full items-center sm:h-9">
-      <div
-        className="grid h-6 w-full items-stretch gap-1.5 sm:h-7"
-        style={{ gridTemplateColumns: `repeat(${barCount}, minmax(0, 1fr))` }}
-      >
-        {Array.from({ length: barCount }).map((_, index) => {
-          const fill = getBarFill(index);
+    <SegmentedProgressBar
+      value={value}
+      getBarColor={(index, barCount) => {
+        const ratio = barCount <= 1 ? 1 : index / (barCount - 1);
+        const hue = 48 - ratio * 48;
 
-          return (
-            <div
-              key={index}
-              className="relative min-w-0 overflow-hidden rounded-full bg-zinc-900"
-            >
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{ backgroundColor: getBarColor(index) }}
-              />
-
-              <div
-                className="absolute inset-0 rounded-full bg-zinc-950"
-                style={{ opacity: 0.68 * (1 - fill) }}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
+        return `hsl(${hue} 92% 55%)`;
+      }}
+    />
   );
 }
 
