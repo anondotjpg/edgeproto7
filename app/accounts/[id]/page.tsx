@@ -244,7 +244,7 @@ function GoalProgressBar({ value }: { value: number }) {
 
               <div
                 className="absolute inset-0 rounded-full bg-zinc-950"
-                style={{ opacity: 0.58 * (1 - fill) }}
+                style={{ opacity: 0.48 * (1 - fill) }}
               />
             </div>
           );
