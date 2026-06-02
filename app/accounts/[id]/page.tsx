@@ -218,9 +218,9 @@ function GoalProgressBar({ value }: { value: number }) {
 
   const getBarColor = (index: number) => {
     const ratio = barCount <= 1 ? 1 : index / (barCount - 1);
-    const hue = 0 + ratio * 140;
+    const hue = 42 + ratio * 98;
 
-    return `hsl(${hue} 82% 54%)`;
+    return `hsl(${hue} 82% 52%)`;
   };
 
   return (
@@ -352,15 +352,17 @@ function RuleRoomCard({
 }) {
   if (isAccountFailed) {
     return (
-      <div className="flex h-[178px] items-center justify-center rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
+      <div className="flex h-[158px] items-center justify-center rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
         <div className="text-center">
-          <div className="text-[17px] font-medium leading-none text-zinc-500">{title}</div>
+          <div className="text-[17px] font-medium leading-none text-zinc-500">
+            {title}
+          </div>
 
-          <div className="mt-3 pb-1 text-[32px] font-semibold leading-[1.08] tracking-tight text-zinc-100">
+          <div className="mt-2 pb-1 text-[28px] font-semibold leading-[1.08] tracking-tight text-zinc-100">
             Failed
           </div>
 
-          <div className="mt-1 text-[13px] text-zinc-500">
+          <div className="mt-1 text-[13px] leading-none text-zinc-500">
             Loss limit breached
           </div>
         </div>
@@ -377,31 +379,28 @@ function RuleRoomCard({
       : 0;
 
   const healthLabel = getHealthLabel(room, limit);
-  const healthClassName = "bg-zinc-900 text-zinc-400";
 
   return (
-    <div className="h-[178px] rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
+    <div className="flex h-[158px] flex-col rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-[17px] font-medium leading-none text-zinc-500">{title}</div>
+        <div className="min-w-0">
+          <div className="text-[17px] font-medium leading-none text-zinc-500">
+            {title}
+          </div>
 
-          <div className="mt-2 pb-1 text-[30px] font-semibold leading-[1.08] tracking-tight text-zinc-100">
+          <div className="mt-2 truncate pb-1 text-[26px] font-semibold leading-[1.08] tracking-tight text-zinc-100 sm:text-[28px]">
             {breached ? "Failed" : formatMoney(safeRoom)}
           </div>
 
-          <div className="mt-1 text-[13px] text-zinc-500">
+          <div className="mt-1 truncate text-[13px] leading-none text-zinc-500">
             {breached ? "limit breached" : "amount before fail"}
           </div>
         </div>
 
-        <div
-          className={COMPACT_BADGE_CLASS}
-        >
-          {healthLabel}
-        </div>
+        <div className={COMPACT_BADGE_CLASS}>{healthLabel}</div>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-auto pt-3">
         <LossRuleProgressBar value={usedPercent} />
       </div>
     </div>
@@ -868,9 +867,9 @@ export default async function AccountPage({ params }: AccountPageProps) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white">
       <div className="mx-auto w-full max-w-7xl px-4 pt-15 pb-32 sm:px-6 md:py-15 md:pb-24">
-        <section className="rounded-[32px] bg-zinc-950/90 p-4 sm:p-5">
-          <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.92fr)]">
-            <div className="flex h-[142px] min-w-0 flex-col justify-between overflow-hidden lg:h-[146px]">
+        <section>
+          <div className="grid items-stretch gap-3 lg:grid-cols-2">
+            <div className="flex h-[142px] min-w-0 flex-col justify-between overflow-hidden lg:h-[158px]">
               <div className="min-w-0">
                 <div className="flex h-[36px] max-w-full items-start overflow-hidden sm:h-[42px] lg:h-[44px]">
                   <h1 className="truncate text-[29px] font-semibold leading-[1.08] tracking-tight text-zinc-100 sm:text-[34px] lg:text-[36px]">
@@ -903,29 +902,31 @@ export default async function AccountPage({ params }: AccountPageProps) {
               </div>
             </div>
 
-            <div className="flex h-[158px] flex-col justify-between rounded-[26px] bg-black/30 p-5 ring-1 ring-zinc-900 lg:h-[162px]">
+            <div className="flex h-[158px] flex-col rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
               <div className="flex items-start justify-between gap-4">
-                <div className="text-[17px] font-medium leading-none text-zinc-500">
-                  Goal
+                <div className="min-w-0">
+                  <div className="text-[17px] font-medium leading-none text-zinc-500">
+                    Goal
+                  </div>
+
+                  <div className="mt-2 truncate pb-1 text-[26px] font-semibold leading-[1.08] tracking-tight text-zinc-100 sm:text-[28px]">
+                    {formatMoney(ruleEquity)}
+                  </div>
+
+                  <div className="mt-1 truncate text-[13px] font-medium leading-none text-zinc-500">
+                    of {formatMoney(profitTargetBalance)} goal
+                  </div>
                 </div>
               </div>
 
-              <GoalProgressBar value={goalProgress} />
-
-              <div className="min-w-0">
-                <div className="truncate pb-1 text-[26px] font-semibold leading-[1.1] tracking-tight text-zinc-100 sm:text-[30px] lg:text-[32px]">
-                  {formatMoney(ruleEquity)}
-                </div>
-
-                <div className="truncate text-[13px] font-medium leading-[1.35] text-zinc-500">
-                  of {formatMoney(profitTargetBalance)} goal
-                </div>
+              <div className="mt-auto pt-3">
+                <GoalProgressBar value={goalProgress} />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="mt-3 grid h-[368px] gap-3 sm:mt-3 lg:h-[178px] lg:grid-cols-2">
+        <section className="mt-3 grid gap-3 lg:grid-cols-2">
           <RuleRoomCard
             title="Daily loss"
             room={dailyRoom}

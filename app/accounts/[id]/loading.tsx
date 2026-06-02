@@ -4,7 +4,7 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
 
 function TopSummarySkeleton() {
   return (
-    <div className="flex h-[142px] min-w-0 flex-col justify-between overflow-hidden lg:h-[146px]">
+    <div className="flex h-[142px] min-w-0 flex-col justify-between overflow-hidden lg:h-[158px]">
       <div className="min-w-0">
         <div className="flex h-[36px] max-w-full items-start overflow-hidden sm:h-[42px] lg:h-[44px]">
           <SkeletonBlock className="h-8 w-52 max-w-full sm:h-9 sm:w-64" />
@@ -44,18 +44,20 @@ function GoalBarsSkeleton() {
 
 function GoalSkeleton() {
   return (
-    <div className="flex h-[158px] flex-col justify-between rounded-[26px] bg-black/30 p-5 ring-1 ring-zinc-900 lg:h-[162px]">
+    <div className="flex h-[158px] flex-col rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
       <div className="flex items-start justify-between gap-4">
-        <div className="text-[17px] font-medium leading-none text-zinc-500">
-          Goal
+        <div className="min-w-0">
+          <div className="text-[17px] font-medium leading-none text-zinc-500">
+            Goal
+          </div>
+
+          <SkeletonBlock className="mt-2 h-7 w-36 sm:w-40" />
+          <SkeletonBlock className="mt-2 h-4 w-32" />
         </div>
       </div>
 
-      <GoalBarsSkeleton />
-
-      <div className="min-w-0">
-        <SkeletonBlock className="h-7 w-36 sm:h-8 sm:w-40 lg:w-44" />
-        <SkeletonBlock className="mt-2 h-4 w-32" />
+      <div className="mt-auto pt-3">
+        <GoalBarsSkeleton />
       </div>
     </div>
   );
@@ -80,20 +82,21 @@ function LossRuleBarsSkeleton() {
 
 function RuleSkeleton({ label }: { label: string }) {
   return (
-    <div className="h-[178px] rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
+    <div className="flex h-[158px] flex-col rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
       <div className="flex items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <div className="text-[17px] font-medium leading-none text-zinc-500">
             {label}
           </div>
-          <SkeletonBlock className="mt-3 h-8 w-36" />
+
+          <SkeletonBlock className="mt-2 h-7 w-36 sm:w-40" />
           <SkeletonBlock className="mt-2 h-4 w-32" />
         </div>
 
-        <SkeletonBlock className="h-5 w-16 rounded-full" />
+        <SkeletonBlock className="h-5 w-16 shrink-0 rounded-full" />
       </div>
 
-      <div className="mt-3">
+      <div className="mt-auto pt-3">
         <LossRuleBarsSkeleton />
       </div>
     </div>
@@ -199,14 +202,14 @@ export default function LoadingAccountPage() {
   return (
     <div className="min-h-screen bg-[#09090b] text-white">
       <div className="mx-auto w-full max-w-7xl px-4 pt-15 pb-32 sm:px-6 md:py-15 md:pb-24">
-        <section className="rounded-[32px] bg-zinc-950/90 p-4 sm:p-5">
-          <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.92fr)]">
+        <section>
+          <div className="grid items-stretch gap-3 lg:grid-cols-2">
             <TopSummarySkeleton />
             <GoalSkeleton />
           </div>
         </section>
 
-        <section className="mt-3 grid h-[368px] gap-3 sm:mt-3 lg:h-[178px] lg:grid-cols-2">
+        <section className="mt-3 grid gap-3 lg:grid-cols-2">
           <RuleSkeleton label="Daily loss" />
           <RuleSkeleton label="Total loss" />
         </section>
