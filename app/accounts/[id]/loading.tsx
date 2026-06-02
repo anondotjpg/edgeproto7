@@ -99,8 +99,6 @@ function RuleSkeleton({ label }: { label: string }) {
           <SkeletonBlock className="mt-2 h-[34px] w-36 sm:w-40" />
           <SkeletonBlock className="mt-1 h-4 w-32" />
         </div>
-
-        <SkeletonBlock className="h-5 w-16 shrink-0 rounded-full" />
       </div>
 
       <div className="mt-auto pt-2">

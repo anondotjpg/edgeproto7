@@ -389,8 +389,6 @@ function RuleRoomCard({
             {breached ? "limit breached" : "amount before fail"}
           </div>
         </div>
-
-        <div className={COMPACT_BADGE_CLASS}>{healthLabel}</div>
       </div>
 
       <div className="mt-auto pt-2">
