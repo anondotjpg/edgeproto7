@@ -135,7 +135,7 @@ function formatGameTime(date: string) {
 function getLogoClassName(sportKey: string) {
   return sportKey === "mlb"
     ? "h-9 w-9 object-contain xl:h-7 xl:w-7"
-    : "h-9 w-9 rounded-sm bg-white/5 object-contain xl:h-7 xl:w-7";
+    : "h-9 w-9 object-contain xl:h-7 xl:w-7";
 }
 
 function getLogoFallbackClassName(sportKey: string) {
