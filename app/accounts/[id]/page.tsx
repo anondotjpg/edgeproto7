@@ -203,7 +203,7 @@ function ProgressBar({
 
 function GoalProgressBar({ value }: { value: number }) {
   const progress = Math.min(Math.max(value, 0), 100);
-  const barCount = 28;
+  const barCount = 42;
   const step = 100 / barCount;
 
   const getBarFill = (index: number) => {
@@ -256,7 +256,7 @@ function GoalProgressBar({ value }: { value: number }) {
 
 function LossRuleProgressBar({ value }: { value: number }) {
   const progress = Math.min(Math.max(value, 0), 100);
-  const barCount = 28;
+  const barCount = 42;
   const step = 100 / barCount;
 
   const getBarFill = (index: number) => {

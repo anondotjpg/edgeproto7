@@ -26,7 +26,7 @@ function TopSummarySkeleton() {
 }
 
 function GoalBarsSkeleton() {
-  const barCount = 28;
+  const barCount = 42;
 
   return (
     <div className="flex h-10 w-full items-center sm:h-11">
@@ -64,7 +64,7 @@ function GoalSkeleton() {
 }
 
 function LossRuleBarsSkeleton() {
-  const barCount = 28;
+  const barCount = 42;
 
   return (
     <div className="flex h-10 w-full items-center sm:h-11">
