@@ -202,25 +202,54 @@ function ProgressBar({
 }
 
 function GoalProgressBar({ value }: { value: number }) {
-  const width = Math.min(Math.max(value, 0), 100);
-  const empty = 100 - width;
+  const progress = Math.min(Math.max(value, 0), 100);
+  const barCount = 28;
+  const step = 100 / barCount;
+
+  const getBarFill = (index: number) => {
+    const barStart = index * step;
+    const barEnd = barStart + step;
+
+    if (progress >= barEnd) return 1;
+    if (progress <= barStart) return 0;
+
+    return (progress - barStart) / step;
+  };
+
+  const getBarColor = (index: number) => {
+    const ratio = barCount <= 1 ? 1 : index / (barCount - 1);
+    const hue = 0 + ratio * 140;
+
+    return `hsl(${hue} 82% 54%)`;
+  };
 
   return (
-    <div className="relative h-2 w-full overflow-hidden rounded-full bg-zinc-900">
-      {/* full heatmap track: red -> orange -> yellow -> green */}
+    <div className="flex h-10 w-full items-center sm:h-11">
       <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background:
-            "linear-gradient(to right, #ef4444, #f97316, #f59e0b, #eab308, #22c55e)",
-        }}
-      />
+        className="grid h-7 w-full items-stretch gap-1.5 sm:h-[31px]"
+        style={{ gridTemplateColumns: `repeat(${barCount}, minmax(0, 1fr))` }}
+      >
+        {Array.from({ length: barCount }).map((_, index) => {
+          const fill = getBarFill(index);
 
-      {/* dim the unfilled (right) portion */}
-      <div
-        className="absolute inset-y-0 right-0 bg-zinc-950 opacity-50"
-        style={{ width: `${empty}%` }}
-      />
+          return (
+            <div
+              key={index}
+              className="relative min-w-0 overflow-hidden rounded-full bg-zinc-900"
+            >
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{ backgroundColor: getBarColor(index) }}
+              />
+
+              <div
+                className="absolute inset-0 rounded-full bg-zinc-950"
+                style={{ opacity: 0.58 * (1 - fill) }}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -824,7 +853,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
               </div>
             </div>
 
-            <div className="flex h-[142px] flex-col justify-between rounded-[26px] bg-black/30 p-5 ring-1 ring-zinc-900 lg:h-[146px]">
+            <div className="flex h-[158px] flex-col justify-between rounded-[26px] bg-black/30 p-5 ring-1 ring-zinc-900 lg:h-[162px]">
               <div className="flex items-start justify-between gap-4">
                 <div className="text-[17px] font-medium leading-none text-zinc-500">
                   Goal
@@ -837,11 +866,10 @@ export default async function AccountPage({ params }: AccountPageProps) {
                 </div>
               </div>
 
-              {/* heatmap progress bar */}
               <GoalProgressBar value={goalProgress} />
 
               <div className="min-w-0">
-                <div className="truncate pb-1 text-[32px] font-semibold leading-[1.12] tracking-tight text-zinc-100 sm:text-[36px] lg:text-[38px]">
+                <div className="truncate pb-1 text-[26px] font-semibold leading-[1.1] tracking-tight text-zinc-100 sm:text-[30px] lg:text-[32px]">
                   {formatMoney(ruleEquity)}
                 </div>
 
