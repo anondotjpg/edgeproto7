@@ -72,6 +72,9 @@ type EventOdds = {
     question: string | null;
     outcomes: string[];
     clob_token_ids: string[];
+    volume: number | null;
+    volume_24hr: number | null;
+    liquidity: number | null;
   };
 
   outcome_token_ids?: {
@@ -98,6 +101,14 @@ type PolymarketMarket = {
   clobTokenIds?: string | string[];
   conditionId?: string;
   condition_id?: string;
+  volume?: string | number | null;
+  volumeNum?: string | number | null;
+  volumeClob?: string | number | null;
+  volume24hr?: string | number | null;
+  volume24hrClob?: string | number | null;
+  liquidity?: string | number | null;
+  liquidityNum?: string | number | null;
+  liquidityClob?: string | number | null;
   gameStartTime?: string;
   endDate?: string;
   acceptingOrders?: boolean;
@@ -143,6 +154,20 @@ function parseStringArray(value: unknown): string[] {
   }
 
   return [];
+}
+
+function parseNumericValue(...values: unknown[]): number | null {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+
+    const numericValue = Number(value);
+
+    if (Number.isFinite(numericValue)) {
+      return numericValue;
+    }
+  }
+
+  return null;
 }
 
 function probabilityToAmerican(probability: number): number {
@@ -582,6 +607,9 @@ async function buildGameFromMarket(
       question: market.question ?? null,
       outcomes,
       clob_token_ids: clobTokenIds,
+      volume: parseNumericValue(market.volumeNum, market.volume, market.volumeClob),
+      volume_24hr: parseNumericValue(market.volume24hr, market.volume24hrClob),
+      liquidity: parseNumericValue(market.liquidityNum, market.liquidity, market.liquidityClob),
     },
 
     outcome_token_ids: {
@@ -697,6 +725,9 @@ async function fetchLeagueGames(league: {
           eventSlug: game.debug?.eventSlug,
           question: game.debug?.question,
           conditionId: game.polymarket?.condition_id,
+          volume: game.polymarket?.volume,
+          volume24hr: game.polymarket?.volume_24hr,
+          liquidity: game.polymarket?.liquidity,
           awayTokenId: game.outcome_token_ids?.away,
           homeTokenId: game.outcome_token_ids?.home,
         },

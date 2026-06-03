@@ -132,6 +132,33 @@ function formatGameTime(date: string) {
   });
 }
 
+type PolymarketMarketVolume = NonNullable<Game["polymarket"]> & {
+  volume?: number | null;
+  volume_24hr?: number | null;
+  liquidity?: number | null;
+};
+
+function getMarketVolume(game: Game) {
+  const polymarket = game.polymarket as PolymarketMarketVolume | undefined;
+  return polymarket?.volume ?? null;
+}
+
+function formatMarketVolume(value: number | null | undefined) {
+  const safeValue = Number(value);
+
+  if (!Number.isFinite(safeValue) || safeValue < 0) return null;
+
+  if (safeValue < 1000) {
+    return `$${Math.round(safeValue).toLocaleString()} Vol.`;
+  }
+
+  if (safeValue < 1_000_000) {
+    return `$${(safeValue / 1000).toFixed(2)}K Vol.`;
+  }
+
+  return `$${(safeValue / 1_000_000).toFixed(2)}M Vol.`;
+}
+
 function getLogoClassName(sportKey: string) {
   return sportKey === "mlb"
     ? "h-9 w-9 object-contain xl:h-7 xl:w-7"
@@ -330,6 +357,34 @@ function DateMarketHeader({ date }: { date: string }) {
   );
 }
 
+function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) {
+  const marketVolume = formatMarketVolume(getMarketVolume(game));
+
+  return (
+    <div className="mb-3 flex min-w-0 items-center justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <div className="inline-flex h-7 shrink-0 items-center rounded-xl bg-zinc-900 px-3 text-[11px] font-medium text-zinc-100">
+          {formatGameTime(game.commence_time)}
+        </div>
+
+        {marketVolume ? (
+          <div className="min-w-0 truncate text-[13px] font-semibold leading-none text-zinc-500 sm:text-[14px]">
+            {marketVolume}
+          </div>
+        ) : null}
+      </div>
+
+      <Link
+        href={eventHref}
+        className="inline-flex h-8 shrink-0 items-center gap-2 rounded-xl bg-zinc-900 px-3 text-[13px] font-medium text-zinc-100 transition-colors hover:bg-zinc-800"
+      >
+        <span>Game View</span>
+        <FaChevronRight className="h-2.5 w-2.5" />
+      </Link>
+    </div>
+  );
+}
+
 function GameCard({
   game,
   selectedBet,
@@ -371,19 +426,7 @@ function GameCard({
   return (
     <>
       <article className="relative xl:hidden md:rounded-xl md:bg-zinc-900/30 md:p-3">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="inline-flex h-7 items-center rounded-xl bg-zinc-900 px-3 text-[11px] font-medium text-zinc-100">
-            {formatGameTime(game.commence_time)}
-          </div>
-
-          <Link
-            href={eventHref}
-            className="inline-flex h-8 items-center gap-2 rounded-xl bg-zinc-900 px-3 text-[13px] font-medium text-zinc-100 transition-colors hover:bg-zinc-800"
-          >
-            <span>Game View</span>
-            <FaChevronRight className="h-2.5 w-2.5" />
-          </Link>
-        </div>
+        <GameCardHeader game={game} eventHref={eventHref} />
 
         <div>
           <TeamRow
@@ -413,19 +456,7 @@ function GameCard({
       </article>
 
       <article className="relative hidden xl:block xl:rounded-xl xl:bg-zinc-900/30 xl:p-3">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="inline-flex h-7 items-center rounded-xl bg-zinc-900 px-3 text-[11px] font-medium text-zinc-100">
-            {formatGameTime(game.commence_time)}
-          </div>
-
-          <Link
-            href={eventHref}
-            className="inline-flex h-8 items-center gap-2 rounded-xl bg-zinc-900 px-3 text-[13px] font-medium text-zinc-100 transition-colors hover:bg-zinc-800"
-          >
-            <span>Game View</span>
-            <FaChevronRight className="h-2.5 w-2.5" />
-          </Link>
-        </div>
+        <GameCardHeader game={game} eventHref={eventHref} />
 
         <div className="grid grid-cols-[minmax(0,1fr)_84px] gap-2">
           <div>

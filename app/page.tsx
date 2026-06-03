@@ -43,6 +43,10 @@ export type Game = {
     question: string | null;
     outcomes: string[];
     clob_token_ids: string[];
+
+    volume: number | null;
+    volume_24hr: number | null;
+    liquidity: number | null;
   };
 
   outcome_token_ids?: {
