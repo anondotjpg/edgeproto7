@@ -481,7 +481,7 @@ function PastBetRow({ bet, index }: { bet: Bet; index: number }) {
 
 function EmptyTableRow({ message }: { message: string }) {
   return (
-    <div className="border-b border-zinc-900/80 px-4 py-8 text-sm text-zinc-500 last:border-b-0 sm:px-5 lg:min-w-[560px] xl:min-w-[760px]">
+    <div className="flex min-h-[154px] items-center border-b border-zinc-900/80 px-4 text-left text-sm text-zinc-500 last:border-b-0 sm:px-5 lg:min-w-[560px] xl:min-w-[760px]">
       {message}
     </div>
   );
