@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { privyServer } from "@/lib/privy-server";
 
+const MIN_ALLOWED_AMERICAN_ODDS = -190;
+
 type PlaceBetBody = {
   accountIds?: string[];
   gameId?: string;
@@ -66,6 +68,13 @@ function cleanRpcError(message: string) {
     return "Invalid odds.";
   }
 
+  if (
+    message.toLowerCase().includes("duplicate") ||
+    message.includes("bets_unique_open_account_condition_token")
+  ) {
+    return "You already placed this bet on this account.";
+  }
+
   return message || "Unable to place bet.";
 }
 
@@ -114,19 +123,26 @@ export async function POST(req: Request) {
     if (!accountIds.length) {
       return NextResponse.json(
         { error: "Select at least one account." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!gameId || !league || !market || !selection) {
       return NextResponse.json(
         { error: "Missing bet details." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!Number.isFinite(odds) || odds === 0) {
       return NextResponse.json({ error: "Invalid odds." }, { status: 400 });
+    }
+
+    if (odds < MIN_ALLOWED_AMERICAN_ODDS) {
+      return NextResponse.json(
+        { error: "Only -190 or better odds can be placed." },
+        { status: 400 },
+      );
     }
 
     if (!Number.isFinite(stake) || stake <= 0) {
@@ -139,7 +155,7 @@ export async function POST(req: Request) {
           error:
             "Missing Polymarket settlement data. Refresh the market and try again.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -155,18 +171,95 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
+    const cleanAccountIds = Array.from(
+      new Set(
+        accountIds.map(cleanText).filter((id): id is string => Boolean(id)),
+      ),
+    );
+
+    if (!cleanAccountIds.length) {
+      return NextResponse.json(
+        { error: "Invalid account ID." },
+        { status: 400 },
+      );
+    }
+
+    const { data: eligibleGame, error: eligibleGameError } = await supabaseAdmin
+      .from("eligible_games")
+      .select("id, is_live, status, commence_time, polymarket")
+      .eq("id", gameId)
+      .maybeSingle();
+
+    if (eligibleGameError) throw eligibleGameError;
+
+    if (
+      !eligibleGame ||
+      !["open", "live"].includes(String(eligibleGame.status))
+    ) {
+      return NextResponse.json(
+        { error: "This game is no longer available." },
+        { status: 400 },
+      );
+    }
+
+    const gameHasStarted =
+      Boolean(eligibleGame.is_live) ||
+      Date.parse(String(eligibleGame.commence_time)) <= Date.now();
+
+    if (gameHasStarted) {
+      return NextResponse.json({ error: "Game Started" }, { status: 400 });
+    }
+
+    const eligiblePolymarket = eligibleGame.polymarket as {
+      condition_id?: string | null;
+      clob_token_ids?: string[] | null;
+    } | null;
+
+    if (
+      eligiblePolymarket?.condition_id &&
+      eligiblePolymarket.condition_id !== polymarketConditionId
+    ) {
+      return NextResponse.json(
+        { error: "This market changed. Refresh and try again." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      Array.isArray(eligiblePolymarket?.clob_token_ids) &&
+      !eligiblePolymarket.clob_token_ids.includes(polymarketTokenId)
+    ) {
+      return NextResponse.json(
+        {
+          error: "This outcome is no longer available. Refresh and try again.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const { data: duplicateBets, error: duplicateBetError } =
+      await supabaseAdmin
+        .from("bets")
+        .select("id, account_id")
+        .eq("user_id", dbUser.id)
+        .in("account_id", cleanAccountIds)
+        .eq("polymarket_condition_id", polymarketConditionId)
+        .eq("polymarket_token_id", polymarketTokenId)
+        .eq("status", "open")
+        .limit(1);
+
+    if (duplicateBetError) throw duplicateBetError;
+
+    if (duplicateBets?.length) {
+      return NextResponse.json(
+        { error: "You already placed this bet on this account." },
+        { status: 400 },
+      );
+    }
+
     const placedBetIds: string[] = [];
 
-    for (const accountId of accountIds) {
-      const cleanAccountId = cleanText(accountId);
-
-      if (!cleanAccountId) {
-        return NextResponse.json(
-          { error: "Invalid account ID." },
-          { status: 400 }
-        );
-      }
-
+    for (const cleanAccountId of cleanAccountIds) {
       const { data: betId, error: rpcError } = await supabaseAdmin.rpc(
         "place_bet_for_account",
         {
@@ -189,7 +282,7 @@ export async function POST(req: Request) {
           p_polymarket_token_id: polymarketTokenId,
           p_team_logo: teamLogo,
           p_team_logo_alt: teamLogoAlt,
-        }
+        },
       );
 
       if (rpcError) {
@@ -198,7 +291,7 @@ export async function POST(req: Request) {
             error: cleanRpcError(rpcError.message),
             details: rpcError.message,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -214,10 +307,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Unable to place bet.",
+        error: error instanceof Error ? error.message : "Unable to place bet.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
