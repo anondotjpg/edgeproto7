@@ -222,11 +222,14 @@ function TeamPanel({
             {info?.name || team}
           </div>
 
-          {info?.record ? (
-            <div className="mt-1 text-[13px] text-zinc-400">
-              {info.record}
-            </div>
-          ) : null}
+          <div
+            className={[
+              "mt-1 h-5 truncate text-[14px] font-medium leading-5 text-zinc-400",
+              info?.record ? "" : "invisible",
+            ].join(" ")}
+          >
+            {info?.record || "—"}
+          </div>
         </div>
       </div>
 
