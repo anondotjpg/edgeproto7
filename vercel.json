@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/sync-eligible-games",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/sync-polymarket-settlements",
       "schedule": "*/5 * * * *"
     }
