@@ -363,7 +363,7 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
   return (
     <div className="mb-3 flex min-w-0 items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2.5">
-        <div className="inline-flex h-7 shrink-0 items-center rounded-xl bg-zinc-900 px-3 text-[11px] font-medium text-zinc-100">
+        <div className="inline-flex h-7 shrink-0 items-center rounded-xl bg-zinc-900 px-3 text-[13px] font-medium text-zinc-100">
           {formatGameTime(game.commence_time)}
         </div>
 
