@@ -120,7 +120,7 @@ const ACCOUNT_ROW_CLASS =
   "flex gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 const ACCOUNT_CARD_CLASS =
-  "h-[84px] overflow-hidden rounded-xl border p-2.5 text-left transition-colors";
+  "h-[80px] overflow-hidden rounded-xl border p-2 text-left transition-colors";
 
 const ACCOUNT_CARD_STYLE: CSSProperties = {
   flex: "0 0 calc((100% - 24px) / 3)",
@@ -309,7 +309,7 @@ function AccountOptionSkeleton() {
         </div>
       </div>
 
-      <div className="mt-2.5 space-y-1 text-[12px] leading-4">
+      <div className="mt-2 space-y-0.5 text-[12px] leading-4">
         <div className="flex h-4 items-center justify-between gap-2">
           <SkeletonBlock className="h-3 w-8" />
           <SkeletonBlock className="h-3 w-10" />
@@ -723,7 +723,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
                     </div>
                   </div>
 
-                  <div className="mt-2.5 space-y-1 text-[12px] leading-4">
+                  <div className="mt-2 space-y-0.5 text-[12px] leading-4">
                     <div className="flex h-4 items-center justify-between gap-2">
                       <span className="text-zinc-500">Avail</span>
                       <span className="font-medium text-zinc-300">
