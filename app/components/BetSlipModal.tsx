@@ -84,14 +84,14 @@ const ACCOUNT_ROW_CLASS =
   "flex gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 const ACCOUNT_CARD_CLASS =
-  "h-[92px] overflow-hidden rounded-xl border p-3 text-left transition-colors";
+  "h-[84px] overflow-hidden rounded-xl border p-2.5 text-left transition-colors";
 
 const ACCOUNT_CARD_STYLE: CSSProperties = {
   flex: "0 0 calc((100% - 24px) / 3)",
 };
 
-const ACCOUNT_SELECT_SHELL_CLASS = "mt-5 h-[126px]";
-const ACCOUNT_LIST_CLASS = "mt-3 h-[96px] overflow-hidden";
+const ACCOUNT_SELECT_SHELL_CLASS = "mt-4 h-[112px]";
+const ACCOUNT_LIST_CLASS = "mt-2.5 h-[88px] overflow-hidden";
 
 const QUICK_AMOUNT_OPTIONS = [
   { label: "25%", value: 0.25 },
@@ -273,7 +273,7 @@ function AccountOptionSkeleton() {
         </div>
       </div>
 
-      <div className="mt-3 space-y-1 text-[12px] leading-4">
+      <div className="mt-2.5 space-y-1 text-[12px] leading-4">
         <div className="flex h-4 items-center justify-between gap-2">
           <SkeletonBlock className="h-3 w-8" />
           <SkeletonBlock className="h-3 w-10" />
@@ -577,7 +577,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
   return (
     <div
       className={
-        panelMode === "sidebar" ? "mt-4 h-[126px]" : ACCOUNT_SELECT_SHELL_CLASS
+        panelMode === "sidebar" ? "mt-4 h-[112px]" : ACCOUNT_SELECT_SHELL_CLASS
       }
     >
       <div className="flex h-[18px] items-center justify-between gap-3">
@@ -630,7 +630,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
           <button
             type="button"
             onClick={login}
-            className="flex h-[92px] w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 p-4 text-left text-base text-zinc-300"
+            className="flex h-[84px] w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 p-3.5 text-left text-base text-zinc-300"
           >
             <span className="inline underline cursor-pointer">Sign in</span>&nbsp;to select an account
           </button>
@@ -675,7 +675,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
                     </div>
                   </div>
 
-                  <div className="mt-3 space-y-1 text-[12px] leading-4">
+                  <div className="mt-2.5 space-y-1 text-[12px] leading-4">
                     <div className="flex h-4 items-center justify-between gap-2">
                       <span className="text-zinc-500">Avail</span>
                       <span className="font-medium text-zinc-300">
@@ -697,7 +697,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
         ) : (
           <Link
             href="/accounts"
-            className="flex h-[92px] w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 p-4 text-left text-base text-zinc-300"
+            className="flex h-[84px] w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 p-3.5 text-left text-base text-zinc-300"
           >
             No accounts. 
             <span className="inline underline">Start a challenge</span>
@@ -871,7 +871,7 @@ function BetSlipControls({
         onToggleAccount={onToggleAccount}
       />
 
-      <div className="mt-5 overflow-visible">
+      <div className="mt-4 overflow-visible">
         {panelMode === "sidebar" ? (
           <div>
             <div className="mb-2 flex items-start justify-between gap-4">
