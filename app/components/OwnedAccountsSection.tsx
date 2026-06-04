@@ -20,13 +20,17 @@ type ExistingAccount = {
 const MAX_ACCOUNT_NAME_LENGTH = 15;
 
 const ACCOUNT_ROW_CLASS =
-  "flex snap-x snap-mandatory gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+  "flex gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 const ACCOUNT_CARD_CLASS =
-  "group min-h-[72px] shrink-0 snap-start snap-always rounded-[14px] border border-zinc-900 bg-zinc-950 px-4 py-3 transition-colors hover:border-zinc-800 hover:bg-zinc-900/80";
+  "group min-h-[72px] shrink-0 rounded-[14px] border border-zinc-900 bg-zinc-950 px-4 py-3 transition-colors hover:border-zinc-800 hover:bg-zinc-900/80";
 
 const ACCOUNT_CARD_WIDTH_CLASS =
   "w-full sm:w-[calc((100%_-_8px)_/_2)] xl:w-[calc((100%_-_16px)_/_3)]";
+
+function SkeletonBlock({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse rounded-md bg-zinc-900 ${className}`} />;
+}
 
 function getStatusLabel(status: string) {
   const normalizedStatus = status.toLowerCase();
@@ -42,14 +46,54 @@ function getStatusLabel(status: string) {
   return status;
 }
 
+function AccountSkeletonCard() {
+  return (
+    <div
+      className={[
+        ACCOUNT_CARD_CLASS,
+        ACCOUNT_CARD_WIDTH_CLASS,
+        "flex items-center justify-between",
+      ].join(" ")}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <SkeletonBlock className="h-5 w-24" />
+          <SkeletonBlock className="h-5 w-16 rounded-full" />
+        </div>
+
+        <SkeletonBlock className="mt-2 h-3 w-24" />
+      </div>
+
+      <div className="ml-3 flex shrink-0 items-center gap-2">
+        <SkeletonBlock className="h-7 w-7 rounded-full" />
+      </div>
+    </div>
+  );
+}
+
+function EmptyAccountCard({ authenticated }: { authenticated: boolean }) {
+  return (
+    <div className="flex min-h-[72px] items-center justify-between rounded-[14px] border border-zinc-900 bg-zinc-950 px-4 py-3">
+      <div className="min-w-0">
+        <div className="text-[14px] font-medium text-zinc-300">
+          No active accounts
+        </div>
+
+        <div className="mt-1 text-[12px] text-zinc-600">
+          {authenticated
+            ? "Open an account below to get started."
+            : "Sign in to view your accounts."}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function OwnedAccountsSection() {
   const router = useRouter();
   const { ready, authenticated, getAccessToken } = usePrivy();
 
   const rowRef = useRef<HTMLDivElement | null>(null);
-  const scrollMaskTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
 
   const [accounts, setAccounts] = useState<ExistingAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,8 +102,6 @@ export default function OwnedAccountsSection() {
   const [savingAccountId, setSavingAccountId] = useState<string | null>(null);
   const [canScrollBack, setCanScrollBack] = useState(false);
   const [canScrollForward, setCanScrollForward] = useState(false);
-  const [hasHorizontalOverflow, setHasHorizontalOverflow] = useState(false);
-  const [isScrollMaskVisible, setIsScrollMaskVisible] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,44 +162,10 @@ export default function OwnedAccountsSection() {
     const row = rowRef.current;
     if (!row) return;
 
-    const maxScrollLeft = Math.max(0, row.scrollWidth - row.clientWidth);
+    const maxScrollLeft = row.scrollWidth - row.clientWidth;
 
-    setHasHorizontalOverflow(maxScrollLeft > 2);
     setCanScrollBack(row.scrollLeft > 2);
     setCanScrollForward(row.scrollLeft < maxScrollLeft - 2);
-  }
-
-  function activateScrollMask() {
-    if (accounts.length <= 1) return;
-
-    setIsScrollMaskVisible(true);
-
-    if (scrollMaskTimeoutRef.current) {
-      clearTimeout(scrollMaskTimeoutRef.current);
-    }
-
-    scrollMaskTimeoutRef.current = setTimeout(() => {
-      setIsScrollMaskVisible(false);
-    }, 260);
-  }
-
-  function getSnapPositions(row: HTMLDivElement) {
-    const rowRect = row.getBoundingClientRect();
-    const maxScrollLeft = Math.max(0, row.scrollWidth - row.clientWidth);
-
-    const positions = Array.from(row.children)
-      .map((child) => {
-        const childRect = (child as HTMLElement).getBoundingClientRect();
-        return Math.round(childRect.left - rowRect.left + row.scrollLeft);
-      })
-      .map((position) => Math.min(Math.max(position, 0), maxScrollLeft))
-      .filter((position, index, allPositions) => {
-        return index === 0 || Math.abs(position - allPositions[index - 1]) > 2;
-      });
-
-    return Array.from(new Set([0, ...positions, maxScrollLeft])).sort(
-      (a, b) => a - b,
-    );
   }
 
   useEffect(() => {
@@ -166,16 +174,11 @@ export default function OwnedAccountsSection() {
     const row = rowRef.current;
     if (!row) return;
 
-    function handleScroll() {
-      updateScrollState();
-      activateScrollMask();
-    }
-
-    row.addEventListener("scroll", handleScroll, { passive: true });
+    row.addEventListener("scroll", updateScrollState, { passive: true });
     window.addEventListener("resize", updateScrollState);
 
     return () => {
-      row.removeEventListener("scroll", handleScroll);
+      row.removeEventListener("scroll", updateScrollState);
       window.removeEventListener("resize", updateScrollState);
     };
   }, [accounts.length, isLoading, ready, authenticated]);
@@ -187,14 +190,6 @@ export default function OwnedAccountsSection() {
       window.cancelAnimationFrame(frame);
     };
   }, [accounts.length, isLoading]);
-
-  useEffect(() => {
-    return () => {
-      if (scrollMaskTimeoutRef.current) {
-        clearTimeout(scrollMaskTimeoutRef.current);
-      }
-    };
-  }, []);
 
   async function saveAccountName(accountId: string) {
     if (savingAccountId) return;
@@ -233,8 +228,8 @@ export default function OwnedAccountsSection() {
                 ...account,
                 account_name: data.account?.account_name ?? null,
               }
-            : account,
-        ),
+            : account
+        )
       );
 
       setEditingAccountId(null);
@@ -254,56 +249,34 @@ export default function OwnedAccountsSection() {
     const row = rowRef.current;
     if (!row) return;
 
-    const maxScrollLeft = Math.max(0, row.scrollWidth - row.clientWidth);
-    const snapPositions = getSnapPositions(row);
-    const currentLeft = Math.round(row.scrollLeft);
-    const buffer = 3;
-
-    if (maxScrollLeft <= 2 || snapPositions.length <= 1) {
-      updateScrollState();
-      return;
-    }
-
-    const rawTargetLeft =
-      direction === "forward"
-        ? snapPositions.find((position) => position > currentLeft + buffer) ??
-          maxScrollLeft
-        : [...snapPositions]
-            .reverse()
-            .find((position) => position < currentLeft - buffer) ?? 0;
-
-    const targetLeft = Math.min(Math.max(rawTargetLeft, 0), maxScrollLeft);
-
-    activateScrollMask();
-
     row.scrollTo({
-      left: targetLeft,
+      left:
+        direction === "back"
+          ? row.scrollLeft - row.clientWidth
+          : row.scrollLeft + row.clientWidth,
       behavior: "smooth",
     });
-
-    window.setTimeout(updateScrollState, 180);
-    window.setTimeout(updateScrollState, 420);
   }
 
-  const showAccounts = ready && !isLoading && authenticated && accounts.length > 0;
-  const hasOverflowControls = showAccounts && hasHorizontalOverflow;
-  const reserveArrowSpace = hasOverflowControls;
+  const showSkeleton = !ready || isLoading;
+  const showEmpty = !showSkeleton && (!authenticated || accounts.length === 0);
+  const showAccounts = !showSkeleton && authenticated && accounts.length > 0;
+  const hasOverflowControls =
+    showAccounts && (canScrollBack || canScrollForward || accounts.length > 3);
+  const reserveArrowSpace = showSkeleton || hasOverflowControls;
   const showMobileSwipeHint = showAccounts && accounts.length > 1;
-  const showScrollEdgeFade =
-    showAccounts &&
-    accounts.length > 1 &&
-    hasHorizontalOverflow &&
-    isScrollMaskVisible;
+
+  const hideOnMobileWhenCollapsed = !showAccounts;
 
   return (
     <div
       className={[
-        "overflow-hidden transition-[height,margin-bottom] duration-[720ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-        showAccounts ? "mb-6 h-[124px]" : "mb-0 h-0",
+        "mb-6 overflow-hidden transition-[height] duration-[850ms] ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-auto sm:min-h-[122px] sm:overflow-visible sm:transition-none md:pt-[5%] lg:pt-0",
+        showAccounts ? "h-[124px]" : "h-[14px]",
       ].join(" ")}
     >
       <style>{`
-        @keyframes ownedAccountsReveal {
+        @keyframes ownedAccountsMobileReveal {
           0% {
             opacity: 0;
             transform: translateY(-8px);
@@ -314,244 +287,233 @@ export default function OwnedAccountsSection() {
           }
         }
 
-        .owned-accounts-reveal {
-          animation: ownedAccountsReveal 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
-
-        .owned-accounts-edge-fade {
-          transition: opacity 150ms cubic-bezier(0.22, 1, 0.36, 1);
-          will-change: opacity;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .owned-accounts-reveal {
-            animation: none !important;
-          }
-
-          .owned-accounts-edge-fade {
-            transition: none !important;
+        @media (max-width: 639px) {
+          .owned-accounts-mobile-reveal {
+            animation: ownedAccountsMobileReveal 850ms cubic-bezier(0.22, 1, 0.36, 1) both;
           }
         }
       `}</style>
 
-      {showAccounts ? (
-        <div className="owned-accounts-reveal">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="min-w-0 text-base font-semibold tracking-tight text-zinc-100 sm:text-xl">
-              Accounts <span className="text-zinc-500">({accounts.length})</span>
-            </h2>
+      <div
+        className={[
+          "mb-3 items-center justify-between gap-3",
+          hideOnMobileWhenCollapsed ? "hidden sm:flex" : "flex",
+        ].join(" ")}
+      >
+        <h2 className="min-w-0 text-base font-semibold tracking-tight text-zinc-100 sm:text-xl">
+          Accounts{" "}
+          <span className="text-zinc-500">
+            ({showSkeleton ? "0" : showAccounts ? accounts.length : 0})
+          </span>
+        </h2>
 
-            {showMobileSwipeHint ? (
-              <div className="shrink-0 text-[11px] font-medium text-zinc-500 sm:hidden">
-                Swipe to view more
-              </div>
-            ) : null}
-
-            <div
-              className={[
-                "hidden h-7 w-[64px] shrink-0 items-center justify-end gap-2 sm:flex",
-                reserveArrowSpace ? "" : "invisible",
-              ].join(" ")}
-            >
-              <button
-                type="button"
-                aria-label="Previous accounts"
-                onClick={() => scrollAccounts("back")}
-                disabled={!hasOverflowControls || !canScrollBack}
-                className={[
-                  "flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30",
-                  hasOverflowControls ? "cursor-pointer" : "invisible",
-                ].join(" ")}
-              >
-                <FaChevronLeft className="h-4 w-4" />
-              </button>
-
-              <button
-                type="button"
-                aria-label="Next accounts"
-                onClick={() => scrollAccounts("forward")}
-                disabled={!hasOverflowControls || !canScrollForward}
-                className={[
-                  "flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30",
-                  hasOverflowControls ? "cursor-pointer" : "invisible",
-                ].join(" ")}
-              >
-                <FaChevronRight className="h-4 w-4" />
-              </button>
-            </div>
+        {showMobileSwipeHint ? (
+          <div className="shrink-0 text-[11px] font-medium text-zinc-500 sm:hidden">
+            Swipe to view more
           </div>
+        ) : null}
 
-          <div className="relative">
-            <div ref={rowRef} className={ACCOUNT_ROW_CLASS}>
-              {accounts.map((account) => {
-                const plan = PLAN_CONFIG[account.plan_key as PlanKey];
+        <div
+          className={[
+            "hidden h-7 w-[64px] shrink-0 items-center justify-end gap-2 sm:flex",
+            reserveArrowSpace ? "" : "invisible",
+          ].join(" ")}
+        >
+          <button
+            type="button"
+            aria-label="Previous accounts"
+            onClick={() => scrollAccounts("back")}
+            disabled={!hasOverflowControls || !canScrollBack}
+            className={[
+              "flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30",
+              hasOverflowControls ? "cursor-pointer" : "invisible",
+            ].join(" ")}
+          >
+            <FaChevronLeft className="h-4 w-4" />
+          </button>
 
-                const sizeLabel =
-                  plan?.sizeLabel ??
-                  `$${Number(account.plan_size).toLocaleString()}`;
+          <button
+            type="button"
+            aria-label="Next accounts"
+            onClick={() => scrollAccounts("forward")}
+            disabled={!hasOverflowControls || !canScrollForward}
+            className={[
+              "flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30",
+              hasOverflowControls ? "cursor-pointer" : "invisible",
+            ].join(" ")}
+          >
+            <FaChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
 
-                const feeLabel = `$${Number(
-                  account.one_time_fee,
-                ).toLocaleString()}`;
+      {showSkeleton ? (
+        <div ref={rowRef} className={[ACCOUNT_ROW_CLASS, "hidden sm:flex"].join(" ")}>
+          <AccountSkeletonCard />
+          <AccountSkeletonCard />
+          <AccountSkeletonCard />
+        </div>
+      ) : null}
 
-                const isEditing = editingAccountId === account.id;
-                const isSaving = savingAccountId === account.id;
-                const accountName = account.account_name?.trim();
-                const displayName = accountName || sizeLabel;
+      {showEmpty ? (
+        <div className="hidden sm:block">
+          <EmptyAccountCard authenticated={authenticated} />
+        </div>
+      ) : null}
 
-                return (
-                  <div
-                    key={account.id}
-                    role={isEditing ? undefined : "link"}
-                    tabIndex={isEditing ? undefined : 0}
-                    onClick={() => {
-                      if (!isEditing) {
-                        openAccount(account.id);
-                      }
-                    }}
-                    onKeyDown={(event) => {
-                      if (isEditing) return;
+      {showAccounts ? (
+        <div className="owned-accounts-mobile-reveal sm:contents">
+          <div ref={rowRef} className={ACCOUNT_ROW_CLASS}>
+          {accounts.map((account) => {
+            const plan = PLAN_CONFIG[account.plan_key as PlanKey];
 
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        openAccount(account.id);
-                      }
-                    }}
-                    className={[
-                      ACCOUNT_CARD_CLASS,
-                      ACCOUNT_CARD_WIDTH_CLASS,
-                      isEditing ? "" : "cursor-pointer",
-                    ].join(" ")}
-                  >
-                    {isEditing ? (
-                      <div>
-                        <div className="flex min-h-[48px] items-center gap-2">
-                          <input
-                            value={draftName}
-                            onChange={(event) =>
-                              setDraftName(
-                                event.target.value.slice(
-                                  0,
-                                  MAX_ACCOUNT_NAME_LENGTH,
-                                ),
-                              )
-                            }
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter") {
-                                event.preventDefault();
-                                saveAccountName(account.id);
-                              }
+            const sizeLabel =
+              plan?.sizeLabel ??
+              `$${Number(account.plan_size).toLocaleString()}`;
 
-                              if (event.key === "Escape") {
-                                setEditingAccountId(null);
-                                setDraftName("");
-                              }
-                            }}
-                            autoFocus
-                            maxLength={MAX_ACCOUNT_NAME_LENGTH}
-                            placeholder={sizeLabel}
-                            className="min-w-0 flex-1 rounded-lg border border-zinc-800 bg-black/40 px-2 py-1.5 text-[13px] text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
-                          />
+            const feeLabel = `$${Number(
+              account.one_time_fee
+            ).toLocaleString()}`;
 
-                          <button
-                            type="button"
-                            onClick={() => saveAccountName(account.id)}
-                            disabled={isSaving}
-                            className="cursor-pointer rounded-lg bg-zinc-100 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-950 disabled:opacity-50"
-                          >
-                            {isSaving ? "..." : "Save"}
-                          </button>
+            const isEditing = editingAccountId === account.id;
+            const isSaving = savingAccountId === account.id;
+            const accountName = account.account_name?.trim();
+            const displayName = accountName || sizeLabel;
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingAccountId(null);
-                              setDraftName("");
-                            }}
-                            className="cursor-pointer rounded-lg border border-zinc-800 px-2.5 py-1.5 text-[11px] font-medium text-zinc-400 hover:text-zinc-100"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex min-h-[48px] items-center justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <div className="truncate text-[17px] font-semibold leading-none tracking-tight text-zinc-100">
-                              {displayName}
-                            </div>
+            return (
+              <div
+                key={account.id}
+                role={isEditing ? undefined : "link"}
+                tabIndex={isEditing ? undefined : 0}
+                onClick={() => {
+                  if (!isEditing) {
+                    openAccount(account.id);
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if (isEditing) return;
 
-                            <div className="shrink-0 rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-medium tracking-[0.12em] text-zinc-500">
-                              {getStatusLabel(account.status)}
-                            </div>
-                          </div>
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openAccount(account.id);
+                  }
+                }}
+                className={[
+                  ACCOUNT_CARD_CLASS,
+                  ACCOUNT_CARD_WIDTH_CLASS,
+                  isEditing ? "" : "cursor-pointer",
+                ].join(" ")}
+              >
+                {isEditing ? (
+                  <div>
+                    <div className="flex min-h-[48px] items-center gap-2">
+                      <input
+                        value={draftName}
+                        onChange={(event) =>
+                          setDraftName(
+                            event.target.value.slice(
+                              0,
+                              MAX_ACCOUNT_NAME_LENGTH
+                            )
+                          )
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            saveAccountName(account.id);
+                          }
 
-                          <div className="mt-[6px] text-[12px] leading-none text-zinc-500">
-                            {accountName
-                              ? `${sizeLabel} · Fee ${feeLabel}`
-                              : `Fee ${feeLabel}`}
-                          </div>
-                        </div>
+                          if (event.key === "Escape") {
+                            setEditingAccountId(null);
+                            setDraftName("");
+                          }
+                        }}
+                        autoFocus
+                        maxLength={MAX_ACCOUNT_NAME_LENGTH}
+                        placeholder={sizeLabel}
+                        className="min-w-0 flex-1 rounded-lg border border-zinc-800 bg-black/40 px-2 py-1.5 text-[13px] text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
+                      />
 
-                        <div className="ml-3 flex shrink-0 items-center gap-2">
-                          <button
-                            type="button"
-                            aria-label="Rename account"
-                            title="Rename account"
-                            onClick={(event) => {
-                              event.stopPropagation();
+                      <button
+                        type="button"
+                        onClick={() => saveAccountName(account.id)}
+                        disabled={isSaving}
+                        className="cursor-pointer rounded-lg bg-zinc-100 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-950 disabled:opacity-50"
+                      >
+                        {isSaving ? "..." : "Save"}
+                      </button>
 
-                              setEditingAccountId(account.id);
-                              setDraftName(
-                                (account.account_name ?? "").slice(
-                                  0,
-                                  MAX_ACCOUNT_NAME_LENGTH,
-                                ),
-                              );
-                            }}
-                            className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
-                          >
-                            <FiEdit2 className="h-3.5 w-3.5" />
-                          </button>
-
-                          <button
-                            type="button"
-                            aria-label="Open account"
-                            title="Open account"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              openAccount(account.id);
-                            }}
-                            className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
-                          >
-                            <FiArrowUpRight className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingAccountId(null);
+                          setDraftName("");
+                        }}
+                        className="cursor-pointer rounded-lg border border-zinc-800 px-2.5 py-1.5 text-[11px] font-medium text-zinc-400 hover:text-zinc-100"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+                ) : (
+                  <div className="flex min-h-[48px] items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="truncate text-[17px] font-semibold leading-none tracking-tight text-zinc-100">
+                          {displayName}
+                        </div>
 
-            <div
-              aria-hidden="true"
-              className={[
-                "owned-accounts-edge-fade pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-[#09090b] via-[#09090b]/80 to-transparent",
-                showScrollEdgeFade && canScrollBack ? "opacity-100" : "opacity-0",
-              ].join(" ")}
-            />
+                        <div className="shrink-0 rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-medium tracking-[0.12em] text-zinc-500">
+                          {getStatusLabel(account.status)}
+                        </div>
+                      </div>
 
-            <div
-              aria-hidden="true"
-              className={[
-                "owned-accounts-edge-fade pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-[#09090b] via-[#09090b]/80 to-transparent",
-                showScrollEdgeFade && canScrollForward
-                  ? "opacity-100"
-                  : "opacity-0",
-              ].join(" ")}
-            />
+                      <div className="mt-[6px] text-[12px] leading-none text-zinc-500">
+                        {accountName
+                          ? `${sizeLabel} · Fee ${feeLabel}`
+                          : `Fee ${feeLabel}`}
+                      </div>
+                    </div>
+
+                    <div className="ml-3 flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        aria-label="Rename account"
+                        title="Rename account"
+                        onClick={(event) => {
+                          event.stopPropagation();
+
+                          setEditingAccountId(account.id);
+                          setDraftName(
+                            (account.account_name ?? "").slice(
+                              0,
+                              MAX_ACCOUNT_NAME_LENGTH
+                            )
+                          );
+                        }}
+                        className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
+                      >
+                        <FiEdit2 className="h-3.5 w-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        aria-label="Open account"
+                        title="Open account"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openAccount(account.id);
+                        }}
+                        className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
+                      >
+                        <FiArrowUpRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
           </div>
         </div>
       ) : null}
