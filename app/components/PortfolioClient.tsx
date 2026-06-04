@@ -119,7 +119,9 @@ function getSettledSortTime(bet: Pick<Bet, "settled_at" | "placed_at">) {
 }
 
 function sortPastBetsBySettledAt(bets: Bet[]) {
-  return [...bets].sort((a, b) => getSettledSortTime(b) - getSettledSortTime(a));
+  return [...bets].sort(
+    (a, b) => getSettledSortTime(b) - getSettledSortTime(a),
+  );
 }
 
 function SkeletonBlock({ className = "" }: { className?: string }) {
@@ -169,12 +171,12 @@ function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-900 bg-zinc-950/80 p-5 sm:p-6">
-      <h3 className="text-lg font-semibold tracking-tight text-zinc-100">
+    <div className="flex min-h-[154px] flex-col justify-center bg-zinc-950/70 text-left">
+      <div className="text-[17px] font-semibold tracking-tight text-zinc-100">
         {title}
-      </h3>
+      </div>
 
-      <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-500">
+      <p className="mt-2 max-w-xl text-[14px] leading-6 text-zinc-500">
         {description}
       </p>
 
@@ -481,8 +483,27 @@ function PastBetRow({ bet, index }: { bet: Bet; index: number }) {
 
 function EmptyTableRow({ message }: { message: string }) {
   return (
-    <div className="flex min-h-[154px] items-center border-b border-zinc-900/80 px-4 text-left text-sm text-zinc-500 last:border-b-0 sm:px-5 lg:min-w-[560px] xl:min-w-[760px]">
+    <div className="border-b border-zinc-900/80 px-4 py-8 text-sm text-zinc-500 last:border-b-0 sm:px-5 lg:min-w-[560px] xl:min-w-[760px]">
       {message}
+    </div>
+  );
+}
+
+function EmptyOpenPositionsRow() {
+  return (
+    <div className="border-b border-zinc-900/80 px-3 py-3 last:border-b-0 sm:px-5 lg:min-w-[560px] xl:min-w-[760px]">
+      <EmptyState
+        title="No open positions"
+        description="You do not have any open bets right now. New positions will appear here after a bet is placed."
+        action={
+          <Link
+            href="/"
+            className="inline-flex rounded-xl bg-black/30 px-4 py-2 text-sm font-medium text-zinc-300 ring-1 ring-zinc-800 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+          >
+            Browse markets
+          </Link>
+        }
+      />
     </div>
   );
 }
@@ -490,7 +511,7 @@ function EmptyTableRow({ message }: { message: string }) {
 function PortfolioSkeleton() {
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80 lg:overflow-x-auto">
-      <TableSectionHeader title="Active" count={0} />
+      <TableSectionHeader title="Open" count={0} />
       <TableHeader
         labels={["Team", "Account", "Status", "Odds", "Stake", "Payout"]}
       />
@@ -518,7 +539,7 @@ function PortfolioTable({
 }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80 shadow-sm lg:overflow-x-auto">
-      <TableSectionHeader title="Active" count={openBets.length} />
+      <TableSectionHeader title="Open" count={openBets.length} />
       <TableHeader
         labels={["Team", "Account", "Status", "Odds", "Stake", "Payout"]}
       />
@@ -527,7 +548,7 @@ function PortfolioTable({
           <ActiveBetRow key={bet.id} bet={bet} index={index} />
         ))
       ) : (
-        <EmptyTableRow message="No active positions." />
+        <EmptyOpenPositionsRow />
       )}
 
       <TableSectionHeader title="Past" count={pastBets.length} />
@@ -552,8 +573,6 @@ export default function PortfolioClient() {
   const [pastBets, setPastBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const hasAnyBets = openBets.length > 0 || pastBets.length > 0;
 
   async function loadPortfolio(options?: { silent?: boolean }) {
     if (!ready) return;
@@ -624,7 +643,7 @@ export default function PortfolioClient() {
       ) : !authenticated ? (
         <EmptyState
           title="Sign in to view your portfolio"
-          description="Your active and past positions will appear here once you sign in."
+          description="Your open and past positions will appear here once you sign in."
           action={
             <button
               type="button"
@@ -643,25 +662,9 @@ export default function PortfolioClient() {
             </div>
           ) : null}
 
-          {!hasAnyBets ? (
-            <EmptyState
-              title="No positions yet"
-              description="Once you place a bet from an event page, active positions will show here. Settled bets will move into your past positions."
-              action={
-                <Link
-                  href="/"
-                  className="inline-flex rounded-xl bg-black/30 px-4 py-2 text-sm font-medium text-zinc-300 ring-1 ring-zinc-800 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
-                >
-                  Browse markets
-                </Link>
-              }
-            />
-          ) : (
-            <PortfolioTable openBets={openBets} pastBets={pastBets} />
-          )}
+          <PortfolioTable openBets={openBets} pastBets={pastBets} />
         </>
       )}
     </div>
   );
 }
-///
