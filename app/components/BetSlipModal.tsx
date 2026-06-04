@@ -295,6 +295,20 @@ function getMaxRiskAmount(account: OwnedAccount) {
   );
 }
 
+function LiveBadge({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={[
+        "hidden h-7 items-center gap-1.5 rounded-full bg-red-950/35 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-red-400 ring-1 ring-red-900/35",
+        className,
+      ].join(" ")}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+      <span>Live</span>
+    </span>
+  );
+}
+
 function SkeletonBlock({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-zinc-900 ${className}`} />;
 }
@@ -335,6 +349,7 @@ const BetSlipHeader = memo(function BetSlipHeader({
   impliedPercent,
   teamLogo,
   teamLogoAlt,
+  isGameStarted,
   mobileLayout,
   panelMode,
 }: {
@@ -342,7 +357,7 @@ const BetSlipHeader = memo(function BetSlipHeader({
   teamAlias?: string | null;
   matchup: string;
   matchupAlias?: string | null;
-  isLive?: boolean;
+  isGameStarted: boolean;
   odds: string;
   impliedPercent: string;
   teamLogo?: string | null;
@@ -416,27 +431,41 @@ const BetSlipHeader = memo(function BetSlipHeader({
           panelMode === "sidebar" ? "right-5 top-2" : "right-0 -top-2",
         ].join(" ")}
       >
-        <div
-          className={[
-            "font-semibold leading-none tracking-tight text-zinc-100",
-            panelMode === "sidebar"
-              ? "text-[26px]"
-              : mobileLayout
-                ? "text-[30px]"
-                : "text-[34px]",
-          ].join(" ")}
-        >
-          <SignedNumberFlow value={parseOdds(odds)} />
-        </div>
+        {isGameStarted ? (
+          <LiveBadge
+            className={
+              panelMode === "sidebar"
+                ? "h-7 px-2.5 text-[10px]"
+                : mobileLayout
+                  ? "h-8 px-3 text-[11px]"
+                  : "h-8 px-3 text-[11px]"
+            }
+          />
+        ) : (
+          <>
+            <div
+              className={[
+                "font-semibold leading-none tracking-tight text-zinc-100",
+                panelMode === "sidebar"
+                  ? "text-[26px]"
+                  : mobileLayout
+                    ? "text-[30px]"
+                    : "text-[34px]",
+              ].join(" ")}
+            >
+              <SignedNumberFlow value={parseOdds(odds)} />
+            </div>
 
-        <div
-          className={[
-            "-mt-1 font-semibold leading-none text-zinc-500 hidden",
-            panelMode === "sidebar" ? "text-[18px]" : "text-[22px]",
-          ].join(" ")}
-        >
-          <PercentFlow value={parseImpliedPercent(impliedPercent)} />
-        </div>
+            <div
+              className={[
+                "-mt-1 hidden font-semibold leading-none text-zinc-500",
+                panelMode === "sidebar" ? "text-[18px]" : "text-[22px]",
+              ].join(" ")}
+            >
+              <PercentFlow value={parseImpliedPercent(impliedPercent)} />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -1224,6 +1253,7 @@ function BetSlipContent({
         impliedPercent={impliedPercent}
         teamLogo={teamLogo}
         teamLogoAlt={teamLogoAlt}
+        isGameStarted={isGameStarted}
         mobileLayout={mobileLayout}
         panelMode={panelMode}
       />
@@ -1680,7 +1710,7 @@ export default function BetSlipModal({
           "text-[20px] font-semibold tracking-tight text-zinc-100"
         }
       >
-        {bet.odds}
+        {bet.isLive ? <LiveBadge /> : bet.odds}
       </div>
     </button>
   );
