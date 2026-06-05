@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import { usePrivy } from "@privy-io/react-auth";
 
 type AccountJoin = {
@@ -40,6 +41,8 @@ type Bet = {
   polymarket_winning_outcome?: string | null;
   polymarket_resolution_error?: string | null;
 };
+
+type PortfolioView = "open" | "past";
 
 function formatOdds(odds: number) {
   return odds > 0 ? `+${odds}` : `${odds}`;
@@ -145,21 +148,6 @@ function getBetRowClassName(index: number) {
   ].join(" ");
 }
 
-function TableSectionHeader({
-  title,
-  count,
-}: {
-  title: string;
-  count: number;
-}) {
-  return (
-    <div className="border-b border-zinc-900 bg-zinc-950 px-3 py-3.5 sm:px-5 sm:py-4 lg:min-w-[560px] xl:min-w-[760px]">
-      <h2 className="text-base font-semibold tracking-tight text-zinc-100 sm:text-xl">
-        {title} <span className="text-zinc-500">({count})</span>
-      </h2>
-    </div>
-  );
-}
 
 function EmptyState({
   title,
@@ -508,24 +496,76 @@ function EmptyOpenPositionsRow() {
   );
 }
 
+const PORTFOLIO_TABS: { label: string; value: PortfolioView }[] = [
+  { label: "Open", value: "open" },
+  { label: "Past", value: "past" },
+];
+
+function PortfolioSegmentedControl({
+  selectedView,
+  onChange,
+  disabled = false,
+}: {
+  selectedView: PortfolioView;
+  onChange: (view: PortfolioView) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="mb-3 flex items-center">
+      <div className="relative z-20 inline-flex h-10 w-fit items-center rounded-lg bg-zinc-900/70">
+        {PORTFOLIO_TABS.map((tab) => {
+          const active = selectedView === tab.value;
+
+          return (
+            <button
+              key={tab.value}
+              type="button"
+              disabled={disabled}
+              onClick={() => onChange(tab.value)}
+              className={[
+                "relative flex h-10 min-w-[62px] items-center justify-center rounded-lg px-3.5 text-[13px] font-medium transition-colors disabled:cursor-default cursor-pointer",
+                active ? "text-zinc-100" : "text-zinc-300 hover:text-zinc-100",
+              ].join(" ")}
+            >
+              {active ? (
+                <motion.span
+                  layoutId="portfolio-segment-active"
+                  transition={{
+                    type: "spring",
+                    stiffness: 420,
+                    damping: 34,
+                    mass: 0.8,
+                  }}
+                  className="absolute inset-0 m-[3px] rounded-lg bg-zinc-800"
+                />
+              ) : null}
+
+              <span className="relative z-10">{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function PortfolioSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80 lg:overflow-x-auto">
-      <TableSectionHeader title="Open" count={0} />
-      <TableHeader
-        labels={["Team", "Account", "Status", "Odds", "Stake", "Payout"]}
+    <div>
+      <PortfolioSegmentedControl
+        selectedView="open"
+        onChange={() => {}}
+        disabled
       />
-      {Array.from({ length: 3 }).map((_, index) => (
-        <SkeletonRow key={`active-skeleton-${index}`} index={index} />
-      ))}
 
-      <TableSectionHeader title="Past" count={0} />
-      <TableHeader
-        labels={["Team", "Account", "Status", "Odds", "Stake", "P/L"]}
-      />
-      {Array.from({ length: 3 }).map((_, index) => (
-        <SkeletonRow key={`past-skeleton-${index}`} index={index} />
-      ))}
+      <div className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80 lg:overflow-x-auto">
+        <TableHeader
+          labels={["Team", "Account", "Status", "Odds", "Stake", "Payout"]}
+        />
+        {Array.from({ length: 3 }).map((_, index) => (
+          <SkeletonRow key={`portfolio-skeleton-${index}`} index={index} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -533,35 +573,61 @@ function PortfolioSkeleton() {
 function PortfolioTable({
   openBets,
   pastBets,
+  selectedView,
+  onSelectedViewChange,
 }: {
   openBets: Bet[];
   pastBets: Bet[];
+  selectedView: PortfolioView;
+  onSelectedViewChange: (view: PortfolioView) => void;
 }) {
-  return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80 shadow-sm lg:overflow-x-auto">
-      <TableSectionHeader title="Open" count={openBets.length} />
-      <TableHeader
-        labels={["Team", "Account", "Status", "Odds", "Stake", "Payout"]}
-      />
-      {openBets.length ? (
-        openBets.map((bet, index) => (
-          <ActiveBetRow key={bet.id} bet={bet} index={index} />
-        ))
-      ) : (
-        <EmptyOpenPositionsRow />
-      )}
+  const showingOpen = selectedView === "open";
 
-      <TableSectionHeader title="Past" count={pastBets.length} />
-      <TableHeader
-        labels={["Team", "Account", "Status", "Odds", "Stake", "P/L"]}
+  return (
+    <div>
+      <PortfolioSegmentedControl
+        selectedView={selectedView}
+        onChange={onSelectedViewChange}
       />
-      {pastBets.length ? (
-        pastBets.map((bet, index) => (
-          <PastBetRow key={bet.id} bet={bet} index={index} />
-        ))
-      ) : (
-        <EmptyTableRow message="No past positions." />
-      )}
+
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={selectedView}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80 shadow-sm lg:overflow-x-auto"
+        >
+          {showingOpen ? (
+            <>
+              <TableHeader
+                labels={["Team", "Account", "Status", "Odds", "Stake", "Payout"]}
+              />
+              {openBets.length ? (
+                openBets.map((bet, index) => (
+                  <ActiveBetRow key={bet.id} bet={bet} index={index} />
+                ))
+              ) : (
+                <EmptyOpenPositionsRow />
+              )}
+            </>
+          ) : (
+            <>
+              <TableHeader
+                labels={["Team", "Account", "Status", "Odds", "Stake", "P/L"]}
+              />
+              {pastBets.length ? (
+                pastBets.map((bet, index) => (
+                  <PastBetRow key={bet.id} bet={bet} index={index} />
+                ))
+              ) : (
+                <EmptyTableRow message="No past positions." />
+              )}
+            </>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -573,6 +639,7 @@ export default function PortfolioClient() {
   const [pastBets, setPastBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedView, setSelectedView] = useState<PortfolioView>("open");
 
   async function loadPortfolio(options?: { silent?: boolean }) {
     if (!ready) return;
@@ -662,7 +729,12 @@ export default function PortfolioClient() {
             </div>
           ) : null}
 
-          <PortfolioTable openBets={openBets} pastBets={pastBets} />
+          <PortfolioTable
+            openBets={openBets}
+            pastBets={pastBets}
+            selectedView={selectedView}
+            onSelectedViewChange={setSelectedView}
+          />
         </>
       )}
     </div>

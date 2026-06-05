@@ -127,18 +127,19 @@ function RuleSkeleton({ label }: { label: string }) {
   );
 }
 
-function TableSectionHeaderSkeleton({ title }: { title: string }) {
+function PositionsSegmentedControlSkeleton() {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-zinc-900 bg-zinc-950 px-3 py-3.5 sm:px-5 sm:py-4 lg:min-w-[640px]">
-      <h2 className="text-base font-semibold tracking-tight text-zinc-100 sm:text-xl">
-        {title} <span className="text-zinc-500">(0)</span>
-      </h2>
-
-      {title === "Open" ? (
-        <div className="shrink-0 text-right text-[11px] font-medium tracking-[0.02em] text-zinc-500 sm:text-[12px]">
-          Open risk <SkeletonBlock className="ml-1 inline-block h-3 w-14 align-middle" />
+    <div className="mb-3 flex items-center">
+      <div className="relative z-20 inline-flex h-10 w-fit items-center rounded-lg bg-zinc-900/70">
+        <div className="relative flex h-10 min-w-[62px] items-center justify-center rounded-lg px-3.5 text-[13px] font-medium text-zinc-100">
+          <span className="absolute inset-0 m-[3px] rounded-lg bg-zinc-800" />
+          <span className="relative z-10">Open</span>
         </div>
-      ) : null}
+
+        <div className="relative flex h-10 min-w-[62px] items-center justify-center rounded-lg px-3.5 text-[13px] font-medium text-zinc-300">
+          Past
+        </div>
+      </div>
     </div>
   );
 }
@@ -222,18 +223,15 @@ function PositionSkeletonRow({ index }: { index: number }) {
 
 function PositionsTableSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80 shadow-sm lg:overflow-x-auto">
-      <TableSectionHeaderSkeleton title="Open" />
-      <TableHeader labels={["Team", "Status", "Odds", "Stake", "Payout"]} />
-      {[0, 1].map((index) => (
-        <PositionSkeletonRow key={`open-position-skeleton-${index}`} index={index} />
-      ))}
+    <div>
+      <PositionsSegmentedControlSkeleton />
 
-      <TableSectionHeaderSkeleton title="Past" />
-      <TableHeader labels={["Team", "Status", "Odds", "Stake", "P/L"]} />
-      {[0, 1].map((index) => (
-        <PositionSkeletonRow key={`past-position-skeleton-${index}`} index={index} />
-      ))}
+      <div className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80 shadow-sm lg:overflow-x-auto">
+        <TableHeader labels={["Team", "Status", "Odds", "Stake", "Payout"]} />
+        {[0, 1, 2].map((index) => (
+          <PositionSkeletonRow key={`position-skeleton-${index}`} index={index} />
+        ))}
+      </div>
     </div>
   );
 }

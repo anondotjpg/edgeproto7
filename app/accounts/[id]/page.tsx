@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
+import AccountPositionsTable from "./AccountPositionsTable";
 
 interface AccountPageProps {
   params: Promise<{ id: string }>;
@@ -1033,7 +1034,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
         </section>
 
         <section className="mt-10">
-          <PositionsTable openBets={openBets} pastBets={pastBets} openRisk={reservedRisk} />
+          <AccountPositionsTable openBets={openBets} pastBets={pastBets} />
         </section>
 
         <section className="mt-10 min-h-[72px] rounded-[24px] bg-zinc-950/70 p-4 ring-1 ring-zinc-900">
