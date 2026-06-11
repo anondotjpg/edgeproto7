@@ -22,6 +22,7 @@ type BetRow = {
   result: string | null;
   settlement_amount: number | null;
   settlement_reason: string | null;
+  account_stage: string | null;
   placed_at: string;
   settled_at: string | null;
   team_logo: string | null;
@@ -38,7 +39,6 @@ function formatMoney(value: number | null | undefined) {
     maximumFractionDigits: 2,
   })}`;
 }
-
 
 function formatMoneyInteger(value: number | null | undefined) {
   const safeValue = Number(value ?? 0);
@@ -109,7 +109,9 @@ function getSettledSortTime(bet: Pick<BetRow, "settled_at" | "placed_at">) {
 }
 
 function sortPastBetsBySettledAt(bets: BetRow[]) {
-  return [...bets].sort((a, b) => getSettledSortTime(b) - getSettledSortTime(a));
+  return [...bets].sort(
+    (a, b) => getSettledSortTime(b) - getSettledSortTime(a),
+  );
 }
 
 function resultLabel(status: string) {
@@ -118,12 +120,12 @@ function resultLabel(status: string) {
   if (status === "lost") return "Lost";
   if (status === "void") return "Void";
   if (status === "passed") return "Passed";
+  if (status === "funded") return "Funded";
   if (status === "failed") return "Failed";
   if (status === "active_dev") return "Active";
   if (status === "active") return "Active";
   return status;
 }
-
 
 const COMPACT_BADGE_CLASS =
   "shrink-0 rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-medium tracking-[0.12em] text-zinc-500";
@@ -304,7 +306,9 @@ function SegmentedProgressBars({
                       animation: shouldAnimate
                         ? "segmented-progress-fill 340ms cubic-bezier(0.16, 1, 0.3, 1) forwards"
                         : undefined,
-                      animationDelay: shouldAnimate ? getFillDelay(index) : undefined,
+                      animationDelay: shouldAnimate
+                        ? getFillDelay(index)
+                        : undefined,
                       opacity: shouldAnimate ? 0.68 : targetOpacity,
                       willChange: shouldAnimate ? "opacity" : undefined,
                     } as React.CSSProperties
@@ -487,7 +491,6 @@ function EmptyState({
   );
 }
 
-
 function StatusText({ status }: { status: string }) {
   return (
     <div className="text-sm font-medium text-zinc-400">
@@ -507,7 +510,9 @@ function TeamLogo({ bet }: { bet: BetRow }) {
     );
   }
 
-  return <div className="h-11 w-11 shrink-0 rounded-lg bg-zinc-900 lg:h-9 lg:w-9" />;
+  return (
+    <div className="h-11 w-11 shrink-0 rounded-lg bg-zinc-900 lg:h-9 lg:w-9" />
+  );
 }
 
 function TeamCell({ bet }: { bet: BetRow }) {
@@ -785,7 +790,10 @@ function PositionsTable({
         count={openBets.length}
         rightContent={
           <span>
-            Open risk <span className="font-semibold text-zinc-300">{formatMoney(openRisk)}</span>
+            Open risk{" "}
+            <span className="font-semibold text-zinc-300">
+              {formatMoney(openRisk)}
+            </span>
           </span>
         }
       />
@@ -828,6 +836,10 @@ export default async function AccountPage({ params }: AccountPageProps) {
     notFound();
   }
 
+  const accountStatus = String(account.status);
+  const isFunded = accountStatus === "funded";
+  const currentStage = isFunded ? "funded" : "challenge";
+
   const today = getTodayNewYorkDate();
 
   const [{ data: bets, error: betsError }, { data: dailySnapshot }] =
@@ -848,13 +860,14 @@ export default async function AccountPage({ params }: AccountPageProps) {
           result,
           settlement_amount,
           settlement_reason,
+          account_stage,
           placed_at,
           settled_at,
           team_logo,
           team_logo_alt,
           polymarket_winning_outcome,
           polymarket_resolution_error
-        `
+        `,
         )
         .eq("account_id", id)
         .order("placed_at", { ascending: false }),
@@ -864,6 +877,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
         .select("starting_balance")
         .eq("account_id", id)
         .eq("day", today)
+        .eq("account_stage", currentStage)
         .maybeSingle(),
     ]);
 
@@ -873,36 +887,65 @@ export default async function AccountPage({ params }: AccountPageProps) {
 
   const plan = PLAN_CONFIG[account.plan_key as PlanKey];
 
-  const startingBalance = Number(
-    account.starting_balance ?? account.plan_size ?? 0
-  );
-  const currentBalance = Number(account.current_balance ?? 0);
-  const reservedRisk = Number(account.reserved_risk ?? 0);
-  const realizedPnl = Number(account.realized_pnl ?? 0);
+  const startingBalance = isFunded
+    ? Number(
+        account.funded_starting_balance ??
+          account.starting_balance ??
+          account.plan_size ??
+          0,
+      )
+    : Number(account.starting_balance ?? account.plan_size ?? 0);
+
+  const currentBalance = isFunded
+    ? Number(account.funded_current_balance ?? startingBalance)
+    : Number(account.current_balance ?? 0);
+
+  const reservedRisk = isFunded
+    ? Number(account.funded_reserved_risk ?? 0)
+    : Number(account.reserved_risk ?? 0);
+
+  const realizedPnl = isFunded
+    ? Number(account.funded_realized_pnl ?? 0)
+    : Number(account.realized_pnl ?? 0);
+
   const ruleEquity = currentBalance + reservedRisk;
 
   const profitTargetPercent = Number(account.profit_target_percent ?? 30);
-  const dailyDrawdownPercent = Number(account.daily_drawdown_percent ?? 10);
-  const totalDrawdownPercent = Number(account.total_drawdown_percent ?? 20);
+  const dailyDrawdownPercent = isFunded
+    ? 4
+    : Number(account.daily_drawdown_percent ?? 10);
+  const totalDrawdownPercent = isFunded
+    ? 10
+    : Number(account.total_drawdown_percent ?? 20);
 
-  const profitTargetBalance = startingBalance * (1 + profitTargetPercent / 100);
+  const profitTargetBalance = isFunded
+    ? startingBalance
+    : startingBalance * (1 + profitTargetPercent / 100);
 
   const maxRiskAmount = Number(
-    account.max_risk_amount ?? startingBalance * 0.05
+    isFunded
+      ? (account.funded_max_risk_amount ?? startingBalance * 0.02)
+      : (account.max_risk_amount ?? startingBalance * 0.05),
   );
 
   const dailyLossLimit = Number(
-    account.daily_loss_limit_amount ??
-      startingBalance * (dailyDrawdownPercent / 100)
+    isFunded
+      ? (account.funded_daily_loss_limit_amount ??
+          startingBalance * (dailyDrawdownPercent / 100))
+      : (account.daily_loss_limit_amount ??
+          startingBalance * (dailyDrawdownPercent / 100)),
   );
 
   const totalLossLimit = Number(
-    account.total_loss_limit_amount ??
-      startingBalance * (totalDrawdownPercent / 100)
+    isFunded
+      ? (account.funded_total_loss_limit_amount ??
+          startingBalance * (totalDrawdownPercent / 100))
+      : (account.total_loss_limit_amount ??
+          startingBalance * (totalDrawdownPercent / 100)),
   );
 
   const dayStartingBalance = Number(
-    dailySnapshot?.starting_balance ?? ruleEquity
+    dailySnapshot?.starting_balance ?? ruleEquity,
   );
 
   const dailyFloor = dayStartingBalance - dailyLossLimit;
@@ -916,9 +959,13 @@ export default async function AccountPage({ params }: AccountPageProps) {
       : 0;
 
   const allBets = (bets ?? []) as BetRow[];
-  const openBets = allBets.filter((bet) => bet.status === "open");
+  const visibleBets = allBets.filter(
+    (bet) => (bet.account_stage ?? "challenge") === currentStage,
+  );
+
+  const openBets = visibleBets.filter((bet) => bet.status === "open");
   const pastBets = sortPastBetsBySettledAt(
-    allBets.filter((bet) => bet.status !== "open")
+    visibleBets.filter((bet) => bet.status !== "open"),
   );
 
   const fallbackAccountTitle =
@@ -929,16 +976,15 @@ export default async function AccountPage({ params }: AccountPageProps) {
     } Account`;
 
   const accountName =
-    typeof account.account_name === "string"
-      ? account.account_name.trim()
-      : "";
+    typeof account.account_name === "string" ? account.account_name.trim() : "";
 
-  const pageTitle = accountName || `${fallbackAccountTitle} Challenge`;
+  const pageTitle =
+    accountName ||
+    `${fallbackAccountTitle} ${isFunded ? "Funded" : "Challenge"}`;
 
   const dailyRoom = ruleEquity - dailyFloor;
   const totalRoom = ruleEquity - totalFloor;
 
-  const accountStatus = String(account.status);
   const isAccountFailed = accountStatus === "failed";
 
   return (

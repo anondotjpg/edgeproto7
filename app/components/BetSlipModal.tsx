@@ -51,6 +51,17 @@ type OwnedAccount = {
   passed_at: string | null;
   failed_at: string | null;
   failure_reason: string | null;
+
+  funded_started_at: string | null;
+
+  funded_starting_balance: number | null;
+  funded_current_balance: number | null;
+  funded_reserved_risk: number | null;
+  funded_realized_pnl: number | null;
+
+  funded_max_risk_amount: number | null;
+  funded_daily_loss_limit_amount: number | null;
+  funded_total_loss_limit_amount: number | null;
 };
 
 export type BetSlipData = {
@@ -288,7 +299,37 @@ function getAccountDisplayName(account: OwnedAccount) {
   return getPlanLabel(account);
 }
 
+function isFundedAccount(account: OwnedAccount) {
+  return account.status === "funded";
+}
+
+function getAvailableBalance(account: OwnedAccount) {
+  if (isFundedAccount(account)) {
+    return Number(
+      account.funded_current_balance ??
+        account.funded_starting_balance ??
+        account.starting_balance ??
+        account.plan_size ??
+        0,
+    );
+  }
+
+  return Number(account.current_balance ?? 0);
+}
+
 function getMaxRiskAmount(account: OwnedAccount) {
+  if (isFundedAccount(account)) {
+    return Number(
+      account.funded_max_risk_amount ??
+        Number(
+          account.funded_starting_balance ??
+            account.starting_balance ??
+            account.plan_size ??
+            0,
+        ) * 0.02,
+    );
+  }
+
   return Number(
     account.max_risk_amount ??
       Number(account.starting_balance ?? account.plan_size ?? 0) * 0.05,
@@ -731,7 +772,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
           <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
             {accounts.map((account) => {
               const selected = selectedAccountIds.includes(account.id);
-              const active = ["active", "active_dev"].includes(account.status);
+              const active = ["active", "active_dev", "funded"].includes(account.status);
               const maxRiskAmount = getMaxRiskAmount(account);
 
               return (
@@ -772,7 +813,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
                     <div className="flex h-4 items-center justify-between gap-2">
                       <span className="text-zinc-500">Avail</span>
                       <span className="font-medium text-zinc-300">
-                        <CompactMoneyFlow value={account.current_balance} />
+                        <CompactMoneyFlow value={getAvailableBalance(account)} />
                       </span>
                     </div>
 
@@ -1326,7 +1367,7 @@ export function BetSlipPanel({
 
     const accountMaxes = selectedAccounts.map((account) => {
       const maxRiskAmount = getMaxRiskAmount(account);
-      const currentBalance = Number(account.current_balance ?? 0);
+      const currentBalance = getAvailableBalance(account);
 
       return Math.max(0, Math.min(maxRiskAmount, currentBalance));
     });
@@ -1355,7 +1396,7 @@ export function BetSlipPanel({
     if (!stake || Number.isNaN(stake)) return null;
 
     for (const account of selectedAccounts) {
-      const active = ["active", "active_dev"].includes(account.status);
+      const active = ["active", "active_dev", "funded"].includes(account.status);
 
       if (!active) {
         return `${getAccountDisplayName(account)} account is not active.`;
@@ -1369,9 +1410,9 @@ export function BetSlipPanel({
         )} account max risk per bet is ${formatMoney(maxRiskAmount)}.`;
       }
 
-      if (stake > Number(account.current_balance ?? 0)) {
+      if (stake > getAvailableBalance(account)) {
         return `${getAccountDisplayName(account)} account only has ${formatMoney(
-          account.current_balance,
+          getAvailableBalance(account),
         )} available.`;
       }
     }
@@ -1424,7 +1465,7 @@ export function BetSlipPanel({
 
           const activeAccounts = loadedAccounts.filter(
             (account: OwnedAccount) =>
-              ["active", "active_dev"].includes(account.status),
+              ["active", "active_dev", "funded"].includes(account.status),
           );
 
           if (activeAccounts.length === 1) {

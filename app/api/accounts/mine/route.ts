@@ -37,36 +37,47 @@ export async function GET() {
     }
 
     const { data: accounts, error: accountsError } = await supabaseAdmin
-      .from("challenge_accounts")
-      .select(
-        `
-        id,
-        account_name,
-        plan_key,
-        plan_size,
-        one_time_fee,
-        status,
-        starting_balance,
-        current_balance,
-        reserved_risk,
-        realized_pnl,
-
-        profit_target_percent,
-        daily_drawdown_percent,
-        total_drawdown_percent,
-
-        max_risk_amount,
-        daily_loss_limit_amount,
-        total_loss_limit_amount,
-
-        passed_at,
-        failed_at,
-        failure_reason,
-        created_at
+    .from("challenge_accounts")
+    .select(
       `
-      )
-      .eq("user_id", dbUser.id)
-      .order("created_at", { ascending: false });
+      id,
+      account_name,
+      plan_key,
+      plan_size,
+      one_time_fee,
+      status,
+      starting_balance,
+      current_balance,
+      reserved_risk,
+      realized_pnl,
+  
+      funded_started_at,
+      funded_starting_balance,
+      funded_current_balance,
+      funded_reserved_risk,
+      funded_realized_pnl,
+      funded_max_risk_amount,
+      funded_daily_loss_limit_amount,
+      funded_total_loss_limit_amount,
+      funded_failed_at,
+      funded_failure_reason,
+  
+      profit_target_percent,
+      daily_drawdown_percent,
+      total_drawdown_percent,
+  
+      max_risk_amount,
+      daily_loss_limit_amount,
+      total_loss_limit_amount,
+  
+      passed_at,
+      failed_at,
+      failure_reason,
+      created_at
+    `
+    )
+    .eq("user_id", dbUser.id)
+    .order("created_at", { ascending: false });
 
     if (accountsError) throw accountsError;
 

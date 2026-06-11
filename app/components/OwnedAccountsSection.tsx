@@ -15,6 +15,12 @@ type ExistingAccount = {
   one_time_fee: number;
   status: string;
   created_at: string;
+
+  funded_started_at?: string | null;
+  funded_starting_balance?: number | null;
+  funded_current_balance?: number | null;
+  funded_reserved_risk?: number | null;
+  funded_realized_pnl?: number | null;
 };
 
 const MAX_ACCOUNT_NAME_LENGTH = 15;
@@ -34,6 +40,7 @@ function getStatusLabel(status: string) {
   if (normalizedStatus === "active_dev") return "Active";
   if (normalizedStatus === "active") return "Active";
   if (normalizedStatus === "passed") return "Passed";
+  if (normalizedStatus === "funded") return "Funded";
   if (normalizedStatus === "failed") return "Failed";
   if (normalizedStatus === "won") return "Won";
   if (normalizedStatus === "lost") return "Lost";
