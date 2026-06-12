@@ -991,7 +991,12 @@ export default async function AccountPage({ params }: AccountPageProps) {
     <div className="min-h-screen bg-[#09090b] text-white">
       <div className="mx-auto w-full max-w-7xl px-4 pt-20 pb-32 sm:px-6 md:py-15 md:pb-24">
         <section>
-          <div className="grid items-stretch gap-3 lg:grid-cols-2">
+          <div
+            className={[
+              "grid items-stretch gap-3",
+              isFunded ? "" : "lg:grid-cols-2",
+            ].join(" ")}
+          >
             <div className="flex min-h-[142px] min-w-0 flex-col justify-between overflow-visible lg:min-h-[166px]">
               <div className="min-w-0">
                 <div className="flex h-[36px] max-w-full items-start overflow-hidden sm:h-[42px] lg:h-[44px]">
@@ -1025,37 +1030,39 @@ export default async function AccountPage({ params }: AccountPageProps) {
               </div>
             </div>
 
-            <div className="flex min-h-[132px] flex-col rounded-[26px] bg-zinc-950/80 px-4 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:px-5 lg:ring-0">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="text-[17px] font-medium leading-tight text-zinc-500">
-                    Goal
+            {!isFunded ? (
+              <div className="flex min-h-[132px] flex-col rounded-[26px] bg-zinc-950/80 px-4 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:px-5 lg:ring-0">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="text-[17px] font-medium leading-tight text-zinc-500">
+                      Goal
+                    </div>
+
+                    <div className="mt-2 hidden min-h-[34px] truncate text-[28px] font-semibold leading-tight tracking-tight text-zinc-100 sm:block">
+                      {formatMoney(ruleEquity)}
+                    </div>
+
+                    <div className="mt-1 hidden truncate text-[13px] font-medium leading-tight text-zinc-500 sm:block">
+                      of {formatMoney(profitTargetBalance)} goal
+                    </div>
                   </div>
 
-                  <div className="mt-2 hidden min-h-[34px] truncate text-[28px] font-semibold leading-tight tracking-tight text-zinc-100 sm:block">
-                    {formatMoney(ruleEquity)}
-                  </div>
+                  <div className="min-w-0 pt-0.5 text-right sm:hidden">
+                    <div className="truncate text-[22px] font-semibold leading-tight tracking-tight text-zinc-100">
+                      {formatMoney(ruleEquity)}
+                    </div>
 
-                  <div className="mt-1 hidden truncate text-[13px] font-medium leading-tight text-zinc-500 sm:block">
-                    of {formatMoney(profitTargetBalance)} goal
+                    <div className="mt-1 truncate text-[12px] font-medium leading-tight text-zinc-500">
+                      of {formatMoney(profitTargetBalance)} goal
+                    </div>
                   </div>
                 </div>
 
-                <div className="min-w-0 pt-0.5 text-right sm:hidden">
-                  <div className="truncate text-[22px] font-semibold leading-tight tracking-tight text-zinc-100">
-                    {formatMoney(ruleEquity)}
-                  </div>
-
-                  <div className="mt-1 truncate text-[12px] font-medium leading-tight text-zinc-500">
-                    of {formatMoney(profitTargetBalance)} goal
-                  </div>
+                <div className="mt-auto pt-2">
+                  <GoalProgressBar value={goalProgress} />
                 </div>
               </div>
-
-              <div className="mt-auto pt-2">
-                <GoalProgressBar value={goalProgress} />
-              </div>
-            </div>
+            ) : null}
           </div>
         </section>
 
