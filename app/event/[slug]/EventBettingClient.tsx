@@ -199,21 +199,21 @@ function EventHeader({ game }: { game: Game }) {
         href={getPolymarketHref(game)}
         target="_blank"
         rel="noreferrer"
-        className="hidden absolute right-0 top-0 items-center gap-1.5 text-[12px] font-medium text-zinc-300 transition-colors hover:text-white"
+        className="absolute right-0 top-0 hidden items-center gap-1.5 text-[12px] font-medium text-zinc-300 transition-colors hover:text-white md:inline-flex"
       >
         <span>Polymarket</span>
         <FiArrowUpRight className="h-3.5 w-3.5" />
       </Link>
 
-      <div className="text-[12px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+      <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500 sm:text-[12px]">
         {game.sport_title}
       </div>
 
-      <h1 className="mt-3 text-[34px] font-semibold leading-none tracking-tight text-white sm:text-[42px]">
+      <h1 className="mx-auto mt-2 max-w-[680px] text-balance text-[30px] font-semibold leading-[0.96] tracking-tight text-white sm:mt-3 sm:text-[38px] md:text-[42px]">
         {getMatchupDisplayName(game)}
       </h1>
 
-      <p className="mt-3 text-sm text-zinc-400">
+      <p className="mt-2 text-[13px] text-zinc-400 sm:mt-3 sm:text-sm">
         {formatGameTime(game.commence_time)}
       </p>
     </div>
@@ -230,7 +230,7 @@ function MobileTeamRow({
   sportKey: string;
 }) {
   return (
-    <div className="flex h-[46px] items-center gap-2 px-0 py-1">
+    <div className="flex h-[44px] items-center gap-2 py-1">
       {info?.logo ? (
         <img
           src={info.logo}
@@ -279,7 +279,7 @@ function MobileMoneylineModalButton({
       <BetSlipModal
         {...betData}
         triggerClassName={[
-          "peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border px-3 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
+          "peer flex h-10 w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border px-3 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
           betData.isLive
             ? "border-zinc-800 bg-zinc-950/80"
             : "border-zinc-800 bg-zinc-900",
@@ -317,7 +317,7 @@ function MobileMatchupCard({
 }) {
   return (
     <article className="relative rounded-xl border border-zinc-800 p-2.5 md:hidden">
-      <div>
+      <div className="px-0.5">
         <MobileTeamRow
           team={game.away_team}
           info={game.away_team_info}
@@ -517,9 +517,9 @@ export default function EventBettingClient({
     selectedBet?.gameId === game.id && selectedBet.team === game.home_team;
 
   return (
-    <div className="mt-4 grid gap-6 md:mt-8 xl:grid-cols-[minmax(0,860px)_420px] xl:items-start xl:justify-center">
+    <div className="mt-3 grid gap-5 md:mt-8 md:gap-6 xl:grid-cols-[minmax(0,860px)_420px] xl:items-start xl:justify-center">
       <main className="min-w-0">
-        <section className="space-y-4">
+        <section className="space-y-3 md:space-y-4">
           <EventHeader game={game} />
 
           <MobileMatchupCard
@@ -548,7 +548,7 @@ export default function EventBettingClient({
             />
           </div>
 
-          {children ? <div className="pt-2">{children}</div> : null}
+          {children ? <div className="pt-1 md:pt-2">{children}</div> : null}
         </section>
       </main>
 
