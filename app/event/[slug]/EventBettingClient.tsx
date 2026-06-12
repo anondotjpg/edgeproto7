@@ -517,7 +517,7 @@ export default function EventBettingClient({
     selectedBet?.gameId === game.id && selectedBet.team === game.home_team;
 
   return (
-    <div className="mt-3 grid gap-5 md:mt-8 md:gap-6 xl:grid-cols-[minmax(0,860px)_420px] xl:items-start xl:justify-center">
+    <div className="mt-5 grid gap-5 md:mt-8 md:gap-6 xl:grid-cols-[minmax(0,860px)_420px] xl:items-start xl:justify-center">
       <main className="min-w-0">
         <section className="space-y-3 md:space-y-4">
           <EventHeader game={game} />
@@ -548,7 +548,7 @@ export default function EventBettingClient({
             />
           </div>
 
-          {children ? <div className="pt-1 md:pt-2">{children}</div> : null}
+          {children ? <div className="-mt-1 md:mt-0 md:pt-2">{children}</div> : null}
         </section>
       </main>
 
