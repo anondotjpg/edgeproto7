@@ -46,7 +46,7 @@ function PayoutsSkeleton() {
     <div className="min-h-screen bg-[#09090b] px-4 pt-20 pb-32 text-white sm:px-6 md:py-15 md:pb-24">
       <main className="mx-auto w-full max-w-7xl">
 
-        <section className="mb-4 rounded-[26px] bg-zinc-950/80 p-5 ring-1 ring-zinc-900">
+        <section className="mb-4">
           <div className="text-[13px] font-medium text-zinc-500">
             Total funded P/L
           </div>
