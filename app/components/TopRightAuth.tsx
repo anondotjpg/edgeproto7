@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import Avatar from "boring-avatars";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePrivy } from "@privy-io/react-auth";
@@ -9,9 +9,8 @@ import { FiLogOut } from "react-icons/fi";
 import { RiUserFill } from "react-icons/ri";
 
 export default function TopRightAuth() {
-  const { ready, authenticated, login, logout } = usePrivy();
+  const { ready, authenticated, login, logout, user } = usePrivy();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [pfpLoaded, setPfpLoaded] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -43,6 +42,7 @@ export default function TopRightAuth() {
       clearTimeout(closeTimer.current);
       closeTimer.current = null;
     }
+
     if (window.innerWidth >= 768) setMenuOpen(true);
   };
 
@@ -54,6 +54,14 @@ export default function TopRightAuth() {
 
   const flatPillClassName =
     "inline-flex h-9 items-center rounded-full border border-zinc-800 px-4 text-[13px] font-bold whitespace-nowrap";
+
+  const avatarSeed =
+    user?.id ||
+    user?.wallet?.address ||
+    user?.email?.address ||
+    "edge-user";
+
+  const avatarColors = ["#3f3f46", "#d6aa3d"];
 
   const signedInControls = (
     <>
@@ -77,29 +85,16 @@ export default function TopRightAuth() {
         <button
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
-          className="relative flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full"
+          className="relative flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-zinc-800 bg-zinc-950 md:border-zinc-700"
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           aria-label="Open account menu"
         >
-          {!pfpLoaded ? (
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 h-9 w-9 animate-pulse rounded-full border border-zinc-800 bg-zinc-900 md:border-zinc-700"
-            />
-          ) : null}
-
-          <Image
-            src="/pfp.jpg"
-            alt="Account"
-            width={40}
-            height={40}
-            priority
-            onLoad={() => setPfpLoaded(true)}
-            className={[
-              "h-9 w-9 rounded-full border border-zinc-800 object-cover transition-opacity duration-200 md:border-zinc-700",
-              pfpLoaded ? "opacity-100" : "opacity-0",
-            ].join(" ")}
+          <Avatar
+            size={36}
+            name={`Edge-${avatarSeed}`}
+            variant="pixel"
+            colors={avatarColors}
           />
         </button>
 
