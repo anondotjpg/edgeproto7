@@ -202,7 +202,7 @@ export default function PriceHistoryChart({ slug }: Props) {
             }}
           >
             <div className="w-full min-w-0 rounded-2xl outline-none focus:outline-none [&_*:focus]:outline-none">
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={260}>
                 <LineChart
                   data={chartData}
                   margin={{ top: 8, right: 12, left: 0, bottom: 12 }}
