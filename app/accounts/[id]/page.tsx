@@ -440,8 +440,6 @@ function RuleRoomCard({
       ? Math.min(Math.max(((limit - safeRoom) / limit) * 100, 0), 100)
       : 0;
 
-  const healthLabel = getHealthLabel(room, limit);
-
   return (
     <div className="flex min-h-[154px] flex-col rounded-[22px] bg-zinc-950/80 px-3 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:rounded-[26px] sm:px-5">
       <div className="flex items-start justify-between gap-3 sm:gap-4">
@@ -837,7 +835,24 @@ export default async function AccountPage({ params }: AccountPageProps) {
   }
 
   const accountStatus = String(account.status);
-  const isFunded = accountStatus === "funded";
+
+  const hasFundedAvailable =
+    account.funded_started_at !== null &&
+    account.funded_started_at !== undefined
+      ? true
+      : account.funded_starting_balance !== null &&
+          account.funded_starting_balance !== undefined
+        ? true
+        : account.funded_current_balance !== null &&
+            account.funded_current_balance !== undefined
+          ? true
+          : account.funded_reserved_risk !== null &&
+              account.funded_reserved_risk !== undefined;
+
+  const isFunded =
+    accountStatus === "funded" ||
+    (accountStatus === "failed" && hasFundedAvailable);
+
   const currentStage = isFunded ? "funded" : "challenge";
 
   const today = getTodayNewYorkDate();
@@ -985,7 +1000,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
   const dailyRoom = ruleEquity - dailyFloor;
   const totalRoom = ruleEquity - totalFloor;
 
-  const isAccountFailed = accountStatus === "failed";
+  const isAccountFailed = accountStatus === "failed" && !hasFundedAvailable;
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white">
