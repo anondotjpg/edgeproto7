@@ -393,9 +393,11 @@ export default function OwnedAccountsSection() {
           animation: ownedAccountsReveal 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
-        .group:hover .owned-mini-goal-cover[data-tone="goal"] {
-          animation: ownedMiniGoalReplay 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
-          animation-delay: var(--owned-mini-goal-delay);
+        @media (min-width: 640px) {
+          .group:hover .owned-mini-goal-cover[data-tone="goal"] {
+            animation: ownedMiniGoalReplay 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+            animation-delay: var(--owned-mini-goal-delay);
+          }
         }
 
         @media (prefers-reduced-motion: reduce) {
