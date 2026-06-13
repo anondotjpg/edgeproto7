@@ -1,11 +1,14 @@
-import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { PublicKey } from "@solana/web3.js";
-import { formatUnits, isAddress, parseUnits } from "viem";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
-
-type DepositChain = "solana" | "ethereum" | "bitcoin";
+import {
+  atomicToDisplay,
+  CHAIN_CONFIG,
+  type DepositChain,
+  getDepositAddress,
+  makeInvoiceAmountAtomic,
+} from "@/lib/crypto-deposits";
 
 type CreateDepositBody = {
   planKey?: PlanKey;
@@ -21,86 +24,13 @@ const DAILY_DRAWDOWN_PERCENT = 2;
 const TOTAL_DRAWDOWN_PERCENT = 5;
 const MAX_RISK_PER_TRADE_PERCENT = 5;
 
-const CHAIN_CONFIG = {
-  solana: {
-    asset: "SOL",
-    decimals: 9,
-    depositAddressEnv: "SOL_DEPOSIT_ADDRESS",
-  },
-  ethereum: {
-    asset: "ETH",
-    decimals: 18,
-    depositAddressEnv: "ETH_DEPOSIT_ADDRESS",
-  },
-  bitcoin: {
-    asset: "BTC",
-    decimals: 8,
-    depositAddressEnv: "BTC_DEPOSIT_ADDRESS",
-  },
-} as const;
-
-const PLAN_CRYPTO_AMOUNTS: Partial<
-  Record<PlanKey, Record<DepositChain, string>>
-> = {
-  "10000": {
-    solana: "0.65",
-    ethereum: "0.025",
-    bitcoin: "0.001",
-  },
-  "5000": {
-    solana: "0.38",
-    ethereum: "0.014",
-    bitcoin: "0.00055",
-  },
-};
-
-function isValidFromAddress(chain: DepositChain, address: string) {
-  if (chain === "ethereum") {
-    return isAddress(address);
+function isValidSolanaAddress(address: string) {
+  try {
+    new PublicKey(address);
+    return true;
+  } catch {
+    return false;
   }
-
-  if (chain === "solana") {
-    try {
-      new PublicKey(address);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  return /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,90}$/.test(address);
-}
-
-function getDepositAddress(chain: DepositChain) {
-  const envName = CHAIN_CONFIG[chain].depositAddressEnv;
-  const address = process.env[envName];
-
-  if (!address) {
-    throw new Error(`Missing ${envName}`);
-  }
-
-  return address;
-}
-
-function makeInvoiceAmountAtomic({
-  planKey,
-  chain,
-}: {
-  planKey: PlanKey;
-  chain: DepositChain;
-}) {
-  const baseAmount = PLAN_CRYPTO_AMOUNTS[planKey]?.[chain];
-
-  if (!baseAmount) {
-    throw new Error(`Missing crypto amount for ${planKey} on ${chain}.`);
-  }
-
-  const decimals = CHAIN_CONFIG[chain].decimals;
-  const baseAtomic = parseUnits(baseAmount, decimals);
-
-  const dust = BigInt(crypto.randomInt(1, 999));
-
-  return baseAtomic + dust;
 }
 
 export async function POST(req: Request) {
@@ -119,30 +49,30 @@ export async function POST(req: Request) {
     if (!planKey || !(planKey in PLAN_CONFIG)) {
       return NextResponse.json(
         { error: "Invalid plan selected." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!chain || !(chain in CHAIN_CONFIG)) {
       return NextResponse.json(
         { error: "Invalid deposit currency." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!privyUserId) {
       return NextResponse.json(
         { error: "Missing Privy user ID." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const cleanFromAddress = String(fromAddress || "").trim();
 
-    if (!isValidFromAddress(chain, cleanFromAddress)) {
+    if (!isValidSolanaAddress(cleanFromAddress)) {
       return NextResponse.json(
-        { error: "Invalid sending address." },
-        { status: 400 }
+        { error: "Invalid SOL sending address." },
+        { status: 400 },
       );
     }
 
@@ -194,7 +124,7 @@ export async function POST(req: Request) {
     }
 
     const amountAtomic = makeInvoiceAmountAtomic({ planKey, chain });
-    const amountDisplay = formatUnits(amountAtomic, CHAIN_CONFIG[chain].decimals);
+    const amountDisplay = atomicToDisplay({ chain, atomic: amountAtomic });
 
     const { data: invoice, error: invoiceError } = await supabaseAdmin
       .from("crypto_deposit_invoices")
@@ -236,13 +166,22 @@ export async function POST(req: Request) {
         tx_hash,
         confirmations,
         credited_account_id
-      `
+      `,
       )
       .single();
 
     if (invoiceError) {
       throw invoiceError;
     }
+
+    console.log("[crypto-deposits/create] created invoice", {
+      invoiceId: invoice.id,
+      planKey,
+      chain,
+      amount: invoice.expected_amount_display,
+      depositAddress: invoice.deposit_address,
+      expiresAt: invoice.expires_at,
+    });
 
     return NextResponse.json({
       ok: true,
@@ -258,7 +197,7 @@ export async function POST(req: Request) {
             ? error.message
             : "Unable to create deposit invoice.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
