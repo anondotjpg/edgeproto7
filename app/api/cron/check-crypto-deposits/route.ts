@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getRelayIntentStatus } from "@/lib/relay";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function isAuthorized(req: Request) {
   const auth = req.headers.get("authorization");
   return auth === `Bearer ${process.env.CRON_SECRET}`;
@@ -11,6 +14,7 @@ function mapRelayStatusToInvoiceStatus(status: string) {
   if (status === "success") return "paid";
   if (status === "refund") return "refunded";
   if (status === "failure") return "failed";
+
   if (
     status === "depositing" ||
     status === "pending" ||
@@ -83,6 +87,7 @@ async function handleCheckCryptoDeposits(req: Request) {
       }
 
       const relayStatus = await getRelayIntentStatus(relayRequestId);
+
       const nextInvoiceStatus = mapRelayStatusToInvoiceStatus(
         relayStatus.status,
       );
@@ -147,6 +152,10 @@ async function handleCheckCryptoDeposits(req: Request) {
         continue;
       }
 
+      const hasSubmittedTx =
+        relayStatus.status === "pending" ||
+        relayStatus.status === "submitted";
+
       await supabaseAdmin
         .from("crypto_deposit_invoices")
         .update({
@@ -155,12 +164,7 @@ async function handleCheckCryptoDeposits(req: Request) {
           relay_in_tx_hashes: inTxHashes,
           relay_out_tx_hashes: outTxHashes,
           tx_hash: inTxHashes[0] ?? outTxHashes[0] ?? null,
-          confirmations:
-            relayStatus.status === "success" ||
-            relayStatus.status === "pending" ||
-            relayStatus.status === "submitted"
-              ? 1
-              : 0,
+          confirmations: hasSubmittedTx ? 1 : 0,
           updated_at: new Date().toISOString(),
         })
         .eq("id", invoice.id)
