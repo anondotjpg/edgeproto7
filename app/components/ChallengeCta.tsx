@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { type ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLogin, usePrivy } from "@privy-io/react-auth";
+import { FiCheck, FiCopy } from "react-icons/fi";
 import type { PlanKey } from "@/lib/plans";
 import {
   Drawer,
@@ -153,6 +154,16 @@ function shortenAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-6)}`;
 }
 
+function getAccountTitle(planKey: PlanKey) {
+  const accountSize = Number(planKey);
+
+  if (!Number.isFinite(accountSize) || accountSize <= 0) {
+    return "Account";
+  }
+
+  return `${accountSize / 1000}K Account`;
+}
+
 function getStepIndex(step: DepositStep) {
   if (step === "method") return 0;
   return 1;
@@ -194,6 +205,58 @@ function StatusPill({ status }: { status: DepositInvoice["status"] }) {
   );
 }
 
+function CopyIconButton({
+  label,
+  value,
+  copied,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  copied: string | null;
+  onCopy: (label: string, value: string) => void;
+}) {
+  const isCopied = copied === label;
+
+  return (
+    <motion.button
+      type="button"
+      onClick={() => onCopy(label, value)}
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.88 }}
+      transition={{ type: "spring", stiffness: 560, damping: 34 }}
+      aria-label={isCopied ? "Copied" : "Copy"}
+      className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center text-zinc-500 outline-none transition-colors hover:text-zinc-100 focus-visible:text-zinc-100"
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {isCopied ? (
+          <motion.span
+            key="check"
+            initial={{ opacity: 0, scale: 0.5, y: 3, rotate: -12 }}
+            animate={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: -3, rotate: 12 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="grid place-items-center text-zinc-100"
+          >
+            <FiCheck className="h-4 w-4" />
+          </motion.span>
+        ) : (
+          <motion.span
+            key="copy"
+            initial={{ opacity: 0, scale: 0.5, y: 3, rotate: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: -3, rotate: -12 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="grid place-items-center"
+          >
+            <FiCopy className="h-4 w-4" />
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
+  );
+}
+
 function InfoCard({
   label,
   value,
@@ -204,13 +267,12 @@ function InfoCard({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-900 bg-black/30 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-[12px] font-medium text-zinc-500">{label}</p>
-        {action}
-      </div>
+    <div className="relative rounded-2xl border border-zinc-900 bg-black/30 p-4">
+      {action ? <div className="absolute right-3 top-3">{action}</div> : null}
 
-      <p className="mt-2 break-all text-[13px] leading-5 text-zinc-200">
+      <p className="pr-9 text-[12px] font-medium text-zinc-500">{label}</p>
+
+      <p className="mt-1.5 break-all text-[13px] leading-5 text-zinc-200">
         {value}
       </p>
     </div>
@@ -281,6 +343,7 @@ function PaymentBadge({
 }
 
 function CheckoutContent({
+  accountTitle,
   step,
   setStep,
   invoice,
@@ -292,6 +355,7 @@ function CheckoutContent({
   copyText,
   openAccount,
 }: {
+  accountTitle: string;
   step: DepositStep;
   setStep: (step: DepositStep) => void;
   invoice: DepositInvoice | null;
@@ -307,7 +371,7 @@ function CheckoutContent({
     <>
       <div>
         <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-          Edge checkout
+          {accountTitle}
         </p>
 
         <h2 className="mt-1 text-[24px] font-semibold leading-tight tracking-tight text-zinc-50">
@@ -410,7 +474,7 @@ function CheckoutContent({
               className="flex min-h-[350px] flex-col"
             >
               <div className="flex items-start justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-[18px] font-semibold tracking-tight text-zinc-50">
                     Send {invoice.asset} deposit
                   </h3>
@@ -424,24 +488,21 @@ function CheckoutContent({
               </div>
 
               <div className="mt-5 grid gap-3">
-                <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-[12px] font-medium text-zinc-500">
-                      Send exactly
-                    </p>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        copyText("amount", invoice.expected_amount_display)
-                      }
-                      className="cursor-pointer text-[12px] font-semibold text-zinc-300 hover:text-white"
-                    >
-                      {copied === "amount" ? "Copied" : "Copy"}
-                    </button>
+                <div className="relative rounded-2xl border border-zinc-800 bg-black/30 p-4">
+                  <div className="absolute right-3 top-3">
+                    <CopyIconButton
+                      label="amount"
+                      value={invoice.expected_amount_display}
+                      copied={copied}
+                      onCopy={copyText}
+                    />
                   </div>
 
-                  <div className="mt-2 flex items-end justify-between gap-3">
+                  <p className="pr-9 text-[12px] font-medium text-zinc-500">
+                    Send exactly
+                  </p>
+
+                  <div className="mt-1.5 flex items-end justify-between gap-3">
                     <p className="break-all text-[28px] font-semibold leading-none tracking-tight text-zinc-50">
                       {invoice.expected_amount_display}
                     </p>
@@ -456,13 +517,12 @@ function CheckoutContent({
                   label="Deposit address"
                   value={invoice.deposit_address}
                   action={
-                    <button
-                      type="button"
-                      onClick={() => copyText("deposit", invoice.deposit_address)}
-                      className="cursor-pointer text-[12px] font-semibold text-zinc-300 hover:text-white"
-                    >
-                      {copied === "deposit" ? "Copied" : "Copy"}
-                    </button>
+                    <CopyIconButton
+                      label="deposit"
+                      value={invoice.deposit_address}
+                      copied={copied}
+                      onCopy={copyText}
+                    />
                   }
                 />
 
@@ -549,6 +609,8 @@ export default function ChallengeCta({
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
+
+  const accountTitle = getAccountTitle(planKey);
 
   const privyUserId = user?.id ?? null;
   const email = user?.email?.address ?? null;
@@ -737,6 +799,7 @@ export default function ChallengeCta({
 
   const checkoutContent = (
     <CheckoutContent
+      accountTitle={accountTitle}
       step={step}
       setStep={setStep}
       invoice={invoice}
