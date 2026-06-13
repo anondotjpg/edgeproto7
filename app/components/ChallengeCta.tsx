@@ -813,7 +813,7 @@ export default function ChallengeCta({
 
     pollInvoice();
 
-    const interval = window.setInterval(pollInvoice, 6000);
+    const interval = window.setInterval(pollInvoice, 15000);
 
     return () => {
       cancelled = true;
