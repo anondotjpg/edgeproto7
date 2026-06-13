@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
@@ -16,6 +17,11 @@ type ExistingAccount = {
   status: string;
   created_at: string;
 
+  starting_balance?: number | null;
+  current_balance?: number | null;
+  reserved_risk?: number | null;
+  profit_target_percent?: number | null;
+
   funded_started_at?: string | null;
   funded_starting_balance?: number | null;
   funded_current_balance?: number | null;
@@ -29,10 +35,12 @@ const ACCOUNT_ROW_CLASS =
   "flex snap-x snap-mandatory gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 const ACCOUNT_CARD_CLASS =
-  "group min-h-[72px] shrink-0 snap-start snap-always rounded-[14px] border border-zinc-900 bg-zinc-950 px-4 py-3 transition-colors hover:border-zinc-800 hover:bg-zinc-900/80";
+  "group min-h-[82px] shrink-0 snap-start snap-always rounded-[14px] border border-zinc-900 bg-zinc-950 px-4 py-3 transition-colors hover:border-zinc-800 hover:bg-zinc-900/80";
 
 const ACCOUNT_CARD_WIDTH_CLASS =
   "w-full sm:w-[calc((100%_-_8px)_/_2)] xl:w-[calc((100%_-_16px)_/_3)]";
+
+type MiniGoalBarTone = "goal" | "failed" | "funded";
 
 function getStatusLabel(status: string) {
   const normalizedStatus = status.toLowerCase();
@@ -47,6 +55,104 @@ function getStatusLabel(status: string) {
   if (normalizedStatus === "void") return "Void";
 
   return status;
+}
+
+function getAccountGoalProgress(account: ExistingAccount) {
+  const status = account.status.toLowerCase();
+
+  if (status === "failed") return 100;
+  if (status === "funded") return 100;
+
+  const startingBalance = Number(
+    account.starting_balance ?? account.plan_size ?? 0,
+  );
+
+  const currentBalance = Number(account.current_balance ?? startingBalance);
+  const reservedRisk = Number(account.reserved_risk ?? 0);
+  const ruleEquity = currentBalance + reservedRisk;
+
+  const profitTargetPercent = Number(account.profit_target_percent ?? 30);
+  const profitTargetBalance = startingBalance * (1 + profitTargetPercent / 100);
+  const requiredProfit = profitTargetBalance - startingBalance;
+
+  if (!startingBalance || requiredProfit <= 0) return 0;
+
+  return ((ruleEquity - startingBalance) / requiredProfit) * 100;
+}
+
+function getMiniGoalBarTone(account: ExistingAccount): MiniGoalBarTone {
+  const status = account.status.toLowerCase();
+
+  if (status === "failed") return "failed";
+  if (status === "funded") return "funded";
+
+  return "goal";
+}
+
+function MiniGoalProgressBar({
+  value,
+  tone,
+}: {
+  value: number;
+  tone: MiniGoalBarTone;
+}) {
+  const barCount = 12;
+  const progress =
+    tone === "failed" || tone === "funded"
+      ? 100
+      : Math.min(Math.max(value, 0), 100);
+
+  const step = 100 / barCount;
+
+  const getBarFill = (index: number) => {
+    if (tone === "failed" || tone === "funded") return 1;
+
+    const barStart = index * step;
+    const barEnd = barStart + step;
+
+    if (progress >= barEnd) return 1;
+    if (progress <= barStart) return 0;
+
+    return (progress - barStart) / step;
+  };
+
+  const getBarColor = (index: number) => {
+    if (tone === "failed") return "#ef4444";
+    if (tone === "funded") return "#22c55e";
+
+    const ratio = barCount <= 1 ? 1 : index / (barCount - 1);
+    const hue = 42 + ratio * 98;
+
+    return `hsl(${hue} 82% 52%)`;
+  };
+
+  return (
+    <div className="grid h-[14px] w-[70px] grid-cols-12 gap-[3px]">
+      {Array.from({ length: barCount }).map((_, index) => {
+        const fill = getBarFill(index);
+        const overlayOpacity = 0.72 * (1 - fill);
+
+        return (
+          <div
+            key={index}
+            className="relative min-w-0 overflow-hidden rounded-full bg-zinc-900"
+          >
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{ backgroundColor: getBarColor(index) }}
+            />
+
+            <div
+              className="absolute inset-0 rounded-full bg-zinc-950"
+              style={{
+                opacity: overlayOpacity,
+              }}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function OwnedAccountsSection() {
@@ -269,7 +375,7 @@ export default function OwnedAccountsSection() {
     <div
       className={[
         "overflow-hidden transition-[height,margin-bottom] duration-[720ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-        showAccounts ? "h-[124px] mb-6" : "h-[28px]",
+        showAccounts ? "h-[134px] mb-6" : "h-[28px]",
       ].join(" ")}
     >
       <style>{`
@@ -287,10 +393,12 @@ export default function OwnedAccountsSection() {
         .owned-accounts-reveal {
           animation: ownedAccountsReveal 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
+
         @media (prefers-reduced-motion: reduce) {
           .owned-accounts-reveal {
             animation: none !important;
-          }        }
+          }
+        }
       `}</style>
 
       {showAccounts ? (
@@ -358,6 +466,8 @@ export default function OwnedAccountsSection() {
                 const isSaving = savingAccountId === account.id;
                 const accountName = account.account_name?.trim();
                 const displayName = accountName || sizeLabel;
+                const progress = getAccountGoalProgress(account);
+                const barTone = getMiniGoalBarTone(account);
 
                 return (
                   <div
@@ -385,7 +495,7 @@ export default function OwnedAccountsSection() {
                   >
                     {isEditing ? (
                       <div>
-                        <div className="flex min-h-[48px] items-center gap-2">
+                        <div className="flex min-h-[58px] items-center gap-2">
                           <input
                             value={draftName}
                             onChange={(event) =>
@@ -435,7 +545,7 @@ export default function OwnedAccountsSection() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex min-h-[48px] items-center justify-between gap-3">
+                      <div className="flex min-h-[58px] items-center justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <div className="truncate text-[17px] font-semibold leading-none tracking-tight text-zinc-100">
@@ -454,46 +564,50 @@ export default function OwnedAccountsSection() {
                           </div>
                         </div>
 
-                        <div className="ml-3 flex shrink-0 items-center gap-2">
-                          <button
-                            type="button"
-                            aria-label="Rename account"
-                            title="Rename account"
-                            onClick={(event) => {
-                              event.stopPropagation();
+                        <div className="ml-2 flex shrink-0 flex-col items-center justify-center gap-2">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              aria-label="Rename account"
+                              title="Rename account"
+                              onClick={(event) => {
+                                event.stopPropagation();
 
-                              setEditingAccountId(account.id);
-                              setDraftName(
-                                (account.account_name ?? "").slice(
-                                  0,
-                                  MAX_ACCOUNT_NAME_LENGTH,
-                                ),
-                              );
-                            }}
-                            className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
-                          >
-                            <FiEdit2 className="h-3.5 w-3.5" />
-                          </button>
+                                setEditingAccountId(account.id);
+                                setDraftName(
+                                  (account.account_name ?? "").slice(
+                                    0,
+                                    MAX_ACCOUNT_NAME_LENGTH,
+                                  ),
+                                );
+                              }}
+                              className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
+                            >
+                              <FiEdit2 className="h-3.5 w-3.5" />
+                            </button>
 
-                          <button
-                            type="button"
-                            aria-label="Open account"
-                            title="Open account"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              openAccount(account.id);
-                            }}
-                            className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
-                          >
-                            <FiArrowUpRight className="h-3.5 w-3.5" />
-                          </button>
+                            <button
+                              type="button"
+                              aria-label="Open account"
+                              title="Open account"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openAccount(account.id);
+                              }}
+                              className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
+                            >
+                              <FiArrowUpRight className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+
+                          <MiniGoalProgressBar value={progress} tone={barTone} />
                         </div>
                       </div>
                     )}
                   </div>
                 );
               })}
-            </div>{" "}
+            </div>
           </div>
         </div>
       ) : null}

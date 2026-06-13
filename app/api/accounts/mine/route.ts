@@ -74,7 +74,7 @@ export async function GET() {
       failed_at,
       failure_reason,
       created_at
-    `
+    `,
     )
     .eq("user_id", dbUser.id)
     .order("created_at", { ascending: false });
