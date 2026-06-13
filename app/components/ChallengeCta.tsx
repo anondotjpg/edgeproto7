@@ -88,6 +88,8 @@ const PAYMENT_METHODS: {
   },
 ];
 
+const ELLIPSIS_STEPS = [".", "..", "...", ""];
+
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -202,6 +204,27 @@ function StatusPill({ status }: { status: DepositInvoice["status"] }) {
     <div className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-[12px] font-semibold capitalize text-zinc-300">
       {getStatusLabel(status)}
     </div>
+  );
+}
+
+function LoadingEllipsis() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setIndex((current) => (current + 1) % ELLIPSIS_STEPS.length);
+    }, 420);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-block w-[1.15em] text-left align-baseline text-zinc-600"
+    >
+      {ELLIPSIS_STEPS[index]}
+    </span>
   );
 }
 
@@ -569,7 +592,8 @@ function CheckoutContent({
                 <div className="mt-auto pt-5">
                   <p className="text-center text-[12px] leading-5 text-zinc-600">
                     Waiting for {invoice.asset} to{" "}
-                    {shortenAddress(invoice.deposit_address)}.
+                    {shortenAddress(invoice.deposit_address)}
+                    <LoadingEllipsis />
                   </p>
                 </div>
               )}
