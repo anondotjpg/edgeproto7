@@ -364,8 +364,8 @@ export default function OwnedAccountsSection() {
   return (
     <div
       className={[
-        "overflow-visible transition-[height,margin-bottom] duration-[720ms] ease-[cubic-bezier(0.22,1,0.36,1)] sm:overflow-hidden",
-        showAccounts ? "h-auto mb-6 sm:h-[138px]" : "h-[28px]",
+        "overflow-visible transition-[height,margin-bottom,padding-bottom] duration-[720ms] ease-[cubic-bezier(0.22,1,0.36,1)] sm:overflow-hidden",
+        showAccounts ? "h-auto mb-6 pb-3 sm:h-[138px] sm:pb-0" : "h-[28px]",
       ].join(" ")}
     >
       <style>{`
