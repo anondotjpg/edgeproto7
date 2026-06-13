@@ -26,13 +26,13 @@ export const PLAN_CRYPTO_AMOUNTS: Record<
   Record<DepositChain, string>
 > = {
   "1000": {
-    solana: "0.105",
+    solana: "0.01",
   },
   "2000": {
-    solana: "0.19",
+    solana: "0.01",
   },
   "5000": {
-    solana: "0.38",
+    solana: "0.01",
   },
   "10000": {
     solana: "0.01",
