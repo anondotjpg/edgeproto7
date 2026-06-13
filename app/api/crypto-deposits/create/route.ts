@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
 import {
-  CHAIN_CONFIG,
   DESTINATION_CONFIG,
   type DepositChain,
   getDepositAsset,

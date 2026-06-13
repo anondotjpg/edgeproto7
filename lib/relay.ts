@@ -4,9 +4,15 @@ import {
   type DepositAsset,
   type DepositChain,
   getRelayRefundTo,
+  getRelayUserAddress,
 } from "@/lib/crypto-deposits";
 
 type JsonRecord = Record<string, unknown>;
+
+type RelayAmountResult = {
+  amount: string;
+  amountFormatted: string;
+};
 
 export type RelayIntentStatus =
   | "waiting"
@@ -46,11 +52,16 @@ export type RelayDepositQuote = {
 const RELAY_API_BASE = process.env.RELAY_API_BASE ?? "https://api.relay.link";
 const RELAY_API_KEY = process.env.RELAY_API_KEY;
 
-function relayHeaders() {
-  return {
+function relayHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(RELAY_API_KEY ? { "x-api-key": RELAY_API_KEY } : {}),
   };
+
+  if (RELAY_API_KEY) {
+    headers["x-api-key"] = RELAY_API_KEY;
+  }
+
+  return headers;
 }
 
 function isRecord(value: unknown): value is JsonRecord {
@@ -92,7 +103,7 @@ function walk(
   return null;
 }
 
-function findDepositAddress(quote: unknown) {
+function findDepositAddress(quote: unknown): string | null {
   return walk(quote, (value) => {
     if (!isRecord(value)) return null;
 
@@ -114,7 +125,7 @@ function findDepositAddress(quote: unknown) {
   });
 }
 
-function findRequestId(quote: unknown) {
+function findRequestId(quote: unknown): string | null {
   if (isRecord(quote) && Array.isArray(quote.steps)) {
     for (const step of quote.steps) {
       if (isRecord(step) && typeof step.requestId === "string") {
@@ -132,7 +143,9 @@ function findRequestId(quote: unknown) {
             typeof check.endpoint === "string" &&
             check.endpoint.includes("requestId=")
           ) {
-            const requestId = check.endpoint.split("requestId=")[1]?.split("&")[0];
+            const requestId = check.endpoint
+              .split("requestId=")[1]
+              ?.split("&")[0];
 
             if (requestId) return requestId;
           }
@@ -143,11 +156,12 @@ function findRequestId(quote: unknown) {
 
   return walk(quote, (value) => {
     if (!isRecord(value)) return null;
+
     return typeof value.requestId === "string" ? value.requestId : null;
   });
 }
 
-function getQuoteDetails(quote: unknown) {
+function getQuoteDetails(quote: unknown): JsonRecord | null {
   if (!isRecord(quote)) return null;
 
   const details = quote.details;
@@ -155,15 +169,37 @@ function getQuoteDetails(quote: unknown) {
   return isRecord(details) ? details : null;
 }
 
+function parseRelayAmountResult(value: string): RelayAmountResult | null {
+  try {
+    const parsed = JSON.parse(value);
+
+    if (!isRecord(parsed)) return null;
+
+    if (
+      typeof parsed.amount === "string" &&
+      typeof parsed.amountFormatted === "string"
+    ) {
+      return {
+        amount: parsed.amount,
+        amountFormatted: parsed.amountFormatted,
+      };
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function stringifyRelayAmountResult(result: RelayAmountResult): string {
+  return JSON.stringify(result);
+}
+
 function findCurrencyAmountInDetails(
   quote: unknown,
   asset: DepositAsset,
-): {
-  amount: string;
-  amountFormatted: string;
-} | null {
+): RelayAmountResult | null {
   const details = getQuoteDetails(quote);
-
   const currencyIn = details?.currencyIn;
 
   if (isRecord(currencyIn)) {
@@ -198,7 +234,7 @@ function findCurrencyAmountInDetails(
       currency.symbol === asset &&
       typeof currencyInValue.amount === "string"
     ) {
-      return JSON.stringify({
+      return stringifyRelayAmountResult({
         amount: currencyInValue.amount,
         amountFormatted:
           typeof currencyInValue.amountFormatted === "string"
@@ -211,10 +247,9 @@ function findCurrencyAmountInDetails(
   });
 
   if (fromNamedCurrencyIn) {
-    return JSON.parse(fromNamedCurrencyIn) as {
-      amount: string;
-      amountFormatted: string;
-    };
+    const parsed = parseRelayAmountResult(fromNamedCurrencyIn);
+
+    if (parsed) return parsed;
   }
 
   const fallback = walk(quote, (value) => {
@@ -227,7 +262,7 @@ function findCurrencyAmountInDetails(
       currency.symbol === asset &&
       typeof value.amount === "string"
     ) {
-      return JSON.stringify({
+      return stringifyRelayAmountResult({
         amount: value.amount,
         amountFormatted:
           typeof value.amountFormatted === "string"
@@ -239,15 +274,10 @@ function findCurrencyAmountInDetails(
     return null;
   });
 
-  return fallback
-    ? (JSON.parse(fallback) as {
-        amount: string;
-        amountFormatted: string;
-      })
-    : null;
+  return fallback ? parseRelayAmountResult(fallback) : null;
 }
 
-async function readRelayJson(response: Response) {
+async function readRelayJson(response: Response): Promise<unknown> {
   const text = await response.text();
 
   try {
@@ -262,6 +292,21 @@ async function readRelayJson(response: Response) {
   }
 }
 
+function getRelayErrorMessage(data: unknown, fallback: string): string {
+  if (!isRecord(data)) return fallback;
+
+  if (typeof data.message === "string") return data.message;
+  if (typeof data.error === "string") return data.error;
+
+  const error = data.error;
+
+  if (isRecord(error) && typeof error.message === "string") {
+    return error.message;
+  }
+
+  return fallback;
+}
+
 export async function createRelayDepositQuote({
   chain,
   destinationAmountAtomic,
@@ -270,9 +315,11 @@ export async function createRelayDepositQuote({
   destinationAmountAtomic: bigint;
 }): Promise<RelayDepositQuote> {
   const origin = CHAIN_CONFIG[chain];
+  const relayUserAddress = getRelayUserAddress(chain);
+  const refundTo = getRelayRefundTo(chain);
 
   const body = {
-    user: DESTINATION_CONFIG.recipient,
+    user: relayUserAddress,
     recipient: DESTINATION_CONFIG.recipient,
 
     originChainId: origin.relayChainId,
@@ -286,10 +333,25 @@ export async function createRelayDepositQuote({
 
     useDepositAddress: true,
     strict: true,
-    refundTo: getRelayRefundTo(chain),
+    refundTo,
 
     referrer: "edge",
   };
+
+  console.log("[relay] quote request", {
+    chain,
+    originChainId: body.originChainId,
+    originCurrency: body.originCurrency,
+    destinationChainId: body.destinationChainId,
+    destinationCurrency: body.destinationCurrency,
+    user: body.user,
+    recipient: body.recipient,
+    amount: body.amount,
+    tradeType: body.tradeType,
+    strict: body.strict,
+    useDepositAddress: body.useDepositAddress,
+    refundTo: body.refundTo,
+  });
 
   const response = await fetch(`${RELAY_API_BASE}/quote/v2`, {
     method: "POST",
@@ -301,10 +363,17 @@ export async function createRelayDepositQuote({
   const quote = await readRelayJson(response);
 
   if (!response.ok) {
+    console.log("[relay] quote error", {
+      chain,
+      status: response.status,
+      quote,
+    });
+
     throw new Error(
-      quote?.message ||
-        quote?.error ||
+      getRelayErrorMessage(
+        quote,
         `Relay quote failed with status ${response.status}.`,
+      ),
     );
   }
 
@@ -313,14 +382,24 @@ export async function createRelayDepositQuote({
   const amountIn = findCurrencyAmountInDetails(quote, origin.asset);
 
   if (!requestId) {
+    console.log("[relay] missing requestId", { chain, quote });
+
     throw new Error("Relay quote did not return a requestId.");
   }
 
   if (!depositAddress) {
+    console.log("[relay] missing depositAddress", { chain, quote });
+
     throw new Error("Relay quote did not return a deposit address.");
   }
 
   if (!amountIn) {
+    console.log("[relay] missing input amount", {
+      chain,
+      expectedAsset: origin.asset,
+      quote,
+    });
+
     throw new Error(
       `Relay quote did not return the required ${origin.asset} deposit amount.`,
     );
@@ -339,7 +418,9 @@ export async function createRelayDepositQuote({
   };
 }
 
-export async function getRelayIntentStatus(requestId: string) {
+export async function getRelayIntentStatus(
+  requestId: string,
+): Promise<RelayStatusResponse> {
   const url = new URL(`${RELAY_API_BASE}/intents/status/v3`);
   url.searchParams.set("requestId", requestId);
 
@@ -353,10 +434,15 @@ export async function getRelayIntentStatus(requestId: string) {
 
   if (!response.ok) {
     throw new Error(
-      data?.message ||
-        data?.error ||
+      getRelayErrorMessage(
+        data,
         `Relay status failed with status ${response.status}.`,
+      ),
     );
+  }
+
+  if (!isRecord(data) || typeof data.status !== "string") {
+    throw new Error("Relay status response did not include a status.");
   }
 
   return data as RelayStatusResponse;
