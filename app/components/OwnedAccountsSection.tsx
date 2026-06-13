@@ -1,6 +1,5 @@
 "use client";
 
-import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
@@ -143,9 +142,12 @@ function MiniGoalProgressBar({
             />
 
             <div
-              className="absolute inset-0 rounded-full bg-zinc-950"
+              data-tone={tone}
+              className="owned-mini-goal-cover absolute inset-0 rounded-full bg-zinc-950"
               style={{
                 opacity: overlayOpacity,
+                transitionDelay:
+                  tone === "goal" ? `${Math.min(index * 18, 150)}ms` : "0ms",
               }}
             />
           </div>
@@ -393,9 +395,21 @@ export default function OwnedAccountsSection() {
           animation: ownedAccountsReveal 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
+        .owned-mini-goal-cover {
+          transition: opacity 900ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .group:hover .owned-mini-goal-cover[data-tone="goal"] {
+          opacity: 0 !important;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .owned-accounts-reveal {
             animation: none !important;
+          }
+
+          .owned-mini-goal-cover {
+            transition: none !important;
           }
         }
       `}</style>
@@ -451,19 +465,13 @@ export default function OwnedAccountsSection() {
                   plan?.sizeLabel ??
                   `$${Number(account.plan_size).toLocaleString()}`;
 
-                const feeLabel = `$${Number(
-                  account.one_time_fee,
-                ).toLocaleString()}`;
-
                 const isEditing = editingAccountId === account.id;
                 const isSaving = savingAccountId === account.id;
                 const accountName = account.account_name?.trim();
                 const hasAccountName = Boolean(accountName);
                 const displayName = accountName || sizeLabel;
                 const statusLabel = getStatusLabel(account.status);
-                const subtitle = hasAccountName
-                  ? statusLabel
-                  : `${statusLabel}`;
+                const subtitle = hasAccountName ? statusLabel : `${statusLabel}`;
                 const progress = getAccountGoalProgress(account);
                 const barTone = getMiniGoalBarTone(account);
 
