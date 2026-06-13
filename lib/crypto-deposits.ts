@@ -35,7 +35,7 @@ export const PLAN_CRYPTO_AMOUNTS: Record<
     solana: "0.38",
   },
   "10000": {
-    solana: "0.65",
+    solana: "0.01",
   },
 };
 
