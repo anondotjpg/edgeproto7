@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { type ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -58,6 +59,7 @@ const PAYMENT_METHODS: {
   title: string;
   subtitle: string;
   network: string;
+  iconSrc: string;
 }[] = [
   {
     chain: "solana",
@@ -65,6 +67,7 @@ const PAYMENT_METHODS: {
     title: "Solana",
     subtitle: "Pay with SOL",
     network: "Solana",
+    iconSrc: "/sol.png",
   },
   {
     chain: "ethereum",
@@ -72,6 +75,7 @@ const PAYMENT_METHODS: {
     title: "Ethereum",
     subtitle: "Pay with ETH",
     network: "Ethereum mainnet",
+    iconSrc: "/eth.png",
   },
   {
     chain: "bitcoin",
@@ -79,6 +83,7 @@ const PAYMENT_METHODS: {
     title: "Bitcoin",
     subtitle: "Pay with BTC",
     network: "Bitcoin Network",
+    iconSrc: "/btc.png",
   },
 ];
 
@@ -255,10 +260,22 @@ async function readJsonResponse(response: Response) {
   }
 }
 
-function PaymentBadge({ asset }: { asset: "SOL" | "ETH" | "BTC" }) {
+function PaymentBadge({
+  asset,
+  iconSrc,
+}: {
+  asset: "SOL" | "ETH" | "BTC";
+  iconSrc: string;
+}) {
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 text-[11px] font-black text-zinc-200">
-      {asset}
+    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
+      <Image
+        src={iconSrc}
+        alt={`${asset} logo`}
+        fill
+        sizes="36px"
+        className="object-contain"
+      />
     </div>
   );
 }
@@ -342,7 +359,10 @@ function CheckoutContent({
                       className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3.5 text-left transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <div className="flex min-w-0 items-center gap-3">
-                        <PaymentBadge asset={method.asset} />
+                        <PaymentBadge
+                          asset={method.asset}
+                          iconSrc={method.iconSrc}
+                        />
 
                         <div className="min-w-0">
                           <div className="text-[15px] font-semibold text-zinc-100">
