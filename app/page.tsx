@@ -21,8 +21,6 @@ type TeamInfo = {
   alias?: string;
   record?: string;
   logo?: string;
-  color?: string;
-  league?: string;
 };
 
 export type Game = {
