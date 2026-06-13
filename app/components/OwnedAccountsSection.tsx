@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
@@ -41,21 +42,6 @@ const ACCOUNT_CARD_WIDTH_CLASS =
 
 type MiniGoalBarTone = "goal" | "failed" | "funded";
 
-function getStatusLabel(status: string) {
-  const normalizedStatus = status.toLowerCase();
-
-  if (normalizedStatus === "active_dev") return "Active";
-  if (normalizedStatus === "active") return "Active";
-  if (normalizedStatus === "passed") return "Passed";
-  if (normalizedStatus === "funded") return "Funded";
-  if (normalizedStatus === "failed") return "Failed";
-  if (normalizedStatus === "won") return "Won";
-  if (normalizedStatus === "lost") return "Lost";
-  if (normalizedStatus === "void") return "Void";
-
-  return status;
-}
-
 function getAccountGoalProgress(account: ExistingAccount) {
   const status = account.status.toLowerCase();
 
@@ -95,7 +81,7 @@ function MiniGoalProgressBar({
   value: number;
   tone: MiniGoalBarTone;
 }) {
-  const barCount = 12;
+  const barCount = 14;
   const progress =
     tone === "failed" || tone === "funded"
       ? 100
@@ -126,7 +112,7 @@ function MiniGoalProgressBar({
   };
 
   return (
-    <div className="grid h-[14px] w-[70px] grid-cols-12 gap-[3px]">
+    <div className="mt-2 grid h-7 w-[clamp(138px,52%,172px)] grid-cols-[repeat(14,minmax(0,1fr))] gap-[3px]">
       {Array.from({ length: barCount }).map((_, index) => {
         const fill = getBarFill(index);
         const overlayOpacity = 0.72 * (1 - fill);
@@ -149,7 +135,7 @@ function MiniGoalProgressBar({
                   opacity: overlayOpacity,
                   "--owned-mini-goal-cover-opacity": overlayOpacity,
                   "--owned-mini-goal-delay":
-                    tone === "goal" ? `${Math.min(index * 22, 180)}ms` : "0ms",
+                    tone === "goal" ? `${Math.min(index * 17, 170)}ms` : "0ms",
                 } as React.CSSProperties
               }
             />
@@ -477,10 +463,7 @@ export default function OwnedAccountsSection() {
                 const isEditing = editingAccountId === account.id;
                 const isSaving = savingAccountId === account.id;
                 const accountName = account.account_name?.trim();
-                const hasAccountName = Boolean(accountName);
                 const displayName = accountName || sizeLabel;
-                const statusLabel = getStatusLabel(account.status);
-                const subtitle = hasAccountName ? statusLabel : `${statusLabel}`;
                 const progress = getAccountGoalProgress(account);
                 const barTone = getMiniGoalBarTone(account);
 
@@ -560,54 +543,48 @@ export default function OwnedAccountsSection() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex min-h-[60px] items-center justify-between gap-3">
+                      <div className="flex min-h-[60px] items-center justify-between gap-4">
                         <div className="flex min-w-0 flex-1 flex-col justify-center">
                           <div className="truncate text-[17px] font-semibold leading-[1.05] tracking-tight text-zinc-100">
                             {displayName}
                           </div>
 
-                          <div className="mt-2 truncate text-[12px] font-medium leading-none text-zinc-500">
-                            {subtitle}
-                          </div>
+                          <MiniGoalProgressBar value={progress} tone={barTone} />
                         </div>
 
-                        <div className="ml-2 flex shrink-0 flex-col items-center justify-center gap-2">
-                          <div className="flex h-7 items-center justify-center gap-2">
-                            <button
-                              type="button"
-                              aria-label="Rename account"
-                              title="Rename account"
-                              onClick={(event) => {
-                                event.stopPropagation();
+                        <div className="flex shrink-0 items-center justify-center gap-2">
+                          <button
+                            type="button"
+                            aria-label="Rename account"
+                            title="Rename account"
+                            onClick={(event) => {
+                              event.stopPropagation();
 
-                                setEditingAccountId(account.id);
-                                setDraftName(
-                                  (account.account_name ?? "").slice(
-                                    0,
-                                    MAX_ACCOUNT_NAME_LENGTH,
-                                  ),
-                                );
-                              }}
-                              className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
-                            >
-                              <FiEdit2 className="h-3.5 w-3.5" />
-                            </button>
+                              setEditingAccountId(account.id);
+                              setDraftName(
+                                (account.account_name ?? "").slice(
+                                  0,
+                                  MAX_ACCOUNT_NAME_LENGTH,
+                                ),
+                              );
+                            }}
+                            className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
+                          >
+                            <FiEdit2 className="h-3.5 w-3.5" />
+                          </button>
 
-                            <button
-                              type="button"
-                              aria-label="Open account"
-                              title="Open account"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                openAccount(account.id);
-                              }}
-                              className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
-                            >
-                              <FiArrowUpRight className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-
-                          <MiniGoalProgressBar value={progress} tone={barTone} />
+                          <button
+                            type="button"
+                            aria-label="Open account"
+                            title="Open account"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openAccount(account.id);
+                            }}
+                            className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
+                          >
+                            <FiArrowUpRight className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       </div>
                     )}
