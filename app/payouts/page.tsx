@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
 
@@ -41,11 +41,70 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-zinc-900 ${className}`} />;
 }
 
+function FundedAccountsTableHeader() {
+  const labels = ["Account", "Equity", "Available", "P/L"];
+
+  return (
+    <div className="hidden border-b border-zinc-900 bg-black/20 px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600 sm:px-5 lg:grid lg:grid-cols-[1fr_140px_140px_120px] lg:items-center lg:gap-3">
+      {labels.map((label, index) => (
+        <div
+          key={label}
+          className={index === labels.length - 1 ? "text-right" : "text-left"}
+        >
+          {label}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyState({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex min-h-[154px] flex-col justify-center bg-zinc-950/70 text-left">
+      <div className="text-[17px] font-semibold tracking-tight text-zinc-100">
+        {title}
+      </div>
+
+      <p className="mt-2 max-w-xl text-[14px] leading-6 text-zinc-500">
+        {description}
+      </p>
+
+      {action ? <div className="mt-5">{action}</div> : null}
+    </div>
+  );
+}
+
+function EmptyFundedAccountsRow() {
+  return (
+    <div className="border-b border-zinc-900/80 px-3 py-3 last:border-b-0 sm:px-5">
+      <EmptyState
+        title="No funded accounts yet"
+        description="Pass a challenge to unlock funded payouts."
+        action={
+          <Link
+            href="/accounts"
+            className="inline-flex rounded-xl bg-black/30 px-4 py-2 text-sm font-medium text-zinc-300 ring-1 ring-zinc-800 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+          >
+            Start a challenge
+          </Link>
+        }
+      />
+    </div>
+  );
+}
+
 function PayoutsSkeleton() {
   return (
     <div className="min-h-screen bg-[#09090b] px-4 pt-20 pb-32 text-white sm:px-6 md:py-15 md:pb-24">
       <main className="mx-auto w-full max-w-7xl">
-
         <section className="mb-4">
           <div className="text-[13px] font-medium text-zinc-500">
             Total funded P/L
@@ -57,42 +116,37 @@ function PayoutsSkeleton() {
         </section>
 
         <section className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80">
-          <div className="border-b border-zinc-900 px-4 py-3.5 sm:px-5">
-            <h2 className="text-base font-semibold tracking-tight text-zinc-100 sm:text-xl">
-              Funded accounts <span className="text-zinc-500">(0)</span>
-            </h2>
-          </div>
+          <FundedAccountsTableHeader />
 
           {[1, 2, 3].map((row) => (
             <div
               key={row}
-              className="border-b border-zinc-900/80 px-4 py-4 last:border-b-0 sm:px-5 md:grid md:grid-cols-[1fr_140px_140px_120px] md:items-center md:gap-3"
+              className="border-b border-zinc-900/80 px-4 py-4 last:border-b-0 sm:px-5 lg:grid lg:grid-cols-[1fr_140px_140px_120px] lg:items-center lg:gap-3"
             >
               <div>
                 <SkeletonBlock className="h-4 w-40" />
-                <SkeletonBlock className="mt-2 h-3 w-14" />
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-3 md:mt-0 md:contents">
+              <div className="mt-4 grid grid-cols-3 gap-3 lg:mt-0 lg:contents">
                 <div>
-                  <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 md:text-[11px]">
+                  <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 lg:hidden">
                     Equity
                   </div>
-                  <SkeletonBlock className="mt-2 h-4 w-20" />
+                  <SkeletonBlock className="mt-2 h-4 w-20 lg:mt-0" />
                 </div>
 
                 <div>
-                  <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 md:text-[11px]">
+                  <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 lg:hidden">
                     Available
                   </div>
-                  <SkeletonBlock className="mt-2 h-4 w-20" />
+                  <SkeletonBlock className="mt-2 h-4 w-20 lg:mt-0" />
                 </div>
 
                 <div className="text-right">
-                  <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 md:text-[11px]">
+                  <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 lg:hidden">
                     P/L
                   </div>
-                  <SkeletonBlock className="mt-2 ml-auto h-4 w-20" />
+                  <SkeletonBlock className="mt-2 ml-auto h-4 w-20 lg:mt-0" />
                 </div>
               </div>
             </div>
@@ -185,7 +239,6 @@ export default function PayoutsPage() {
   return (
     <div className="min-h-screen bg-[#09090b] px-4 pt-20 pb-32 text-white sm:px-6 md:py-15 md:pb-24">
       <main className="mx-auto w-full max-w-7xl">
-
         <section className="mb-4">
           <div className="text-[13px] font-medium text-zinc-500">
             Total funded P/L
@@ -208,12 +261,7 @@ export default function PayoutsPage() {
         </section>
 
         <section className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80">
-          <div className="border-b border-zinc-900 px-4 py-3.5 sm:px-5">
-            <h2 className="text-base font-semibold tracking-tight text-zinc-100 sm:text-xl">
-              Funded accounts{" "}
-              <span className="text-zinc-500">({fundedAccounts.length})</span>
-            </h2>
-          </div>
+          <FundedAccountsTableHeader />
 
           <div>
             {fundedAccounts.length ? (
@@ -232,43 +280,40 @@ export default function PayoutsPage() {
                   <Link
                     key={account.id}
                     href={`/accounts/${account.id}`}
-                    className="block border-b border-zinc-900/80 px-4 py-4 last:border-b-0 hover:bg-zinc-900/40 sm:px-5 md:grid md:grid-cols-[1fr_140px_140px_120px] md:items-center md:gap-3"
+                    className="block border-b border-zinc-900/80 px-4 py-4 last:border-b-0 hover:bg-zinc-900/40 sm:px-5 lg:grid lg:grid-cols-[1fr_140px_140px_120px] lg:items-center lg:gap-3"
                   >
                     <div className="min-w-0">
                       <div className="truncate text-[15px] font-semibold text-zinc-100">
                         {accountName}
                       </div>
-                      <div className="mt-1 text-[12px] font-medium text-zinc-500">
-                        Funded
-                      </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-3 gap-3 md:mt-0 md:contents">
+                    <div className="mt-4 grid grid-cols-3 gap-3 lg:mt-0 lg:contents">
                       <div>
-                        <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 md:text-[11px]">
+                        <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 lg:hidden">
                           Equity
                         </div>
-                        <div className="mt-1 truncate text-[14px] font-semibold text-zinc-100 md:text-base">
+                        <div className="mt-1 truncate text-[14px] font-semibold text-zinc-100 lg:mt-0 lg:text-base">
                           {formatMoney(fundedEquity)}
                         </div>
                       </div>
 
                       <div>
-                        <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 md:text-[11px]">
+                        <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 lg:hidden">
                           Available
                         </div>
-                        <div className="mt-1 truncate text-[14px] font-semibold text-zinc-100 md:text-base">
+                        <div className="mt-1 truncate text-[14px] font-semibold text-zinc-100 lg:mt-0 lg:text-base">
                           {formatMoney(account.funded_current_balance)}
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 md:text-[11px]">
+                        <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 lg:hidden">
                           P/L
                         </div>
                         <div
                           className={[
-                            "mt-1 truncate text-[14px] font-semibold md:text-base",
+                            "mt-1 truncate text-[14px] font-semibold lg:mt-0 lg:text-base",
                             pnl > 0
                               ? "text-green-500"
                               : pnl < 0
@@ -284,22 +329,7 @@ export default function PayoutsPage() {
                 );
               })
             ) : (
-              <div className="px-4 py-8 sm:px-5">
-                <div className="text-[17px] font-semibold tracking-tight text-zinc-100">
-                  No funded accounts yet
-                </div>
-
-                <p className="mt-2 max-w-xl text-[14px] leading-6 text-zinc-500">
-                  Pass a challenge to unlock funded payouts.
-                </p>
-
-                <Link
-                  href="/accounts"
-                  className="mt-5 inline-flex rounded-xl bg-black/30 px-4 py-2 text-sm font-medium text-zinc-300 ring-1 ring-zinc-800 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
-                >
-                  Start a challenge
-                </Link>
-              </div>
+              <EmptyFundedAccountsRow />
             )}
           </div>
         </section>
