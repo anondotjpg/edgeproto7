@@ -71,6 +71,8 @@ type ChallengeCtaProps = {
 const PLAN_FEE_LABELS: Partial<Record<PlanKey, string>> = {
   "10000": "$299",
   "5000": "$179",
+  "2000": "$89",
+  "1000": "$49",
 };
 
 const PAYMENT_METHODS: {
