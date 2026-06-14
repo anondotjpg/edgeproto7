@@ -68,11 +68,11 @@ type ChallengeCtaProps = {
   planKey: PlanKey;
 };
 
-const PLAN_FEE_LABELS: Partial<Record<PlanKey, string>> = {
-  "10000": "$299",
-  "5000": "$179",
-  "2000": "$89",
-  "1000": "$49",
+const PLAN_FEE_CENTS: Partial<Record<PlanKey, number>> = {
+  "10000": 29900,
+  "5000": 17900,
+  "2000": 8900,
+  "1000": 4900,
 };
 
 const PAYMENT_METHODS: {
@@ -173,7 +173,15 @@ function formatCountdown(ms: number) {
 }
 
 function formatCents(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`;
+  const dollars = cents / 100;
+  const hasDecimalCents = cents % 100 !== 0;
+
+  return dollars.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: hasDecimalCents ? 2 : 0,
+    maximumFractionDigits: hasDecimalCents ? 2 : 0,
+  });
 }
 
 function normalizePromoInput(value: string) {
@@ -196,7 +204,13 @@ function getAccountTitle(planKey: PlanKey) {
 }
 
 function getPlanFeeLabel(planKey: PlanKey) {
-  return PLAN_FEE_LABELS[planKey] ?? "Evaluation fee";
+  const planFeeCents = PLAN_FEE_CENTS[planKey];
+
+  if (typeof planFeeCents === "number") {
+    return formatCents(planFeeCents);
+  }
+
+  return "Evaluation fee";
 }
 
 function getDiscountedFeeLabel({
@@ -238,12 +252,12 @@ function StepDots({ step }: { step: DepositStep }) {
   const activeIndex = getStepIndex(step);
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex h-3 w-16 items-center justify-end gap-3">
       {[0, 1].map((index) => (
         <div
           key={index}
           className={[
-            "h-3 rounded-full transition-all",
+            "h-3 shrink-0 rounded-full transition-[width,background-color] duration-200",
             index === activeIndex ? "w-10 bg-zinc-100" : "w-3 bg-zinc-700",
           ].join(" ")}
         />
@@ -480,18 +494,20 @@ function CheckoutContent({
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex min-h-[58px] items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+          <p className="h-4 text-[12px] font-medium uppercase leading-4 tracking-[0.16em] text-zinc-500">
             {accountTitle}
           </p>
 
-          <h2 className="mt-1 text-[24px] font-semibold leading-tight tracking-tight text-zinc-50">
-            {displayFeeLabel}
+          <h2 className="mt-1 h-8 text-[24px] font-semibold leading-8 tracking-tight text-zinc-50 tabular-nums">
+            <span className="inline-block min-w-[88px]">
+              {displayFeeLabel}
+            </span>
           </h2>
         </div>
 
-        <div className="shrink-0 pt-1.5">
+        <div className="flex h-8 w-16 shrink-0 justify-end pt-1.5">
           <StepDots step={step} />
         </div>
       </div>
@@ -517,9 +533,7 @@ function CheckoutContent({
                 <div className="flex h-10 items-center gap-2">
                   <input
                     value={promoCode}
-                    onChange={(event) =>
-                      onPromoCodeChange(event.target.value)
-                    }
+                    onChange={(event) => onPromoCodeChange(event.target.value)}
                     placeholder="Promo code"
                     autoCapitalize="characters"
                     className="min-w-0 flex-1 bg-transparent px-1 text-[16px] font-semibold uppercase tracking-[0.08em] text-zinc-100 outline-none placeholder:font-medium placeholder:normal-case placeholder:tracking-normal placeholder:text-zinc-600"
@@ -674,7 +688,9 @@ function CheckoutContent({
 
                     <div className="mt-2 flex items-center justify-between border-t border-zinc-900 pt-3 text-[12px]">
                       <span className="text-zinc-500">Total paid</span>
-                      <span className="font-semibold text-zinc-100">$0.00</span>
+                      <span className="font-semibold text-zinc-100">
+                        {formatCents(0)}
+                      </span>
                     </div>
                   </div>
                 </div>
