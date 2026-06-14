@@ -252,7 +252,7 @@ function StepDots({ step }: { step: DepositStep }) {
 
 function StatusPill({ status }: { status: DepositInvoice["status"] }) {
   return (
-    <div className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-[12px] font-semibold capitalize text-zinc-300">
+    <div className="rounded-full bg-zinc-900 px-3 py-1 text-[12px] font-semibold capitalize text-zinc-300">
       {getStatusLabel(status)}
     </div>
   );
@@ -350,7 +350,7 @@ function InfoCard({
   action?: ReactNode;
 }) {
   return (
-    <div className="relative rounded-2xl border border-zinc-800 bg-black/30 p-4">
+    <div className="relative rounded-2xl bg-black/30 p-4">
       {action ? <div className="absolute right-3 top-3">{action}</div> : null}
 
       <p className="pr-9 text-[12px] font-medium text-zinc-500">{label}</p>
@@ -650,7 +650,7 @@ function CheckoutContent({
                   <p className="mt-1 text-[13px] leading-5 text-zinc-500">
                     {isPromoInvoice
                       ? "Your promo code covered the full evaluation fee."
-                      : "Send exact amount to deposit address."}
+                      : "Send exact amount"}
                   </p>
                 </div>
 
@@ -678,7 +678,7 @@ function CheckoutContent({
                 </div>
               ) : (
                 <div className="mt-5 grid gap-3">
-                  <div className="relative rounded-2xl border border-zinc-800 bg-black/30 p-4">
+                  <div className="relative rounded-2xl bg-black/30 p-4">
                     <div className="absolute right-3 top-3">
                       <CopyIconButton
                         label="amount"
