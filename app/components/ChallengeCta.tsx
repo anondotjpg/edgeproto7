@@ -429,24 +429,23 @@ function CheckoutContent({
     Boolean(appliedPromo?.code) && appliedPromo?.code === cleanPromoCode;
   const isFreePromoApplied = isPromoApplied && appliedPromo?.finalCents === 0;
   const isPromoInvoice = invoice?.provider === "promo";
+  const shouldShowPromoMessage = Boolean(promoMessage) && !isPromoApplied;
 
   return (
     <>
-      <div>
-        <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-          {accountTitle}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+            {accountTitle}
+          </p>
 
-        <h2 className="mt-1 text-[24px] font-semibold leading-tight tracking-tight text-zinc-50">
-          Start challenge
-        </h2>
-      </div>
+          <h2 className="mt-1 text-[24px] font-semibold leading-tight tracking-tight text-zinc-50">
+            Start challenge
+          </h2>
+        </div>
 
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <StepDots step={step} />
-
-        <div className="text-[12px] font-medium text-zinc-500">
-          Step {getStepIndex(step) + 1} of 2
+        <div className="shrink-0 pt-1.5">
+          <StepDots step={step} />
         </div>
       </div>
 
@@ -485,17 +484,16 @@ function CheckoutContent({
                     disabled={isApplyingPromo || !cleanPromoCode}
                     className="h-9 cursor-pointer rounded-xl border border-zinc-800 bg-zinc-900 px-3 text-[12px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {isApplyingPromo ? "..." : isPromoApplied ? "Applied" : "Apply"}
+                    {isApplyingPromo
+                      ? "..."
+                      : isPromoApplied
+                        ? "Applied"
+                        : "Apply"}
                   </button>
                 </div>
 
-                {promoMessage ? (
-                  <p
-                    className={[
-                      "mt-2 text-[12px] leading-5",
-                      isPromoApplied ? "text-zinc-300" : "text-red-300",
-                    ].join(" ")}
-                  >
+                {shouldShowPromoMessage ? (
+                  <p className="mt-2 text-[12px] leading-5 text-red-300">
                     {promoMessage}
                   </p>
                 ) : null}
@@ -632,91 +630,90 @@ function CheckoutContent({
                   </div>
                 </div>
               ) : (
-              <div className="mt-5 grid gap-3">
-                <div className="relative rounded-2xl border border-zinc-800 bg-black/30 p-4">
-                  <div className="absolute right-3 top-3">
-                    <CopyIconButton
-                      label="amount"
-                      value={invoice.expected_amount_display}
-                      copied={copied}
-                      onCopy={copyText}
-                    />
-                  </div>
+                <div className="mt-5 grid gap-3">
+                  <div className="relative rounded-2xl border border-zinc-800 bg-black/30 p-4">
+                    <div className="absolute right-3 top-3">
+                      <CopyIconButton
+                        label="amount"
+                        value={invoice.expected_amount_display}
+                        copied={copied}
+                        onCopy={copyText}
+                      />
+                    </div>
 
-                  <p className="pr-9 text-[12px] font-medium text-zinc-500">
-                    Send exactly
-                  </p>
-
-                  <div className="mt-1.5 flex items-end justify-between gap-3">
-                    <p className="break-all text-[28px] font-semibold leading-none tracking-tight text-zinc-50">
-                      {invoice.expected_amount_display}
+                    <p className="pr-9 text-[12px] font-medium text-zinc-500">
+                      Send exactly
                     </p>
 
-                    <p className="pb-0.5 text-[13px] font-bold text-zinc-400">
-                      {invoice.asset}
-                    </p>
-                  </div>
-                </div>
+                    <div className="mt-1.5 flex items-end justify-between gap-3">
+                      <p className="break-all text-[28px] font-semibold leading-none tracking-tight text-zinc-50">
+                        {invoice.expected_amount_display}
+                      </p>
 
-                <InfoCard
-                  label="Deposit address"
-                  value={invoice.deposit_address}
-                  action={
-                    <CopyIconButton
-                      label="deposit"
-                      value={invoice.deposit_address}
-                      copied={copied}
-                      onCopy={copyText}
-                    />
-                  }
-                />
-
-                {invoice.discount_amount_cents &&
-                invoice.discount_amount_cents > 0 ? (
-                  <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
-                    <div className="flex items-center justify-between text-[12px]">
-                      <span className="text-zinc-500">
-                        Promo {invoice.promo_code}
-                      </span>
-
-                      <span className="font-semibold text-zinc-100">
-                        -{formatCents(invoice.discount_amount_cents)}
-                      </span>
+                      <p className="pb-0.5 text-[13px] font-bold text-zinc-400">
+                        {invoice.asset}
+                      </p>
                     </div>
                   </div>
-                ) : null}
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
-                    <p className="text-[12px] font-medium text-zinc-500">
-                      Time left
-                    </p>
+                  <InfoCard
+                    label="Deposit address"
+                    value={invoice.deposit_address}
+                    action={
+                      <CopyIconButton
+                        label="deposit"
+                        value={invoice.deposit_address}
+                        copied={copied}
+                        onCopy={copyText}
+                      />
+                    }
+                  />
 
-                    <p className="mt-1 text-[18px] font-semibold text-zinc-100">
-                      {invoice.status === "paid"
-                        ? "Complete"
-                        : invoice.status === "expired"
-                          ? "Expired"
-                          : isTerminalStatus(invoice.status)
-                            ? getStatusLabel(invoice.status)
-                            : countdown}
-                    </p>
-                  </div>
+                  {invoice.discount_amount_cents &&
+                  invoice.discount_amount_cents > 0 ? (
+                    <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span className="text-zinc-500">
+                          Promo {invoice.promo_code}
+                        </span>
 
-                  <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
-                    <p className="text-[12px] font-medium text-zinc-500">
-                      Relay status
-                    </p>
+                        <span className="font-semibold text-zinc-100">
+                          -{formatCents(invoice.discount_amount_cents)}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
 
-                    <p className="mt-1 truncate text-[18px] font-semibold capitalize text-zinc-100">
-                      {invoice.status === "paid"
-                        ? "Success"
-                        : invoice.relay_status || invoice.status}
-                    </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
+                      <p className="text-[12px] font-medium text-zinc-500">
+                        Time left
+                      </p>
+
+                      <p className="mt-1 text-[18px] font-semibold text-zinc-100">
+                        {invoice.status === "paid"
+                          ? "Complete"
+                          : invoice.status === "expired"
+                            ? "Expired"
+                            : isTerminalStatus(invoice.status)
+                              ? getStatusLabel(invoice.status)
+                              : countdown}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
+                      <p className="text-[12px] font-medium text-zinc-500">
+                        Relay status
+                      </p>
+
+                      <p className="mt-1 truncate text-[18px] font-semibold capitalize text-zinc-100">
+                        {invoice.status === "paid"
+                          ? "Success"
+                          : invoice.relay_status || invoice.status}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-
               )}
 
               {invoice.status === "paid" && invoice.credited_account_id ? (
@@ -889,7 +886,7 @@ export default function ChallengeCta({
 
       setAppliedPromo(data);
       setPromoCode(data.code ?? cleanPromoCode);
-      setPromoMessage(data.message ?? "Promo code applied.");
+      setPromoMessage(null);
     } catch (error) {
       setAppliedPromo(null);
       setPromoMessage(
