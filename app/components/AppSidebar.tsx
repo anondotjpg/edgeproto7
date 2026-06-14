@@ -10,10 +10,30 @@ import { IoStatsChart } from "react-icons/io5";
 import { SiCashapp } from "react-icons/si";
 
 const NAV_LINKS = [
-  { label: "Dash", href: "/", Icon: GoHomeFill },
-  { label: "Accounts", href: "/accounts", Icon: MdAccountBalanceWallet },
-  { label: "Portfolio", href: "/portfolio", Icon: IoStatsChart },
-  { label: "Payouts", href: "/payouts", Icon: SiCashapp },
+  {
+    label: "Dash",
+    href: "/",
+    Icon: GoHomeFill,
+    mobileIconClassName: "h-[25px] w-[25px]",
+  },
+  {
+    label: "Accounts",
+    href: "/accounts",
+    Icon: MdAccountBalanceWallet,
+    mobileIconClassName: "h-[26px] w-[26px]",
+  },
+  {
+    label: "Portfolio",
+    href: "/portfolio",
+    Icon: IoStatsChart,
+    mobileIconClassName: "h-[24px] w-[24px]",
+  },
+  {
+    label: "Payouts",
+    href: "/payouts",
+    Icon: SiCashapp,
+    mobileIconClassName: "h-[23px] w-[23px]",
+  },
 ] as const;
 
 function isActivePath(pathname: string, href: string) {
@@ -98,16 +118,18 @@ export default function AppSidebar() {
                 <Link
                   key={item.label}
                   href={item.href}
+                  aria-label={item.label}
                   className={[
-                    "flex h-full flex-col items-center justify-center gap-1 px-1 outline-none transition-colors",
+                    "flex h-full items-center justify-center px-1 outline-none transition-colors",
                     "focus:outline-none focus-visible:outline-none",
                     isActive ? "text-zinc-100" : "text-zinc-500",
                   ].join(" ")}
                 >
-                  <Icon className="h-[24px] w-[24px] shrink-0" />
-
-                  <span className="text-[12px] font-medium leading-none">
-                    {item.label}
+                  <span className="flex h-7 w-7 items-center justify-center">
+                    <Icon
+                      aria-hidden="true"
+                      className={`${item.mobileIconClassName} block shrink-0`}
+                    />
                   </span>
                 </Link>
               );
