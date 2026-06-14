@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef, useState } from "react";
 import ChallengeCta from "../components/ChallengeCta";
 import OwnedAccountsSection from "../components/OwnedAccountsSection";
 import type { PlanKey } from "@/lib/plans";
@@ -153,6 +156,15 @@ function getBadgeClassName(style: ButtonStyle) {
   return "border-zinc-700 bg-zinc-900 text-zinc-200";
 }
 
+function getCircularOffset(index: number, activeIndex: number, length: number) {
+  let offset = index - activeIndex;
+
+  if (offset > length / 2) offset -= length;
+  if (offset < -length / 2) offset += length;
+
+  return offset;
+}
+
 function AccountCard({
   planKey,
   sizeLabel,
@@ -240,6 +252,116 @@ function AccountCard({
   );
 }
 
+function MobileChallengeCarousel() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [dragX, setDragX] = useState(0);
+  const startXRef = useRef<number | null>(null);
+  const pointerDownRef = useRef(false);
+  const justSwipedRef = useRef(false);
+
+  const goPrev = () => {
+    setActiveIndex((current) =>
+      current === 0 ? ACCOUNT_PLANS.length - 1 : current - 1,
+    );
+  };
+
+  const goNext = () => {
+    setActiveIndex((current) => (current + 1) % ACCOUNT_PLANS.length);
+  };
+
+  return (
+    <div
+      className="relative md:hidden"
+      onClickCapture={(event) => {
+        if (!justSwipedRef.current) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+      }}
+    >
+      <div
+        className="overflow-hidden pt-3 touch-pan-y"
+        onPointerDown={(event) => {
+          pointerDownRef.current = true;
+          startXRef.current = event.clientX;
+          setDragX(0);
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          if (!pointerDownRef.current || startXRef.current === null) return;
+
+          const nextDragX = event.clientX - startXRef.current;
+          setDragX(Math.max(-90, Math.min(90, nextDragX)));
+        }}
+        onPointerUp={(event) => {
+          if (!pointerDownRef.current) return;
+
+          pointerDownRef.current = false;
+          startXRef.current = null;
+
+          if (Math.abs(dragX) > 42) {
+            justSwipedRef.current = true;
+
+            if (dragX < 0) {
+              goNext();
+            } else {
+              goPrev();
+            }
+
+            window.setTimeout(() => {
+              justSwipedRef.current = false;
+            }, 80);
+          }
+
+          setDragX(0);
+
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          }
+        }}
+        onPointerCancel={() => {
+          pointerDownRef.current = false;
+          startXRef.current = null;
+          setDragX(0);
+        }}
+      >
+        <div
+          className="flex"
+          style={{
+            transform: `translate3d(calc(${-activeIndex * 100}% + ${dragX}px), 0, 0)`,
+            transition: pointerDownRef.current
+              ? "none"
+              : "transform 360ms cubic-bezier(0.22, 1, 0.36, 1)",
+          }}
+        >
+          {ACCOUNT_PLANS.map((plan) => (
+            <div key={plan.planKey} className="w-full shrink-0">
+              <AccountCard {...plan} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 flex items-center justify-center gap-2">
+        {ACCOUNT_PLANS.map((plan, index) => (
+          <button
+            key={plan.planKey}
+            type="button"
+            aria-label={`Show ${plan.sizeLabel} challenge`}
+            onClick={() => setActiveIndex(index)}
+            className={[
+              "h-1.5 rounded-full transition-all duration-300",
+              index === activeIndex
+                ? "w-5 bg-zinc-200"
+                : "w-1.5 bg-zinc-700",
+            ].join(" ")}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AccountsPage() {
   return (
     <>
@@ -282,7 +404,9 @@ export default function AccountsPage() {
               </p>
             </div>
 
-            <div className="grid gap-7 sm:gap-5 md:grid-cols-2 md:justify-center xl:grid-cols-4">
+            <MobileChallengeCarousel />
+
+            <div className="hidden gap-7 sm:gap-5 md:grid md:grid-cols-2 md:justify-center xl:grid-cols-4">
               {ACCOUNT_PLANS.map((plan) => (
                 <div
                   key={plan.planKey}
