@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ChallengeCta from "../components/ChallengeCta";
 import OwnedAccountsSection from "../components/OwnedAccountsSection";
 import type { PlanKey } from "@/lib/plans";
@@ -249,92 +249,78 @@ function AccountCard({
 
 function MobileChallengeCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [dragX, setDragX] = useState(0);
-  const startXRef = useRef<number | null>(null);
-  const pointerDownRef = useRef(false);
-  const justSwipedRef = useRef(false);
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const scrollFrameRef = useRef<number | null>(null);
 
-  const goPrev = () => {
-    setActiveIndex((current) =>
-      current === 0 ? ACCOUNT_PLANS.length - 1 : current - 1,
-    );
-  };
+  function updateActiveIndex() {
+    const row = rowRef.current;
+    if (!row) return;
 
-  const goNext = () => {
-    setActiveIndex((current) => (current + 1) % ACCOUNT_PLANS.length);
-  };
+    const cards = Array.from(row.children) as HTMLElement[];
+    const viewportCenter = row.scrollLeft + row.clientWidth / 2;
+
+    let closestIndex = 0;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    cards.forEach((card, index) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const distance = Math.abs(cardCenter - viewportCenter);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    setActiveIndex(closestIndex);
+  }
+
+  function handleScroll() {
+    if (scrollFrameRef.current !== null) return;
+
+    scrollFrameRef.current = window.requestAnimationFrame(() => {
+      scrollFrameRef.current = null;
+      updateActiveIndex();
+    });
+  }
+
+  function scrollToIndex(index: number) {
+    const row = rowRef.current;
+    const card = row?.children[index] as HTMLElement | undefined;
+
+    if (!row || !card) return;
+
+    setActiveIndex(index);
+
+    row.scrollTo({
+      left: card.offsetLeft,
+      behavior: "smooth",
+    });
+  }
+
+  useEffect(() => {
+    return () => {
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+      }
+    };
+  }, []);
 
   return (
-    <div
-      className="relative md:hidden"
-      onClickCapture={(event) => {
-        if (!justSwipedRef.current) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-      }}
-    >
+    <div className="relative md:hidden">
       <div
-        className="touch-pan-y overflow-hidden pt-3"
-        onPointerDown={(event) => {
-          pointerDownRef.current = true;
-          startXRef.current = event.clientX;
-          setDragX(0);
-          event.currentTarget.setPointerCapture(event.pointerId);
-        }}
-        onPointerMove={(event) => {
-          if (!pointerDownRef.current || startXRef.current === null) return;
-
-          const nextDragX = event.clientX - startXRef.current;
-          setDragX(Math.max(-90, Math.min(90, nextDragX)));
-        }}
-        onPointerUp={(event) => {
-          if (!pointerDownRef.current) return;
-
-          pointerDownRef.current = false;
-          startXRef.current = null;
-
-          if (Math.abs(dragX) > 42) {
-            justSwipedRef.current = true;
-
-            if (dragX < 0) {
-              goNext();
-            } else {
-              goPrev();
-            }
-
-            window.setTimeout(() => {
-              justSwipedRef.current = false;
-            }, 80);
-          }
-
-          setDragX(0);
-
-          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-            event.currentTarget.releasePointerCapture(event.pointerId);
-          }
-        }}
-        onPointerCancel={() => {
-          pointerDownRef.current = false;
-          startXRef.current = null;
-          setDragX(0);
-        }}
+        ref={rowRef}
+        onScroll={handleScroll}
+        className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pt-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        <div
-          className="flex"
-          style={{
-            transform: `translate3d(calc(${-activeIndex * 100}% + ${dragX}px), 0, 0)`,
-            transition: pointerDownRef.current
-              ? "none"
-              : "transform 360ms cubic-bezier(0.22, 1, 0.36, 1)",
-          }}
-        >
-          {ACCOUNT_PLANS.map((plan) => (
-            <div key={plan.planKey} className="w-full shrink-0">
-              <AccountCard {...plan} glowEnabled={false} />
-            </div>
-          ))}
-        </div>
+        {ACCOUNT_PLANS.map((plan) => (
+          <div
+            key={plan.planKey}
+            className="w-full shrink-0 snap-start snap-always"
+          >
+            <AccountCard {...plan} glowEnabled={false} />
+          </div>
+        ))}
       </div>
 
       <div className="mt-5 flex items-center justify-center gap-2">
@@ -343,7 +329,7 @@ function MobileChallengeCarousel() {
             key={plan.planKey}
             type="button"
             aria-label={`Show ${plan.sizeLabel} challenge`}
-            onClick={() => setActiveIndex(index)}
+            onClick={() => scrollToIndex(index)}
             className={[
               "h-1.5 rounded-full transition-all duration-300",
               index === activeIndex
