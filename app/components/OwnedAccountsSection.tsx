@@ -35,7 +35,7 @@ const ACCOUNT_ROW_CLASS =
   "flex flex-col gap-2 overflow-visible sm:flex-row sm:snap-x sm:snap-mandatory sm:overflow-x-auto sm:overflow-y-hidden sm:overscroll-x-contain sm:scroll-smooth sm:[-ms-overflow-style:none] sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden";
 
 const ACCOUNT_CARD_CLASS =
-  "group min-h-[86px] w-full rounded-[14px] border border-zinc-900 bg-zinc-950 px-4 py-3 transition-colors hover:border-zinc-800 hover:bg-zinc-900/80 sm:shrink-0 sm:snap-start sm:snap-always";
+  "group min-h-[86px] w-full rounded-[14px] border border-zinc-800 bg-zinc-950 px-4 py-3 transition-colors hover:border-zinc-700 sm:shrink-0 sm:snap-start sm:snap-always";
 
 const ACCOUNT_CARD_WIDTH_CLASS =
   "sm:w-[calc((100%_-_8px)_/_2)] xl:w-[calc((100%_-_16px)_/_3)]";
