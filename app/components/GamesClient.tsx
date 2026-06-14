@@ -486,7 +486,7 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
 
       <Link
         href={eventHref}
-        className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-zinc-100 transition-colors hover:text-zinc-300 xl:h-8 xl:gap-2 xl:rounded-xl xl:bg-zinc-900 xl:px-3 xl:text-[13px] xl:hover:bg-zinc-800 xl:hover:text-zinc-100"
+        className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-zinc-100 transition-colors hover:text-zinc-300"
       >
         <span>Game View</span>
         <FaChevronRight className="h-2 w-2 xl:h-2.5 xl:w-2.5" />
