@@ -536,7 +536,7 @@ function GameCard({
 
   return (
     <>
-      <article className="relative rounded-xl border border-zinc-800 p-2.5 xl:hidden md:p-3">
+      <article className="relative xl:hidden">
         <GameCardHeader game={game} eventHref={eventHref} />
 
         <div>
@@ -705,16 +705,16 @@ export default function GamesClient({
               </div>
 
               {!league || league.games.length === 0 ? (
-                <div className="rounded-xl border border-zinc-900 p-4 text-[13px] text-zinc-400">
+                <div className="text-[13px] text-zinc-400">
                   No active {selectedLeagueMeta.label} markets right now
                 </div>
               ) : (
                 <div className="grid gap-7">
                   {groupedGames.map((group) => (
-                    <div key={group.key} className="grid gap-4 xl:gap-2">
+                    <div key={group.key} className="grid gap-3 xl:gap-2">
                       <DateMarketHeader date={group.date} />
 
-                      <div className="grid gap-3 md:gap-3">
+                      <div className="grid gap-2.5 md:gap-3">
                         {group.games.map((game) => (
                           <GameCard
                             key={game.id}
