@@ -644,10 +644,10 @@ function OffsetPlaceBetButton({
         <motion.button
           type="button"
           animate={{
-            scale: holdProgress > 0 ? 0.975 : 1,
+            y: holdProgress > 0 ? 0 : -2,
           }}
           transition={{
-            duration: 0.18,
+            duration: 0.12,
             ease: [0.22, 1, 0.36, 1],
           }}
           onClick={(event) => {
@@ -658,7 +658,7 @@ function OffsetPlaceBetButton({
           onPointerLeave={onPointerLeave}
           onPointerCancel={onPointerCancel}
           disabled={disabled}
-          className="relative h-16 w-full translate-y-[-2px] cursor-pointer select-none overflow-hidden rounded-2xl bg-zinc-900 text-[16px] font-semibold text-zinc-100 transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed"
+          className="relative h-16 w-full cursor-pointer select-none overflow-hidden rounded-2xl bg-zinc-900 text-[16px] font-semibold text-zinc-100 disabled:cursor-not-allowed"
           style={faceStyle}
         >
           <span
