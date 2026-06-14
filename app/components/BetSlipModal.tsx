@@ -413,11 +413,13 @@ const BetSlipHeader = memo(function BetSlipHeader({
     team,
     teamAlias,
   });
+  const isMobileDrawer = mobileLayout && panelMode === "modal";
 
   return (
     <div
       className={[
-        "relative pr-[122px]",
+        "relative",
+        isMobileDrawer ? "" : "pr-[122px]",
         panelMode === "sidebar"
           ? "min-h-[82px] border-b border-zinc-800 px-5 pt-4 pb-3"
           : mobileLayout
@@ -440,12 +442,14 @@ const BetSlipHeader = memo(function BetSlipHeader({
         <div className="min-w-0 flex-1">
           <h2
             className={[
-              "truncate font-semibold tracking-tight text-zinc-100",
-              panelMode === "sidebar"
-                ? "text-[22px] leading-[1.12]"
-                : mobileLayout
-                  ? "text-2xl leading-[1.15]"
-                  : "text-2xl leading-tight",
+              "font-semibold tracking-tight text-zinc-100",
+              isMobileDrawer
+                ? "whitespace-normal break-words text-2xl leading-[1.15]"
+                : panelMode === "sidebar"
+                  ? "truncate text-[22px] leading-[1.12]"
+                  : mobileLayout
+                    ? "truncate text-2xl leading-[1.15]"
+                    : "truncate text-2xl leading-tight",
             ].join(" ")}
           >
             {displayTeam}
@@ -453,12 +457,14 @@ const BetSlipHeader = memo(function BetSlipHeader({
 
           <p
             className={[
-              "mt-1 truncate text-zinc-400",
-              panelMode === "sidebar"
-                ? "text-[13px] leading-[1.2]"
-                : mobileLayout
-                  ? "text-sm leading-[1.25]"
-                  : "text-sm leading-tight",
+              "mt-1 text-zinc-400",
+              isMobileDrawer
+                ? "whitespace-normal break-words text-sm leading-[1.25]"
+                : panelMode === "sidebar"
+                  ? "truncate text-[13px] leading-[1.2]"
+                  : mobileLayout
+                    ? "truncate text-sm leading-[1.25]"
+                    : "truncate text-sm leading-tight",
             ].join(" ")}
           >
             {displayMatchup}
@@ -469,7 +475,11 @@ const BetSlipHeader = memo(function BetSlipHeader({
       <div
         className={[
           "absolute text-right leading-none",
-          panelMode === "sidebar" ? "right-5 top-2" : "right-0 -top-2",
+          panelMode === "sidebar"
+            ? "right-5 top-2"
+            : isMobileDrawer
+              ? "right-0 top-[-34px]"
+              : "right-0 -top-2",
         ].join(" ")}
       >
         {isGameStarted ? (
@@ -772,7 +782,9 @@ const AccountSelectSection = memo(function AccountSelectSection({
           <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
             {accounts.map((account) => {
               const selected = selectedAccountIds.includes(account.id);
-              const active = ["active", "active_dev", "funded"].includes(account.status);
+              const active = ["active", "active_dev", "funded"].includes(
+                account.status,
+              );
               const maxRiskAmount = getMaxRiskAmount(account);
 
               return (
@@ -833,9 +845,9 @@ const AccountSelectSection = memo(function AccountSelectSection({
             href="/accounts"
             className="flex h-[84px] w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 p-3.5 text-left text-base text-zinc-300"
           >
-            No accounts. 
+            No accounts. 
             <span className="inline underline">Start a challenge</span>
-             first.
+             first.
           </Link>
         )}
       </div>
@@ -1655,8 +1667,7 @@ export function BetSlipPanel({
     } catch (err) {
       console.error(err);
 
-      const message =
-        err instanceof Error ? err.message : "Something went wrong.";
+      const message = err instanceof Error ? err.message : "Something went wrong.";
 
       setError(message);
       toast.info("Bet not placed", {
