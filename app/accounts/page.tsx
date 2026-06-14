@@ -156,25 +156,20 @@ function getBadgeClassName(style: ButtonStyle) {
   return "border-zinc-700 bg-zinc-900 text-zinc-200";
 }
 
-function getCircularOffset(index: number, activeIndex: number, length: number) {
-  let offset = index - activeIndex;
-
-  if (offset > length / 2) offset -= length;
-  if (offset < -length / 2) offset += length;
-
-  return offset;
-}
-
 function AccountCard({
   planKey,
   sizeLabel,
   badge,
   feeLabel,
   cta,
-}: AccountPlan) {
+  glowEnabled = true,
+}: AccountPlan & {
+  glowEnabled?: boolean;
+}) {
   const buttonStyle = getButtonStyle(sizeLabel);
   const shimmerEnabled = buttonStyle === "gold" || buttonStyle === "silver";
-  const cardGlowEnabled = buttonStyle === "gold" || buttonStyle === "silver";
+  const cardGlowEnabled =
+    glowEnabled && (buttonStyle === "gold" || buttonStyle === "silver");
 
   return (
     <div className="relative">
@@ -280,7 +275,7 @@ function MobileChallengeCarousel() {
       }}
     >
       <div
-        className="overflow-hidden pt-3 touch-pan-y"
+        className="touch-pan-y overflow-hidden pt-3"
         onPointerDown={(event) => {
           pointerDownRef.current = true;
           startXRef.current = event.clientX;
@@ -336,7 +331,7 @@ function MobileChallengeCarousel() {
         >
           {ACCOUNT_PLANS.map((plan) => (
             <div key={plan.planKey} className="w-full shrink-0">
-              <AccountCard {...plan} />
+              <AccountCard {...plan} glowEnabled={false} />
             </div>
           ))}
         </div>
