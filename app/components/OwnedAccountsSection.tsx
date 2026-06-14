@@ -169,18 +169,12 @@ function MiniGoalProgressBar({
           >
             {fill > 0 ? (
               <div
-                data-tone={tone}
-                className="owned-mini-goal-fill absolute inset-y-0 left-0 h-full origin-left rounded-full"
+                className="absolute inset-y-0 left-0 h-full origin-left rounded-full"
                 style={
                   {
                     width: "100%",
                     backgroundColor: getBarColor(index),
                     transform: `scaleX(${fill})`,
-                    "--owned-mini-goal-scale": fill,
-                    "--owned-mini-goal-delay":
-                      tone === "goal"
-                        ? `${Math.min(index * 17, 170)}ms`
-                        : "0ms",
                   } as React.CSSProperties
                 }
               />
@@ -426,34 +420,13 @@ export default function OwnedAccountsSection() {
           }
         }
 
-        @keyframes ownedMiniGoalReplay {
-          0% {
-            transform: scaleX(0);
-          }
-          100% {
-            transform: scaleX(var(--owned-mini-goal-scale));
-          }
-        }
-
         .owned-accounts-reveal {
           animation: ownedAccountsReveal 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
-
-        @media (min-width: 640px) {
-          .group:hover .owned-mini-goal-fill[data-tone="goal"] {
-            animation: ownedMiniGoalReplay 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
-            animation-delay: var(--owned-mini-goal-delay);
-          }
         }
 
         @media (prefers-reduced-motion: reduce) {
           .owned-accounts-reveal {
             animation: none !important;
-          }
-
-          .owned-mini-goal-fill {
-            animation: none !important;
-            transform: scaleX(var(--owned-mini-goal-scale)) !important;
           }
         }
       `}</style>
