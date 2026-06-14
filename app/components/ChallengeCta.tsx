@@ -430,21 +430,19 @@ function CheckoutContent({
 
   return (
     <>
-      <div>
-        <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-          {accountTitle}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+            {accountTitle}
+          </p>
 
-        <h2 className="mt-1 text-[24px] font-semibold leading-tight tracking-tight text-zinc-50">
-          Start challenge
-        </h2>
-      </div>
+          <h2 className="mt-1 text-[24px] font-semibold leading-tight tracking-tight text-zinc-50">
+            Start challenge
+          </h2>
+        </div>
 
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <StepDots step={step} />
-
-        <div className="text-[12px] font-medium text-zinc-500">
-          Step {getStepIndex(step) + 1} of 2
+        <div className="shrink-0 pt-1.5">
+          <StepDots step={step} />
         </div>
       </div>
 
