@@ -487,7 +487,7 @@ async function createFreePromoInvoice({
       expected_destination_amount_display: "0",
       destination_address: DESTINATION_CONFIG.recipient,
 
-      status: "processing",
+      status: "pending",
       expires_at: nowIso,
 
       account_starting_balance: planSize,
