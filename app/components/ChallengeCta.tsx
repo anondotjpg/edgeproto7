@@ -484,7 +484,7 @@ function CheckoutContent({
                     }
                     placeholder="Promo code"
                     autoCapitalize="characters"
-                    className="min-w-0 flex-1 bg-transparent px-1 text-[14px] font-semibold uppercase tracking-[0.08em] text-zinc-100 outline-none placeholder:font-medium placeholder:normal-case placeholder:tracking-normal placeholder:text-zinc-600"
+                    className="min-w-0 flex-1 bg-transparent px-1 text-[16px] font-semibold uppercase tracking-[0.08em] text-zinc-100 outline-none placeholder:font-medium placeholder:normal-case placeholder:tracking-normal placeholder:text-zinc-600"
                   />
 
                   <button
