@@ -413,7 +413,7 @@ function MoneylineFace({
     <div
       className={[
         "rounded-xl",
-        isLive ? "bg-zinc-800/80" : selected ? "bg-zinc-600" : "bg-zinc-800",
+        isLive ? "bg-zinc-800" : selected ? "bg-zinc-600" : "bg-zinc-800",
       ].join(" ")}
       style={{
         paddingBottom: "2px",
@@ -424,7 +424,7 @@ function MoneylineFace({
         className={[
           "flex h-[42px] w-full translate-y-[-2px] items-center justify-center overflow-hidden rounded-xl px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
           isLive
-            ? "bg-zinc-900/85"
+            ? "bg-zinc-900"
             : selected
               ? "bg-zinc-700"
               : "bg-zinc-900",
@@ -454,7 +454,7 @@ function MobileMoneylineModalButton({
     <div
       className={[
         "group relative rounded-xl",
-        betData.isLive ? "bg-zinc-800/80" : "bg-zinc-800",
+        betData.isLive ? "bg-zinc-800" : "bg-zinc-800",
       ].join(" ")}
       style={{
         paddingBottom: "4px",
@@ -485,13 +485,16 @@ function MobileMoneylineModalButton({
         teamColor={betData.teamColor}
         triggerClassName={[
           "peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0",
-          betData.isLive ? "bg-zinc-900/85" : "bg-zinc-900",
+          betData.isLive ? "bg-zinc-900" : "bg-zinc-900",
         ].join(" ")}
         triggerContentClassName="sr-only"
       />
 
       <div
-        className="pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0"
+        className={[
+          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
+          betData.isLive ? "bg-zinc-900" : "",
+        ].join(" ")}
         style={faceStyle}
       >
         {betData.isLive ? (
