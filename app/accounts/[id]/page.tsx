@@ -992,12 +992,11 @@ export default async function AccountPage({ params }: AccountPageProps) {
     visibleBets.filter((bet) => bet.status !== "open"),
   );
 
-  const fallbackAccountTitle =
-    plan?.sizeLabel ??
-    `${
-      formatCompactAccountSize(Number(account.plan_size)) ||
-      formatMoney(account.plan_size)
-    } Account`;
+  const compactAccountSize = formatCompactAccountSize(Number(account.plan_size));
+
+  const fallbackAccountTitle = compactAccountSize
+    ? `$${compactAccountSize}`
+    : (plan?.sizeLabel ?? formatMoneyInteger(account.plan_size));
 
   const accountName =
     typeof account.account_name === "string" ? account.account_name.trim() : "";

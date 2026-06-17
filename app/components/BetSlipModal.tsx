@@ -977,8 +977,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
             href="/accounts"
             className="flex h-[84px] w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 p-3.5 text-left text-base text-zinc-300"
           >
-            No accounts. <span className="inline underline">Start a challenge</span>{" "}
-            first.
+            No accounts.&nbsp;<span className="inline underline">Start a challenge</span>
           </Link>
         )}
       </div>

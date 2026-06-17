@@ -457,7 +457,7 @@ function MobileMoneylineModalButton({
         betData.isLive ? "bg-zinc-800/80" : "bg-zinc-800",
       ].join(" ")}
       style={{
-        paddingBottom: "2px",
+        paddingBottom: "4px",
         ...shellStyle,
       }}
     >
@@ -484,14 +484,14 @@ function MobileMoneylineModalButton({
         teamLogoAlt={betData.teamLogoAlt}
         teamColor={betData.teamColor}
         triggerClassName={[
-          "peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
+          "peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0",
           betData.isLive ? "bg-zinc-900/85" : "bg-zinc-900",
         ].join(" ")}
         triggerContentClassName="sr-only"
       />
 
       <div
-        className="pointer-events-none absolute inset-0 flex translate-y-[-2px] items-center justify-center gap-1.5 rounded-xl transition-transform duration-100 will-change-transform peer-hover:translate-y-[-1px] peer-active:translate-y-0 group-hover:translate-y-[-1px] group-active:translate-y-0"
+        className="pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0"
         style={faceStyle}
       >
         {betData.isLive ? (
@@ -577,13 +577,13 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
       <div className="flex min-w-0 items-center gap-2 xl:gap-2.5">
         <div
           className={[
-            "inline-flex h-6 shrink-0 items-center text-[12px] font-medium leading-none xl:h-7 xl:text-[13px]",
+            "inline-flex h-6 shrink-0 items-center text-[13px] font-medium leading-none xl:h-7 xl:text-[14px]",
             isLive ? "gap-1.5 text-red-400" : "text-zinc-300",
           ].join(" ")}
         >
           {isLive ? (
             <>
-              <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+              <span className="h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.55)]" />
               <span>Live</span>
             </>
           ) : (
@@ -592,7 +592,7 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
         </div>
 
         {marketVolume ? (
-          <div className="min-w-0 truncate text-[12px] font-medium leading-none text-zinc-500 sm:text-[13px] xl:text-[14px]">
+          <div className="hidden min-w-0 truncate text-[12px] font-medium leading-none text-zinc-500 sm:text-[13px] md:block xl:text-[14px]">
             {marketVolume}
           </div>
         ) : null}
@@ -600,7 +600,7 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
 
       <Link
         href={eventHref}
-        className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-zinc-100 transition-colors hover:text-zinc-300"
+        className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-zinc-100 transition-colors hover:text-zinc-300"
       >
         <span>View</span>
         <FaChevronRight className="h-2 w-2 xl:h-2.5 xl:w-2.5" />
