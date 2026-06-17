@@ -832,13 +832,21 @@ export default function GamesClient({
                       <DateMarketHeader date={group.date} />
 
                       <div className="grid gap-2.5 md:gap-3">
-                        {group.games.map((game) => (
-                          <GameCard
+                        {group.games.map((game, index) => (
+                          <div
                             key={game.id}
-                            game={game}
-                            selectedBet={selectedBet}
-                            onSelectBet={setSelectedBet}
-                          />
+                            className={
+                              index > 0
+                                ? "xl:border-t xl:border-zinc-900/80 xl:pt-3"
+                                : ""
+                            }
+                          >
+                            <GameCard
+                              game={game}
+                              selectedBet={selectedBet}
+                              onSelectBet={setSelectedBet}
+                            />
+                          </div>
                         ))}
                       </div>
                     </div>
