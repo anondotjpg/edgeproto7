@@ -860,7 +860,8 @@ export default async function AccountPage({ params }: AccountPageProps) {
     hasNonZeroAccountValue(account.funded_realized_pnl);
 
   const shouldDisplayFundedData =
-    isActuallyFunded || (isAccountFailed && (hasFundedLifecycleData || hasFundedBalanceData));
+    isActuallyFunded ||
+    (isAccountFailed && (hasFundedLifecycleData || hasFundedBalanceData));
 
   const currentStage = shouldDisplayFundedData ? "funded" : "challenge";
 
@@ -931,6 +932,9 @@ export default async function AccountPage({ params }: AccountPageProps) {
   const realizedPnl = shouldDisplayFundedData
     ? Number(account.funded_realized_pnl ?? 0)
     : Number(account.realized_pnl ?? 0);
+
+  const hasRealizedPnlChange =
+    Number.isFinite(realizedPnl) && realizedPnl !== 0;
 
   const ruleEquity = currentBalance + reservedRisk;
 
@@ -1037,14 +1041,16 @@ export default async function AccountPage({ params }: AccountPageProps) {
                     {formatMoney(ruleEquity)}
                   </div>
 
-                  <div
-                    className={[
-                      "mb-2 shrink-0 text-[15px] font-semibold leading-none sm:mb-2.5",
-                      pnlColor(realizedPnl),
-                    ].join(" ")}
-                  >
-                    {formatSignedMoney(realizedPnl)} realized
-                  </div>
+                  {hasRealizedPnlChange ? (
+                    <div
+                      className={[
+                        "mb-2 shrink-0 text-[15px] font-semibold leading-none sm:mb-2.5",
+                        pnlColor(realizedPnl),
+                      ].join(" ")}
+                    >
+                      {formatSignedMoney(realizedPnl)} realized
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="mt-1 truncate text-[13px] font-medium leading-tight text-zinc-500">
