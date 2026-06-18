@@ -117,7 +117,7 @@ export default async function EventPage({ params }: EventPageProps) {
     return (
       <div className="relative min-h-screen bg-[#09090b] text-white">
         <div className="relative mx-auto w-full max-w-[1480px] px-4 pt-8 pb-24 sm:px-6 sm:py-6 md:pb-6">
-          <header className="h-[38px] pt-2 xl:pr-[420px]">
+          <header className="hidden h-[38px] pt-2 xl:pr-[420px]">
             <div className="invisible">
               <BackButton />
             </div>
@@ -149,7 +149,7 @@ export default async function EventPage({ params }: EventPageProps) {
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white">
       <div className="relative mx-auto w-full max-w-[1480px] px-4 pt-8 pb-24 sm:px-6 sm:py-6 md:pb-6">
-        <header className="h-[38px] pt-2 xl:pr-[420px]">
+        <header className="hidden h-[38px] pt-2 xl:pr-[420px]">
           <div className="invisible">
             <BackButton />
           </div>
