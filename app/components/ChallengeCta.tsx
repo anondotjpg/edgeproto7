@@ -290,7 +290,7 @@ function getPaymentSubtitle({
     return "This payment could not be completed.";
   }
 
-  return "Send the quoted amount. Small route differences are accepted automatically.";
+  return "Send the quoted amount.";
 }
 
 function getTargetReceiveDisplay(invoice: DepositInvoice) {
@@ -724,11 +724,6 @@ function CheckoutContent({
                         {invoice.asset}
                       </p>
                     </div>
-
-                    <p className="mt-3 text-[12px] leading-5 text-zinc-500">
-                      Account activates after Relay settles and Edge receives at
-                      least the accepted minimum.
-                    </p>
                   </div>
 
                   <InfoCard
@@ -744,7 +739,7 @@ function CheckoutContent({
                     }
                   />
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3 hidden">
                     {getTargetReceiveDisplay(invoice) ? (
                       <div className="rounded-2xl bg-black/30 p-4">
                         <p className="text-[12px] font-medium text-zinc-500">
@@ -771,7 +766,7 @@ function CheckoutContent({
                   </div>
 
                   {invoice.received_destination_amount_display ? (
-                    <div className="rounded-2xl bg-black/30 p-4">
+                    <div className="rounded-2xl bg-black/30 p-4 hidden">
                       <div className="flex items-center justify-between gap-3 text-[12px]">
                         <span className="text-zinc-500">Received</span>
                         <span className="break-all text-right font-semibold text-zinc-100">

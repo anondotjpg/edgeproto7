@@ -25,8 +25,11 @@ type CreateDepositBody = {
 const INVOICE_EXPIRY_MS = 10 * 60 * 1000;
 
 const RELAY_QUOTE_AMOUNT_MULTIPLIER = Number(
-  process.env.RELAY_QUOTE_AMOUNT_MULTIPLIER ?? "1",
+  process.env.RELAY_QUOTE_AMOUNT_MULTIPLIER ?? "0.01",
 );
+
+const RELAY_MIN_FOLLOWS_QUOTE_MULTIPLIER =
+  process.env.RELAY_MIN_FOLLOWS_QUOTE_MULTIPLIER !== "false";
 
 const PROFIT_TARGET_PERCENT = 25;
 const DAILY_LOSS_PERCENT = 2;
@@ -78,8 +81,23 @@ function centsToDollars(cents: number) {
 }
 
 function getQuoteCents(finalCents: number) {
-  const discounted = Math.round(finalCents * RELAY_QUOTE_AMOUNT_MULTIPLIER);
+  const multiplier = Number.isFinite(RELAY_QUOTE_AMOUNT_MULTIPLIER)
+    ? RELAY_QUOTE_AMOUNT_MULTIPLIER
+    : 1;
+
+  const discounted = Math.round(finalCents * multiplier);
+
   return Math.max(1, discounted);
+}
+
+function getEdgeMinBaseCents({
+  finalCents,
+  quoteCents,
+}: {
+  finalCents: number;
+  quoteCents: number;
+}) {
+  return RELAY_MIN_FOLLOWS_QUOTE_MULTIPLIER ? quoteCents : finalCents;
 }
 
 async function upsertUser({
@@ -400,10 +418,17 @@ export async function POST(req: Request) {
     const expectedDestinationAmountDisplay = usdcAtomicToDisplay(
       destinationAmountAtomic,
     );
+
+    const edgeMinBaseCents = getEdgeMinBaseCents({
+      finalCents,
+      quoteCents,
+    });
+
     const edgeMinDestinationAmountAtomic = makeEdgeMinAcceptableUsdcAtomic({
       planKey,
-      finalCents,
+      finalCents: edgeMinBaseCents,
     });
+
     const edgeMinDestinationAmountDisplay = usdcAtomicToDisplay(
       edgeMinDestinationAmountAtomic,
     );
