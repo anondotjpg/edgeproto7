@@ -22,7 +22,7 @@ type CreateDepositBody = {
   walletAddress?: string | null;
 };
 
-const INVOICE_EXPIRY_MS = 10 * 60 * 1000;
+const INVOICE_EXPIRY_MS = 10 * 60 * 3000;
 
 const RELAY_QUOTE_AMOUNT_MULTIPLIER = Number(
   process.env.RELAY_QUOTE_AMOUNT_MULTIPLIER ?? "0.01",
