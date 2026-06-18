@@ -3,8 +3,10 @@ import {
   DESTINATION_CONFIG,
   type DepositAsset,
   type DepositChain,
+  type DestinationAsset,
   getRelayRefundTo,
   getRelayUserAddress,
+  usdcAtomicToDisplay,
 } from "@/lib/crypto-deposits";
 
 type JsonRecord = Record<string, unknown>;
@@ -40,12 +42,21 @@ export type RelayStatusResponse = {
 export type RelayDepositQuote = {
   requestId: string;
   depositAddress: string;
+
   amountInAtomic: string;
   amountInDisplay: string;
+
+  quotedAmountOutAtomic: string;
+  quotedAmountOutDisplay: string;
+
   originChainId: number;
   originCurrency: string;
   destinationChainId: number;
   destinationCurrency: string;
+
+  tradeType: "EXPECTED_OUTPUT";
+  strict: false;
+
   quote: unknown;
 };
 
@@ -61,6 +72,10 @@ function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function readString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 function walk(
   value: unknown,
   visitor: (value: unknown) => string | null,
@@ -73,7 +88,7 @@ function walk(
 
   if (Array.isArray(value)) {
     for (const item of value) {
-      const found: string | null = walk(item, visitor);
+      const found = walk(item, visitor);
 
       if (found) {
         return found;
@@ -85,7 +100,7 @@ function walk(
 
   if (isRecord(value)) {
     for (const item of Object.values(value)) {
-      const found: string | null = walk(item, visitor);
+      const found = walk(item, visitor);
 
       if (found) {
         return found;
@@ -100,11 +115,16 @@ function findDepositAddress(quote: unknown): string | null {
   return walk(quote, (value) => {
     if (!isRecord(value)) return null;
 
-    const depositAddress = value.depositAddress;
+    const direct =
+      readString(value.depositAddress) ??
+      readString(value.deposit_address) ??
+      readString(value.address);
 
-    if (typeof depositAddress === "string" && depositAddress.length > 8) {
-      return depositAddress;
+    if (direct && direct.length > 8) {
+      return direct;
     }
+
+    const depositAddress = value.depositAddress;
 
     if (
       isRecord(depositAddress) &&
@@ -150,7 +170,11 @@ function findRequestId(quote: unknown): string | null {
   return walk(quote, (value) => {
     if (!isRecord(value)) return null;
 
-    return typeof value.requestId === "string" ? value.requestId : null;
+    return (
+      readString(value.requestId) ??
+      readString(value.request_id) ??
+      readString(value.id)
+    );
   });
 }
 
@@ -188,6 +212,42 @@ function stringifyRelayAmountResult(result: RelayAmountResult): string {
   return JSON.stringify(result);
 }
 
+function getCurrencySymbol(value: unknown) {
+  if (!isRecord(value)) return null;
+
+  const currency = value.currency;
+
+  if (isRecord(currency)) {
+    return readString(currency.symbol);
+  }
+
+  return readString(value.symbol);
+}
+
+function getAmountFromCurrencyObject(value: unknown): RelayAmountResult | null {
+  if (!isRecord(value)) return null;
+
+  const amount =
+    readString(value.amount) ??
+    readString(value.amountAtomic) ??
+    readString(value.amount_atomic) ??
+    readString(value.rawAmount);
+
+  const amountFormatted =
+    readString(value.amountFormatted) ??
+    readString(value.amount_formatted) ??
+    readString(value.amountDisplay) ??
+    readString(value.amount_display) ??
+    amount;
+
+  if (!amount || !amountFormatted) return null;
+
+  return {
+    amount,
+    amountFormatted,
+  };
+}
+
 function findCurrencyAmountInDetails(
   quote: unknown,
   asset: DepositAsset,
@@ -220,20 +280,11 @@ function findCurrencyAmountInDetails(
 
     if (!isRecord(currencyInValue)) return null;
 
-    const currency = currencyInValue.currency;
+    const symbol = getCurrencySymbol(currencyInValue);
+    const amount = getAmountFromCurrencyObject(currencyInValue);
 
-    if (
-      isRecord(currency) &&
-      currency.symbol === asset &&
-      typeof currencyInValue.amount === "string"
-    ) {
-      return stringifyRelayAmountResult({
-        amount: currencyInValue.amount,
-        amountFormatted:
-          typeof currencyInValue.amountFormatted === "string"
-            ? currencyInValue.amountFormatted
-            : currencyInValue.amount,
-      });
+    if (symbol === asset && amount) {
+      return stringifyRelayAmountResult(amount);
     }
 
     return null;
@@ -248,20 +299,75 @@ function findCurrencyAmountInDetails(
   const fallback = walk(quote, (value) => {
     if (!isRecord(value)) return null;
 
-    const currency = value.currency;
+    const symbol = getCurrencySymbol(value);
+    const amount = getAmountFromCurrencyObject(value);
+
+    if (symbol === asset && amount) {
+      return stringifyRelayAmountResult(amount);
+    }
+
+    return null;
+  });
+
+  return fallback ? parseRelayAmountResult(fallback) : null;
+}
+
+function findCurrencyAmountOutDetails(
+  quote: unknown,
+  asset: DestinationAsset,
+): RelayAmountResult | null {
+  const details = getQuoteDetails(quote);
+  const currencyOut = details?.currencyOut;
+
+  if (isRecord(currencyOut)) {
+    const currency = currencyOut.currency;
 
     if (
       isRecord(currency) &&
       currency.symbol === asset &&
-      typeof value.amount === "string"
+      typeof currencyOut.amount === "string"
     ) {
-      return stringifyRelayAmountResult({
-        amount: value.amount,
+      return {
+        amount: currencyOut.amount,
         amountFormatted:
-          typeof value.amountFormatted === "string"
-            ? value.amountFormatted
-            : value.amount,
-      });
+          typeof currencyOut.amountFormatted === "string"
+            ? currencyOut.amountFormatted
+            : currencyOut.amount,
+      };
+    }
+  }
+
+  const fromNamedCurrencyOut = walk(quote, (value) => {
+    if (!isRecord(value)) return null;
+
+    const currencyOutValue = value.currencyOut;
+
+    if (!isRecord(currencyOutValue)) return null;
+
+    const symbol = getCurrencySymbol(currencyOutValue);
+    const amount = getAmountFromCurrencyObject(currencyOutValue);
+
+    if (symbol === asset && amount) {
+      return stringifyRelayAmountResult(amount);
+    }
+
+    return null;
+  });
+
+  if (fromNamedCurrencyOut) {
+    const parsed = parseRelayAmountResult(fromNamedCurrencyOut);
+
+    if (parsed) return parsed;
+  }
+
+  const fallback = walk(quote, (value) => {
+    if (!isRecord(value)) return null;
+
+    const symbol = getCurrencySymbol(value);
+    const amount = getAmountFromCurrencyObject(value);
+
+    if (symbol === asset && amount) {
+      return stringifyRelayAmountResult(amount);
     }
 
     return null;
@@ -322,14 +428,14 @@ export async function createRelayDepositQuote({
     destinationCurrency: DESTINATION_CONFIG.currency,
 
     amount: destinationAmountAtomic.toString(),
-    tradeType: "EXACT_OUTPUT",
+    tradeType: "EXPECTED_OUTPUT",
 
     useDepositAddress: true,
-    strict: true,
+    strict: false,
     refundTo,
 
     referrer: "edge",
-  };
+  } as const;
 
   console.log("[relay] quote request", {
     chain,
@@ -373,6 +479,10 @@ export async function createRelayDepositQuote({
   const requestId = findRequestId(quote);
   const depositAddress = findDepositAddress(quote);
   const amountIn = findCurrencyAmountInDetails(quote, origin.asset);
+  const amountOut = findCurrencyAmountOutDetails(
+    quote,
+    DESTINATION_CONFIG.asset,
+  );
 
   if (!requestId) {
     console.log("[relay] missing requestId", { chain, quote });
@@ -399,12 +509,22 @@ export async function createRelayDepositQuote({
   return {
     requestId,
     depositAddress,
+
     amountInAtomic: amountIn.amount,
     amountInDisplay: amountIn.amountFormatted,
+
+    quotedAmountOutAtomic: amountOut?.amount ?? destinationAmountAtomic.toString(),
+    quotedAmountOutDisplay:
+      amountOut?.amountFormatted ?? usdcAtomicToDisplay(destinationAmountAtomic),
+
     originChainId: origin.relayChainId,
     originCurrency: origin.relayOriginCurrency,
     destinationChainId: DESTINATION_CONFIG.chainId,
     destinationCurrency: DESTINATION_CONFIG.currency,
+
+    tradeType: body.tradeType,
+    strict: body.strict,
+
     quote,
   };
 }

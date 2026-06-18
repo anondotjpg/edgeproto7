@@ -12,7 +12,8 @@ export type DepositStatus =
   | "expired"
   | "refunded"
   | "failed"
-  | "invalid";
+  | "invalid"
+  | "underpaid";
 
 export const RELAY_SOLANA_CHAIN_ID = Number(
   process.env.RELAY_SOLANA_CHAIN_ID ?? 792703809,
@@ -95,8 +96,32 @@ export const DESTINATION_CONFIG = {
   recipient: RELAY_TREASURY_SOLANA_ADDRESS,
 };
 
+export const EDGE_MIN_ACCEPTABLE_PAYMENT_BPS: Record<PlanKey, number> = {
+  "1000": 9600,
+  "2000": 9700,
+  "5000": 9750,
+  "10000": 9800,
+};
+
 export function makePlanUsdcAmountAtomic(feeAmount: number) {
   return parseUnits(String(feeAmount), DESTINATION_CONFIG.decimals);
+}
+
+export function centsToUsdcAtomic(cents: number) {
+  return BigInt(cents) * BigInt(10_000);
+}
+
+export function makeEdgeMinAcceptableUsdcAtomic({
+  planKey,
+  finalCents,
+}: {
+  planKey: PlanKey;
+  finalCents: number;
+}) {
+  const bps = EDGE_MIN_ACCEPTABLE_PAYMENT_BPS[planKey];
+  const minCents = Math.ceil((finalCents * bps) / 10_000);
+
+  return centsToUsdcAtomic(minCents);
 }
 
 export function usdcAtomicToDisplay(atomic: bigint) {
@@ -122,9 +147,7 @@ export function getRelayUserAddress(chain: DepositChain) {
 }
 
 export function isDepositChain(value: unknown): value is DepositChain {
-  return (
-    value === "solana" || value === "ethereum" || value === "bitcoin"
-  );
+  return value === "solana" || value === "ethereum" || value === "bitcoin";
 }
 
 export function getDepositAsset(chain: DepositChain) {

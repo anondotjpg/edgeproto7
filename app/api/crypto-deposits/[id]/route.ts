@@ -4,10 +4,40 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const INVOICE_SELECT = `
+  id,
+  provider,
+  chain,
+  asset,
+  deposit_address,
+  relay_deposit_address,
+  relay_request_id,
+  relay_status,
+  relay_trade_type,
+  expected_amount_display,
+  expected_destination_amount_display,
+  quoted_destination_amount_atomic,
+  quoted_destination_amount_display,
+  edge_min_destination_amount_atomic,
+  edge_min_destination_amount_display,
+  received_destination_amount_atomic,
+  received_destination_amount_display,
+  destination_address,
+  status,
+  expires_at,
+  tx_hash,
+  confirmations,
+  credited_account_id,
+  relay_in_tx_hashes,
+  relay_out_tx_hashes,
+  promo_code,
+  subtotal_amount_cents,
+  discount_amount_cents,
+  final_amount_cents
+`;
+
 type RouteContext = {
-  params: Promise<{
-    id: string;
-  }>;
+  params: { id: string } | Promise<{ id: string }>;
 };
 
 export async function GET(req: Request, context: RouteContext) {
@@ -46,29 +76,7 @@ export async function GET(req: Request, context: RouteContext) {
 
     const { data: invoice, error: invoiceError } = await supabaseAdmin
       .from("crypto_deposit_invoices")
-      .select(
-        `
-        id,
-        provider,
-        chain,
-        asset,
-        deposit_address,
-        relay_deposit_address,
-        relay_request_id,
-        relay_status,
-        expected_amount_display,
-        expected_destination_amount_display,
-        destination_address,
-        status,
-        expires_at,
-        tx_hash,
-        confirmations,
-        credited_account_id,
-        relay_in_tx_hashes,
-        relay_out_tx_hashes,
-        updated_at
-      `,
-      )
+      .select(INVOICE_SELECT)
       .eq("id", id)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -79,27 +87,14 @@ export async function GET(req: Request, context: RouteContext) {
 
     if (!invoice) {
       return NextResponse.json(
-        { error: "Invoice not found." },
+        { error: "Deposit invoice not found." },
         { status: 404 },
       );
     }
 
-    return NextResponse.json(
-      {
-        ok: true,
-        invoice,
-      },
-      {
-        headers: {
-          "Cache-Control":
-            "no-store, no-cache, must-revalidate, proxy-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-      },
-    );
+    return NextResponse.json({ invoice });
   } catch (error) {
-    console.error("Get crypto deposit invoice error:", error);
+    console.error("[crypto-deposits/read] error", error);
 
     return NextResponse.json(
       {

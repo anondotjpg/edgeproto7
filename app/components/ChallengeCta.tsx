@@ -29,6 +29,16 @@ type PromoPreview = {
   message: string | null;
 };
 
+type DepositInvoiceStatus =
+  | "pending"
+  | "processing"
+  | "paid"
+  | "expired"
+  | "refunded"
+  | "failed"
+  | "invalid"
+  | "underpaid";
+
 type DepositInvoice = {
   id: string;
   provider: "relay" | "promo";
@@ -38,17 +48,22 @@ type DepositInvoice = {
   relay_deposit_address?: string | null;
   relay_request_id?: string | null;
   relay_status?: string | null;
+  relay_trade_type?: string | null;
+
   expected_amount_display: string;
+
   expected_destination_amount_display?: string | null;
+  quoted_destination_amount_display?: string | null;
+  edge_min_destination_amount_display?: string | null;
+  received_destination_amount_display?: string | null;
+
+  expected_destination_amount_atomic?: string | null;
+  quoted_destination_amount_atomic?: string | null;
+  edge_min_destination_amount_atomic?: string | null;
+  received_destination_amount_atomic?: string | null;
+
   destination_address?: string | null;
-  status:
-    | "pending"
-    | "processing"
-    | "paid"
-    | "expired"
-    | "refunded"
-    | "failed"
-    | "invalid";
+  status: DepositInvoiceStatus;
   expires_at: string;
   tx_hash?: string | null;
   confirmations?: number | null;
@@ -226,17 +241,67 @@ function getDiscountedFeeLabel({
   return feeLabel;
 }
 
-function getStatusLabel(status: DepositInvoice["status"]) {
+function getStatusLabel(status: DepositInvoiceStatus) {
   if (status === "processing") return "processing";
   if (status === "refunded") return "refunded";
+  if (status === "underpaid") return "underpaid";
   return status;
 }
 
-function isTerminalStatus(status: DepositInvoice["status"]) {
-  return ["paid", "expired", "failed", "refunded", "invalid"].includes(status);
+function isTerminalStatus(status: DepositInvoiceStatus) {
+  return [
+    "paid",
+    "expired",
+    "failed",
+    "refunded",
+    "invalid",
+    "underpaid",
+  ].includes(status);
 }
 
-function StatusPill({ status }: { status: DepositInvoice["status"] }) {
+function getPaymentSubtitle({
+  invoice,
+  isPromoInvoice,
+}: {
+  invoice: DepositInvoice;
+  isPromoInvoice: boolean;
+}) {
+  if (isPromoInvoice) {
+    return "Your promo code covered the full evaluation fee.";
+  }
+
+  if (invoice.status === "paid") {
+    return "Payment complete. Your account is ready.";
+  }
+
+  if (invoice.status === "underpaid") {
+    return "Payment settled below the minimum accepted amount.";
+  }
+
+  if (invoice.status === "expired") {
+    return "This deposit quote expired before payment was detected.";
+  }
+
+  if (invoice.status === "refunded") {
+    return "Relay refunded this payment.";
+  }
+
+  if (invoice.status === "failed" || invoice.status === "invalid") {
+    return "This payment could not be completed.";
+  }
+
+  return "Send the quoted amount. Small route differences are accepted automatically.";
+}
+
+function getTargetReceiveDisplay(invoice: DepositInvoice) {
+  return (
+    invoice.quoted_destination_amount_display ??
+    invoice.expected_destination_amount_display ??
+    null
+  );
+}
+
+function StatusPill({ status }: { status: DepositInvoiceStatus }) {
   return (
     <div className="rounded-full bg-zinc-900 px-3 py-1 text-[12px] font-semibold capitalize text-zinc-300">
       {getStatusLabel(status)}
@@ -603,9 +668,10 @@ function CheckoutContent({
                   </h3>
 
                   <p className="mt-1 text-[13px] leading-5 text-zinc-500">
-                    {isPromoInvoice
-                      ? "Your promo code covered the full evaluation fee."
-                      : "Send exact amount"}
+                    {getPaymentSubtitle({
+                      invoice,
+                      isPromoInvoice: Boolean(isPromoInvoice),
+                    })}
                   </p>
                 </div>
 
@@ -646,7 +712,7 @@ function CheckoutContent({
                     </div>
 
                     <p className="pr-9 text-[12px] font-medium text-zinc-500">
-                      Send exactly
+                      Send quoted amount
                     </p>
 
                     <div className="mt-1.5 flex flex-wrap items-end gap-x-2 gap-y-1 pr-8">
@@ -658,6 +724,11 @@ function CheckoutContent({
                         {invoice.asset}
                       </p>
                     </div>
+
+                    <p className="mt-3 text-[12px] leading-5 text-zinc-500">
+                      Account activates after Relay settles and Edge receives at
+                      least the accepted minimum.
+                    </p>
                   </div>
 
                   <InfoCard
@@ -672,6 +743,43 @@ function CheckoutContent({
                       />
                     }
                   />
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {getTargetReceiveDisplay(invoice) ? (
+                      <div className="rounded-2xl bg-black/30 p-4">
+                        <p className="text-[12px] font-medium text-zinc-500">
+                          Target receive
+                        </p>
+
+                        <p className="mt-1 break-all text-[14px] font-semibold text-zinc-100">
+                          {getTargetReceiveDisplay(invoice)} USDC
+                        </p>
+                      </div>
+                    ) : null}
+
+                    {invoice.edge_min_destination_amount_display ? (
+                      <div className="rounded-2xl bg-black/30 p-4">
+                        <p className="text-[12px] font-medium text-zinc-500">
+                          Minimum accepted
+                        </p>
+
+                        <p className="mt-1 break-all text-[14px] font-semibold text-zinc-100">
+                          {invoice.edge_min_destination_amount_display} USDC
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {invoice.received_destination_amount_display ? (
+                    <div className="rounded-2xl bg-black/30 p-4">
+                      <div className="flex items-center justify-between gap-3 text-[12px]">
+                        <span className="text-zinc-500">Received</span>
+                        <span className="break-all text-right font-semibold text-zinc-100">
+                          {invoice.received_destination_amount_display} USDC
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
 
                   {invoice.discount_amount_cents &&
                   invoice.discount_amount_cents > 0 ? (
@@ -689,7 +797,7 @@ function CheckoutContent({
                   ) : null}
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="">
+                    <div>
                       <p className="text-[12px] font-medium text-zinc-500">
                         Expires in
                       </p>
@@ -705,7 +813,7 @@ function CheckoutContent({
                       </p>
                     </div>
 
-                    <div className="">
+                    <div>
                       <p className="text-[12px] font-medium text-zinc-500">
                         Relay status
                       </p>
@@ -1004,6 +1112,10 @@ export default function ChallengeCta({
           status: data.invoice.status,
           relayStatus: data.invoice.relay_status,
           creditedAccountId: data.invoice.credited_account_id,
+          receivedDestinationAmount:
+            data.invoice.received_destination_amount_display,
+          edgeMinDestinationAmount:
+            data.invoice.edge_min_destination_amount_display,
         });
 
         setInvoice(data.invoice);

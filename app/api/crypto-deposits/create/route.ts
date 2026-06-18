@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
 import { validatePromoCode } from "@/lib/promo-codes";
+import { createRelayDepositQuote } from "@/lib/relay";
 import {
   CHAIN_CONFIG,
   DESTINATION_CONFIG,
   type DepositChain,
-  getRelayRefundTo,
-  getRelayUserAddress,
+  centsToUsdcAtomic,
   isDepositChain,
+  makeEdgeMinAcceptableUsdcAtomic,
   usdcAtomicToDisplay,
 } from "@/lib/crypto-deposits";
 
@@ -21,19 +22,10 @@ type CreateDepositBody = {
   walletAddress?: string | null;
 };
 
-type RelayQuoteResult = {
-  quote: Record<string, unknown>;
-  requestId: string;
-  depositAddress: string;
-  originAmountAtomic: string;
-  originAmountDisplay: string;
-};
-
-const RELAY_API_BASE = process.env.RELAY_API_BASE ?? "https://api.relay.link";
 const INVOICE_EXPIRY_MS = 10 * 60 * 1000;
 
 const RELAY_QUOTE_AMOUNT_MULTIPLIER = Number(
-  process.env.RELAY_QUOTE_AMOUNT_MULTIPLIER ?? "0.01",
+  process.env.RELAY_QUOTE_AMOUNT_MULTIPLIER ?? "1",
 );
 
 const PROFIT_TARGET_PERCENT = 25;
@@ -50,8 +42,15 @@ const INVOICE_SELECT = `
   relay_deposit_address,
   relay_request_id,
   relay_status,
+  relay_trade_type,
   expected_amount_display,
   expected_destination_amount_display,
+  quoted_destination_amount_atomic,
+  quoted_destination_amount_display,
+  edge_min_destination_amount_atomic,
+  edge_min_destination_amount_display,
+  received_destination_amount_atomic,
+  received_destination_amount_display,
   destination_address,
   status,
   expires_at,
@@ -81,304 +80,6 @@ function centsToDollars(cents: number) {
 function getQuoteCents(finalCents: number) {
   const discounted = Math.round(finalCents * RELAY_QUOTE_AMOUNT_MULTIPLIER);
   return Math.max(1, discounted);
-}
-
-function centsToUsdcAtomic(cents: number) {
-  return BigInt(cents) * BigInt(10000);
-}
-
-function asRecord(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return null;
-  }
-
-  return value as Record<string, unknown>;
-}
-
-function readString(value: unknown) {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
-
-function findDepositAddress(value: unknown): string | null {
-  if (!value || typeof value !== "object") return null;
-
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      const found = findDepositAddress(item);
-      if (found) return found;
-    }
-
-    return null;
-  }
-
-  const record = value as Record<string, unknown>;
-
-  const direct =
-    readString(record.depositAddress) ??
-    readString(record.deposit_address) ??
-    readString(record.address);
-
-  if (direct) return direct;
-
-  for (const nested of Object.values(record)) {
-    const found = findDepositAddress(nested);
-    if (found) return found;
-  }
-
-  return null;
-}
-
-function findRequestId(value: unknown): string | null {
-  if (!value || typeof value !== "object") return null;
-
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      const found = findRequestId(item);
-      if (found) return found;
-    }
-
-    return null;
-  }
-
-  const record = value as Record<string, unknown>;
-
-  const direct =
-    readString(record.requestId) ??
-    readString(record.request_id) ??
-    readString(record.id);
-
-  if (direct) return direct;
-
-  for (const nested of Object.values(record)) {
-    const found = findRequestId(nested);
-    if (found) return found;
-  }
-
-  return null;
-}
-
-function getCurrencyAddress(value: unknown) {
-  const record = asRecord(value);
-  if (!record) return null;
-
-  const currency = asRecord(record.currency);
-  if (currency) {
-    return readString(currency.address) ?? readString(currency.currency);
-  }
-
-  return readString(record.currency) ?? readString(record.address);
-}
-
-function getCurrencyChainId(value: unknown) {
-  const record = asRecord(value);
-  if (!record) return null;
-
-  const currency = asRecord(record.currency);
-  const chainValue =
-    currency?.chainId ??
-    currency?.chain_id ??
-    record.chainId ??
-    record.chain_id;
-
-  const parsed = Number(chainValue);
-
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function getAmountFields(value: unknown) {
-  const record = asRecord(value);
-  if (!record) return null;
-
-  const amountAtomic =
-    readString(record.amount) ??
-    readString(record.amountAtomic) ??
-    readString(record.amount_atomic) ??
-    readString(record.rawAmount);
-
-  const amountDisplay =
-    readString(record.amountFormatted) ??
-    readString(record.amount_formatted) ??
-    readString(record.amountDisplay) ??
-    readString(record.amount_display);
-
-  if (!amountAtomic && !amountDisplay) return null;
-
-  return {
-    amountAtomic,
-    amountDisplay,
-  };
-}
-
-function findOriginAmount({
-  value,
-  originCurrency,
-  originChainId,
-}: {
-  value: unknown;
-  originCurrency: string;
-  originChainId: number;
-}): { amountAtomic: string; amountDisplay: string } | null {
-  const record = asRecord(value);
-
-  if (!record) return null;
-
-  const details = asRecord(record.details);
-  const directCurrencyIn = asRecord(details?.currencyIn ?? record.currencyIn);
-
-  if (directCurrencyIn) {
-    const fields = getAmountFields(directCurrencyIn);
-
-    if (fields?.amountAtomic && fields.amountDisplay) {
-      return {
-        amountAtomic: fields.amountAtomic,
-        amountDisplay: fields.amountDisplay,
-      };
-    }
-  }
-
-  const currencyAddress = getCurrencyAddress(record);
-  const currencyChainId = getCurrencyChainId(record);
-  const fields = getAmountFields(record);
-
-  if (
-    fields?.amountAtomic &&
-    fields.amountDisplay &&
-    currencyAddress?.toLowerCase() === originCurrency.toLowerCase() &&
-    currencyChainId === originChainId
-  ) {
-    return {
-      amountAtomic: fields.amountAtomic,
-      amountDisplay: fields.amountDisplay,
-    };
-  }
-
-  for (const nested of Object.values(record)) {
-    if (!nested || typeof nested !== "object") continue;
-
-    if (Array.isArray(nested)) {
-      for (const item of nested) {
-        const found = findOriginAmount({
-          value: item,
-          originCurrency,
-          originChainId,
-        });
-
-        if (found) return found;
-      }
-
-      continue;
-    }
-
-    const found = findOriginAmount({
-      value: nested,
-      originCurrency,
-      originChainId,
-    });
-
-    if (found) return found;
-  }
-
-  return null;
-}
-
-function getRelayErrorMessage(data: unknown) {
-  const record = asRecord(data);
-
-  return (
-    readString(record?.message) ??
-    readString(record?.error) ??
-    readString(record?.details) ??
-    "Relay quote failed."
-  );
-}
-
-async function readRelayJson(response: Response) {
-  const text = await response.text();
-
-  try {
-    return text ? JSON.parse(text) : null;
-  } catch {
-    throw new Error(
-      `Relay returned non-JSON response. Status: ${response.status}. ${text.slice(
-        0,
-        160,
-      )}`,
-    );
-  }
-}
-
-async function createRelayDepositQuote({
-  chain,
-  destinationAmountAtomic,
-}: {
-  chain: DepositChain;
-  destinationAmountAtomic: bigint;
-}): Promise<RelayQuoteResult> {
-  const origin = CHAIN_CONFIG[chain];
-  const relayUserAddress = getRelayUserAddress(chain);
-  const refundTo = getRelayRefundTo(chain);
-
-  const body = {
-    user: relayUserAddress,
-    recipient: DESTINATION_CONFIG.recipient,
-
-    originChainId: origin.relayChainId,
-    originCurrency: origin.relayOriginCurrency,
-
-    destinationChainId: DESTINATION_CONFIG.chainId,
-    destinationCurrency: DESTINATION_CONFIG.currency,
-
-    amount: destinationAmountAtomic.toString(),
-    tradeType: "EXACT_OUTPUT",
-
-    useDepositAddress: true,
-    strict: true,
-    refundTo,
-    referrer: "edge",
-  };
-
-  const response = await fetch(`${RELAY_API_BASE}/quote/v2`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  const data = await readRelayJson(response);
-
-  if (!response.ok) {
-    throw new Error(getRelayErrorMessage(data));
-  }
-
-  const quote = (data ?? {}) as Record<string, unknown>;
-  const requestId = findRequestId(quote);
-  const depositAddress = findDepositAddress(quote);
-  const originAmount = findOriginAmount({
-    value: quote,
-    originCurrency: origin.relayOriginCurrency,
-    originChainId: origin.relayChainId,
-  });
-
-  if (!requestId) {
-    throw new Error("Relay quote did not return a request ID.");
-  }
-
-  if (!depositAddress) {
-    throw new Error("Relay quote did not return a deposit address.");
-  }
-
-  if (!originAmount) {
-    throw new Error("Relay quote did not return a readable payment amount.");
-  }
-
-  return {
-    quote,
-    requestId,
-    depositAddress,
-    originAmountAtomic: originAmount.amountAtomic,
-    originAmountDisplay: originAmount.amountDisplay,
-  };
 }
 
 async function upsertUser({
@@ -472,6 +173,7 @@ async function createFreePromoInvoice({
       relay_deposit_address: null,
       relay_request_id: null,
       relay_status: "success",
+      relay_trade_type: null,
 
       relay_origin_chain_id: origin.relayChainId,
       relay_origin_currency: origin.relayOriginCurrency,
@@ -485,6 +187,12 @@ async function createFreePromoInvoice({
 
       expected_destination_amount_atomic: "0",
       expected_destination_amount_display: "0",
+      quoted_destination_amount_atomic: "0",
+      quoted_destination_amount_display: "0",
+      edge_min_destination_amount_atomic: "0",
+      edge_min_destination_amount_display: "0",
+      received_destination_amount_atomic: "0",
+      received_destination_amount_display: "0",
       destination_address: DESTINATION_CONFIG.recipient,
 
       status: "pending",
@@ -692,6 +400,13 @@ export async function POST(req: Request) {
     const expectedDestinationAmountDisplay = usdcAtomicToDisplay(
       destinationAmountAtomic,
     );
+    const edgeMinDestinationAmountAtomic = makeEdgeMinAcceptableUsdcAtomic({
+      planKey,
+      finalCents,
+    });
+    const edgeMinDestinationAmountDisplay = usdcAtomicToDisplay(
+      edgeMinDestinationAmountAtomic,
+    );
 
     const relayQuote = await createRelayDepositQuote({
       chain,
@@ -718,6 +433,7 @@ export async function POST(req: Request) {
         relay_deposit_address: relayQuote.depositAddress,
         relay_request_id: relayQuote.requestId,
         relay_status: "waiting",
+        relay_trade_type: relayQuote.tradeType,
 
         relay_origin_chain_id: origin.relayChainId,
         relay_origin_currency: origin.relayOriginCurrency,
@@ -726,11 +442,18 @@ export async function POST(req: Request) {
         relay_quote: relayQuote.quote,
 
         expected_from_address: null,
-        expected_amount_atomic: relayQuote.originAmountAtomic,
-        expected_amount_display: relayQuote.originAmountDisplay,
+        expected_amount_atomic: relayQuote.amountInAtomic,
+        expected_amount_display: relayQuote.amountInDisplay,
 
         expected_destination_amount_atomic: destinationAmountAtomic.toString(),
         expected_destination_amount_display: expectedDestinationAmountDisplay,
+        quoted_destination_amount_atomic: relayQuote.quotedAmountOutAtomic,
+        quoted_destination_amount_display: relayQuote.quotedAmountOutDisplay,
+        edge_min_destination_amount_atomic:
+          edgeMinDestinationAmountAtomic.toString(),
+        edge_min_destination_amount_display: edgeMinDestinationAmountDisplay,
+        received_destination_amount_atomic: null,
+        received_destination_amount_display: null,
         destination_address: DESTINATION_CONFIG.recipient,
 
         status: "pending",
