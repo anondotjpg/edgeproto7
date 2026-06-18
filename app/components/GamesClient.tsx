@@ -587,7 +587,7 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
           {isLive ? (
             <>
               <span className="h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.55)]" />
-              <span>Live</span>
+              <span>LIVE</span>
             </>
           ) : (
             formatGameTime(game.commence_time)
