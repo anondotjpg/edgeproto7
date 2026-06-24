@@ -426,7 +426,8 @@ function buildBetData({
     (outcomeIndex !== null && outcomeIndex !== undefined
       ? marketMeta?.clob_token_ids[outcomeIndex]
       : undefined);
-  const isTeamMarket = market.key === "h2h" || market.key === "spreads";
+  const isTeamOutcomeMarket = market.key === "h2h" || market.key === "spreads";
+  const usesTeamColor = market.key === "h2h";
 
   return {
     team: selectionLabel,
@@ -450,9 +451,11 @@ function buildBetData({
     polymarketOutcomeIndex: outcomeIndex,
     polymarketTokenId: tokenId ?? null,
     teamAlias: null,
-    teamLogo: isTeamMarket ? (teamInfo?.logo ?? null) : null,
-    teamLogoAlt: isTeamMarket ? (teamInfo?.name ?? outcome?.name ?? selectionLabel) : null,
-    teamColor: isTeamMarket ? (teamInfo?.color ?? null) : null,
+    teamLogo: isTeamOutcomeMarket ? (teamInfo?.logo ?? null) : null,
+    teamLogoAlt: isTeamOutcomeMarket
+      ? (teamInfo?.name ?? outcome?.name ?? selectionLabel)
+      : null,
+    teamColor: usesTeamColor ? (teamInfo?.color ?? null) : null,
   };
 }
 
@@ -698,7 +701,7 @@ function MobileMarketModalButton({
 
 function DateMarketHeader({ date }: { date: string }) {
   return (
-    <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_92px_92px_92px] xl:items-end xl:gap-2">
+    <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_112px_112px_112px] xl:items-end xl:gap-2">
       <div className="text-[18px] font-semibold leading-none tracking-tight text-zinc-100">
         {date}
       </div>
@@ -784,7 +787,7 @@ function GameCard({
       <article className="relative xl:hidden">
         <GameCardHeader game={game} eventHref={eventHref} />
 
-        <div className="grid gap-2.5">
+        <div className="grid gap-3">
           <div>
             <TeamRow
               team={game.away_team}
@@ -792,25 +795,13 @@ function GameCard({
               sportKey={game.sport_key}
             />
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="mt-1">
               <MobileMarketModalButton
                 game={game}
                 market={h2h}
                 outcome={awayMoneyline}
                 team={game.away_team}
                 teamInfo={game.away_team_info}
-              />
-              <MobileMarketModalButton
-                game={game}
-                market={spread}
-                outcome={awaySpread}
-                team={game.away_team}
-                teamInfo={game.away_team_info}
-              />
-              <MobileMarketModalButton
-                game={game}
-                market={total}
-                outcome={overTotal}
               />
             </div>
           </div>
@@ -822,25 +813,13 @@ function GameCard({
               sportKey={game.sport_key}
             />
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="mt-1">
               <MobileMarketModalButton
                 game={game}
                 market={h2h}
                 outcome={homeMoneyline}
                 team={game.home_team}
                 teamInfo={game.home_team_info}
-              />
-              <MobileMarketModalButton
-                game={game}
-                market={spread}
-                outcome={homeSpread}
-                team={game.home_team}
-                teamInfo={game.home_team_info}
-              />
-              <MobileMarketModalButton
-                game={game}
-                market={total}
-                outcome={underTotal}
               />
             </div>
           </div>
@@ -850,7 +829,7 @@ function GameCard({
       <article className="relative hidden xl:block">
         <GameCardHeader game={game} eventHref={eventHref} />
 
-        <div className="grid grid-cols-[minmax(0,1fr)_92px_92px_92px] gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_112px_112px_112px] gap-2">
           <div>
             <TeamRow
               team={game.away_team}
@@ -1020,12 +999,12 @@ export default function GamesClient({
 
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white">
-      <div className="relative mx-auto w-full max-w-[1480px] px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-6">
+      <div className="relative mx-auto w-full max-w-[1660px] px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-6">
         <header className="pt-2 xl:pr-[420px]">
           <LeagueTabs leagues={leagues} selectedLeague={selectedLeague} />
         </header>
 
-        <div className="mt-4 grid gap-6 md:mt-[26px] xl:grid-cols-[minmax(0,980px)_420px] xl:items-start xl:justify-center">
+        <div className="mt-4 grid gap-6 md:mt-[26px] xl:grid-cols-[minmax(0,1120px)_420px] xl:items-start xl:justify-center">
           <main className="min-w-0">
             <section className="space-y-4">
               <div className="grid grid-cols-[112px_minmax(0,1fr)_112px] items-end gap-3">
