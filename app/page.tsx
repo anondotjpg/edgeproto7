@@ -4,11 +4,31 @@ import GamesClient from "./components/GamesClient";
 type OddsOutcome = {
   name: string;
   price: number;
+  point?: number;
+  tokenId?: string;
+  polymarketOutcome?: string;
+  polymarketOutcomeIndex?: number;
 };
 
 type OddsMarket = {
-  key: string;
+  key: "h2h" | "spreads" | "totals" | string;
+  label?: string;
+  line?: number;
   outcomes: OddsOutcome[];
+  polymarket?: {
+    event_id: string;
+    event_slug: string | null;
+    market_id: string;
+    market_slug: string | null;
+    condition_id: string | null;
+    question: string | null;
+    outcomes: string[];
+    clob_token_ids: string[];
+    sports_market_type?: string | null;
+    volume: number | null;
+    volume_24hr: number | null;
+    liquidity: number | null;
+  };
 };
 
 type Bookmaker = {

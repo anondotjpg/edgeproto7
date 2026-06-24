@@ -8,16 +8,36 @@ export const LEAGUES = [
 const MIN_MARKET_VOLUME = 1000;
 
 export type LeagueKey = (typeof LEAGUES)[number]["key"];
+export type MarketKey = "h2h" | "spreads" | "totals";
 
 export type OddsOutcome = {
   name: string;
   price: number;
   point?: number;
+  tokenId?: string;
+  polymarketOutcome?: string;
+  polymarketOutcomeIndex?: number;
 };
 
 export type OddsMarket = {
-  key: string;
+  key: MarketKey;
+  label?: string;
+  line?: number;
   outcomes: OddsOutcome[];
+  polymarket?: {
+    event_id: string;
+    event_slug: string | null;
+    market_id: string;
+    market_slug: string | null;
+    condition_id: string | null;
+    question: string | null;
+    outcomes: string[];
+    clob_token_ids: string[];
+    sports_market_type: string | null;
+    volume: number | null;
+    volume_24hr: number | null;
+    liquidity: number | null;
+  };
 };
 
 export type Bookmaker = {
@@ -48,6 +68,7 @@ export type GameDebug = {
   homeSlugTokens?: string[];
   awayMatchedBy?: string;
   homeMatchedBy?: string;
+  addedMarkets?: string[];
 };
 
 export type EventOdds = {
@@ -115,6 +136,9 @@ type PolymarketMarket = {
   active?: boolean;
   closed?: boolean;
   archived?: boolean;
+  sportsMarketType?: string | null;
+  line?: string | number | null;
+  groupItemTitle?: string | null;
 };
 
 type PolymarketEvent = {
@@ -400,11 +424,34 @@ async function resolveTeamByToken(
   return {};
 }
 
+function isTradableMarket(market: PolymarketMarket) {
+  return (
+    market.archived !== true &&
+    market.closed !== true &&
+    market.active !== false &&
+    market.acceptingOrders !== false
+  );
+}
+
+function getMarketVolume(market: PolymarketMarket) {
+  return parseNumericValue(market.volumeNum, market.volume, market.volumeClob);
+}
+
+function getSportsMarketType(market: PolymarketMarket) {
+  return cleanText(String(market.sportsMarketType ?? "")).toLowerCase();
+}
+
 function isLikelyFullGameMoneylineMarket(
   event: PolymarketEvent,
   market: PolymarketMarket,
   leagueKey: LeagueKey,
 ): boolean {
+  const sportsMarketType = getSportsMarketType(market);
+
+  if (sportsMarketType && sportsMarketType !== "moneyline") {
+    return false;
+  }
+
   const slug = normalizeSlug(market.slug || "");
   const question = cleanText(market.question || "").toLowerCase();
   const eventTitle = cleanText(event.title || "").toLowerCase();
@@ -426,46 +473,25 @@ function isLikelyFullGameMoneylineMarket(
     "3q",
     "4q",
     "quarter",
-    "1st quarter",
-    "2nd quarter",
-    "3rd quarter",
-    "4th quarter",
     "period",
     "innings",
     "inning",
-    "set",
-    "map",
     "spread",
     "total",
     "over/",
     "under/",
     "over ",
     "under ",
-    "alt",
-    "alternate",
+    "nrfi",
+    "yrfi",
+    "extra innings",
     "player",
-    "points",
-    "rebounds",
-    "assists",
-    "threes",
     "parlay",
-    "same game parlay",
     "sgp",
     "series",
-    "champion",
-    "winner of series",
-    "to win series",
-    "race to",
-    "double chance",
-    "draw no bet",
     "correct score",
     "wins by",
     "margin",
-    "exactly",
-    "most",
-    "least",
-    "higher",
-    "lower",
     "yes/no",
     "yes or no",
   ];
@@ -516,6 +542,186 @@ function findOutcomeIndexForTeam(outcomes: string[], teamName: string): number {
   });
 }
 
+function getMoneylineScore(market: PolymarketMarket) {
+  const slug = normalizeSlug(market.slug || "");
+  const question = cleanText(market.question || "").toLowerCase();
+
+  return (
+    (getSportsMarketType(market) === "moneyline" ? 4 : 0) +
+    (slug.includes("moneyline") ? 2 : 0) +
+    (question.includes("moneyline") ? 1 : 0) +
+    (getMarketVolume(market) ?? 0) / 1_000_000
+  );
+}
+
+function chooseMoneylineMarket(
+  event: PolymarketEvent,
+  markets: PolymarketMarket[],
+  leagueKey: LeagueKey,
+) {
+  const eligible = markets
+    .filter(isTradableMarket)
+    .filter((market) => isLikelyFullGameMoneylineMarket(event, market, leagueKey))
+    .filter((market) => {
+      const volume = getMarketVolume(market);
+      return volume !== null && volume > MIN_MARKET_VOLUME;
+    });
+
+  return eligible.sort((a, b) => getMoneylineScore(b) - getMoneylineScore(a))[0];
+}
+
+function chooseHighestVolumeMarket(
+  markets: PolymarketMarket[],
+  sportsMarketType: "spreads" | "totals",
+) {
+  const eligible = markets
+    .filter(isTradableMarket)
+    .filter((market) => getSportsMarketType(market) === sportsMarketType)
+    .filter((market) => {
+      const volume = getMarketVolume(market);
+      return volume !== null && volume > MIN_MARKET_VOLUME;
+    });
+
+  return eligible.sort((a, b) => (getMarketVolume(b) ?? 0) - (getMarketVolume(a) ?? 0))[0];
+}
+
+function makePolymarketMeta(
+  event: PolymarketEvent,
+  market: PolymarketMarket,
+  outcomes: string[],
+  clobTokenIds: string[],
+) {
+  return {
+    event_id: String(event.id),
+    event_slug: event.slug ?? null,
+    market_id: String(market.id),
+    market_slug: market.slug ?? null,
+    condition_id: market.conditionId ?? market.condition_id ?? null,
+    question: market.question ?? null,
+    outcomes,
+    clob_token_ids: clobTokenIds,
+    sports_market_type: getSportsMarketType(market) || null,
+    volume: getMarketVolume(market),
+    volume_24hr: parseNumericValue(market.volume24hr, market.volume24hrClob),
+    liquidity: parseNumericValue(
+      market.liquidityNum,
+      market.liquidity,
+      market.liquidityClob,
+    ),
+  };
+}
+
+function buildMoneylineOddsMarket(
+  event: PolymarketEvent,
+  market: PolymarketMarket,
+  teams: { away: string; home: string },
+): { market: OddsMarket; awayTokenId?: string; homeTokenId?: string } | null {
+  const outcomes = parseStringArray(market.outcomes).map(cleanText);
+  const prices = parseStringArray(market.outcomePrices).map(Number);
+  const clobTokenIds = parseStringArray(market.clobTokenIds);
+
+  if (outcomes.length !== 2 || prices.length !== 2) return null;
+
+  const awayIndex = findOutcomeIndexForTeam(outcomes, teams.away);
+  const homeIndex = findOutcomeIndexForTeam(outcomes, teams.home);
+
+  if (awayIndex === -1 || homeIndex === -1 || awayIndex === homeIndex) {
+    return null;
+  }
+
+  const polymarket = makePolymarketMeta(event, market, outcomes, clobTokenIds);
+
+  return {
+    market: {
+      key: "h2h",
+      label: "Moneyline",
+      outcomes: [awayIndex, homeIndex].map((index) => ({
+        name: outcomes[index],
+        price: probabilityToAmerican(prices[index]),
+        tokenId: clobTokenIds[index],
+        polymarketOutcome: outcomes[index],
+        polymarketOutcomeIndex: index,
+      })),
+      polymarket,
+    },
+    awayTokenId: clobTokenIds[awayIndex],
+    homeTokenId: clobTokenIds[homeIndex],
+  };
+}
+
+function buildSpreadOddsMarket(
+  event: PolymarketEvent,
+  market: PolymarketMarket,
+  teams: { away: string; home: string },
+): OddsMarket | null {
+  const outcomes = parseStringArray(market.outcomes).map(cleanText);
+  const prices = parseStringArray(market.outcomePrices).map(Number);
+  const clobTokenIds = parseStringArray(market.clobTokenIds);
+  const line = parseNumericValue(market.line);
+
+  if (outcomes.length !== 2 || prices.length !== 2 || line === null) return null;
+
+  const awayIndex = findOutcomeIndexForTeam(outcomes, teams.away);
+  const homeIndex = findOutcomeIndexForTeam(outcomes, teams.home);
+
+  if (awayIndex === -1 || homeIndex === -1 || awayIndex === homeIndex) {
+    return null;
+  }
+
+  const polymarket = makePolymarketMeta(event, market, outcomes, clobTokenIds);
+
+  return {
+    key: "spreads",
+    label: `Spread ${line > 0 ? "+" : ""}${line}`,
+    line,
+    outcomes: [awayIndex, homeIndex].map((index) => ({
+      name: outcomes[index],
+      price: probabilityToAmerican(prices[index]),
+      point: index === 0 ? line : -line,
+      tokenId: clobTokenIds[index],
+      polymarketOutcome: outcomes[index],
+      polymarketOutcomeIndex: index,
+    })),
+    polymarket,
+  };
+}
+
+function buildTotalsOddsMarket(
+  event: PolymarketEvent,
+  market: PolymarketMarket,
+): OddsMarket | null {
+  const outcomes = parseStringArray(market.outcomes).map(cleanText);
+  const prices = parseStringArray(market.outcomePrices).map(Number);
+  const clobTokenIds = parseStringArray(market.clobTokenIds);
+  const line = parseNumericValue(market.line);
+
+  if (outcomes.length !== 2 || prices.length !== 2 || line === null) return null;
+
+  const overIndex = outcomes.findIndex((outcome) => normalize(outcome) === "over");
+  const underIndex = outcomes.findIndex((outcome) => normalize(outcome) === "under");
+
+  if (overIndex === -1 || underIndex === -1 || overIndex === underIndex) {
+    return null;
+  }
+
+  const polymarket = makePolymarketMeta(event, market, outcomes, clobTokenIds);
+
+  return {
+    key: "totals",
+    label: `O/U ${line}`,
+    line,
+    outcomes: [overIndex, underIndex].map((index) => ({
+      name: outcomes[index],
+      price: probabilityToAmerican(prices[index]),
+      point: line,
+      tokenId: clobTokenIds[index],
+      polymarketOutcome: outcomes[index],
+      polymarketOutcomeIndex: index,
+    })),
+    polymarket,
+  };
+}
+
 function makeDedupeKey(
   leagueKey: LeagueKey,
   event: PolymarketEvent,
@@ -531,64 +737,63 @@ function makeDedupeKey(
   return `${leagueKey}:${eventSlug || day}:${away}:${home}`;
 }
 
-async function buildGameFromMarket(
+async function buildGameFromEvent(
   event: PolymarketEvent,
-  market: PolymarketMarket,
   league: { key: LeagueKey; label: string; tag: number; teamLeague: string },
 ): Promise<EventOdds | null> {
-  if (!isLikelyFullGameMoneylineMarket(event, market, league.key)) {
-    return null;
-  }
+  const markets = Array.isArray(event.markets) ? event.markets : [];
+  const moneylineMarket = chooseMoneylineMarket(event, markets, league.key);
 
-  const teams = chooseCanonicalTeams(event, market);
+  if (!moneylineMarket) return null;
+
+  const teams = chooseCanonicalTeams(event, moneylineMarket);
   if (!teams) return null;
 
-  const outcomes = parseStringArray(market.outcomes).map(cleanText);
-  const prices = parseStringArray(market.outcomePrices).map(Number);
-  const clobTokenIds = parseStringArray(market.clobTokenIds);
-  const marketVolume = parseNumericValue(
-    market.volumeNum,
-    market.volume,
-    market.volumeClob,
-  );
-
-  if (marketVolume === null || marketVolume <= MIN_MARKET_VOLUME) {
-    return null;
-  }
-
-  if (outcomes.length !== 2 || prices.length !== 2) return null;
-
-  const awayIndex = findOutcomeIndexForTeam(outcomes, teams.away);
-  const homeIndex = findOutcomeIndexForTeam(outcomes, teams.home);
-
-  if (awayIndex === -1 || homeIndex === -1 || awayIndex === homeIndex) {
-    return null;
-  }
-
-  const commenceTime = getCommenceTime(event, market);
+  const commenceTime = getCommenceTime(event, moneylineMarket);
 
   if (!isWithinLast24HoursFromNowUtc(commenceTime)) {
     return null;
   }
 
-  const slugTokens = extractSlugTokens(market.slug || event.slug, league.key);
+  const moneyline = buildMoneylineOddsMarket(event, moneylineMarket, teams);
+  if (!moneyline) return null;
+
+  const bestSpreadMarket = chooseHighestVolumeMarket(markets, "spreads");
+  const bestTotalMarket = chooseHighestVolumeMarket(markets, "totals");
+
+  const spread = bestSpreadMarket
+    ? buildSpreadOddsMarket(event, bestSpreadMarket, teams)
+    : null;
+
+  const total = bestTotalMarket ? buildTotalsOddsMarket(event, bestTotalMarket) : null;
+
+  const slugTokens = extractSlugTokens(
+    moneylineMarket.slug || event.slug,
+    league.key,
+  );
   const awaySlugToken = slugTokens.length >= 2 ? slugTokens[0] : "";
   const homeSlugToken = slugTokens.length >= 2 ? slugTokens[1] : "";
 
   const [awayResolved, homeResolved] = await Promise.all([
-    resolveTeamByToken(awaySlugToken, outcomes[awayIndex], league.teamLeague),
-    resolveTeamByToken(homeSlugToken, outcomes[homeIndex], league.teamLeague),
+    resolveTeamByToken(awaySlugToken, teams.away, league.teamLeague),
+    resolveTeamByToken(homeSlugToken, teams.home, league.teamLeague),
   ]);
 
+  const oddsMarkets = [moneyline.market, spread, total].filter(
+    (market): market is OddsMarket => Boolean(market),
+  );
+
+  const moneylineMeta = moneyline.market.polymarket;
+
   return {
-    id: `${league.key}-${String(market.id)}`,
-    slug: event.slug || market.slug || `${league.key}-${String(market.id)}`,
+    id: `${league.key}-${String(moneylineMarket.id)}`,
+    slug: event.slug || moneylineMarket.slug || `${league.key}-${String(moneylineMarket.id)}`,
     sport_key: league.key,
     sport_title: league.label,
     commence_time: commenceTime,
     isLive: hasGameStarted(commenceTime),
-    away_team: outcomes[awayIndex],
-    home_team: outcomes[homeIndex],
+    away_team: teams.away,
+    home_team: teams.home,
     away_team_info: awayResolved.team
       ? makeTeamInfo(awayResolved.team)
       : undefined,
@@ -600,58 +805,43 @@ async function buildGameFromMarket(
         key: "polymarket",
         title: "Polymarket",
         last_update: new Date().toISOString(),
-        markets: [
-          {
-            key: "h2h",
-            outcomes: [
-              {
-                name: outcomes[awayIndex],
-                price: probabilityToAmerican(prices[awayIndex]),
-              },
-              {
-                name: outcomes[homeIndex],
-                price: probabilityToAmerican(prices[homeIndex]),
-              },
-            ],
-          },
-        ],
+        markets: oddsMarkets,
       },
     ],
 
-    polymarket: {
-      event_id: String(event.id),
-      event_slug: event.slug ?? null,
-      market_id: String(market.id),
-      market_slug: market.slug ?? null,
-      condition_id: market.conditionId ?? market.condition_id ?? null,
-      question: market.question ?? null,
-      outcomes,
-      clob_token_ids: clobTokenIds,
-      volume: marketVolume,
-      volume_24hr: parseNumericValue(market.volume24hr, market.volume24hrClob),
-      liquidity: parseNumericValue(
-        market.liquidityNum,
-        market.liquidity,
-        market.liquidityClob,
-      ),
-    },
+    polymarket: moneylineMeta
+      ? {
+          event_id: moneylineMeta.event_id,
+          event_slug: moneylineMeta.event_slug,
+          market_id: moneylineMeta.market_id,
+          market_slug: moneylineMeta.market_slug,
+          condition_id: moneylineMeta.condition_id,
+          question: moneylineMeta.question,
+          outcomes: moneylineMeta.outcomes,
+          clob_token_ids: moneylineMeta.clob_token_ids,
+          volume: moneylineMeta.volume,
+          volume_24hr: moneylineMeta.volume_24hr,
+          liquidity: moneylineMeta.liquidity,
+        }
+      : undefined,
 
     outcome_token_ids: {
-      away: clobTokenIds[awayIndex],
-      home: clobTokenIds[homeIndex],
+      away: moneyline.awayTokenId,
+      home: moneyline.homeTokenId,
     },
 
     debug: {
       eventSlug: event.slug,
-      marketSlug: market.slug,
+      marketSlug: moneylineMarket.slug,
       eventTitle: event.title,
-      question: market.question,
-      outcomes,
-      clobTokenIds,
+      question: moneylineMarket.question,
+      outcomes: moneyline.market.polymarket?.outcomes,
+      clobTokenIds: moneyline.market.polymarket?.clob_token_ids,
       awaySlugTokens: awaySlugToken ? [awaySlugToken] : [],
       homeSlugTokens: homeSlugToken ? [homeSlugToken] : [],
       awayMatchedBy: awayResolved.matchedBy,
       homeMatchedBy: homeResolved.matchedBy,
+      addedMarkets: oddsMarkets.map((market) => market.key),
     },
   };
 }
@@ -681,15 +871,7 @@ export async function fetchLeagueGames(league: {
     events
       .filter((event) => event.archived !== true)
       .filter((event) => event.closed !== true)
-      .flatMap((event) => {
-        const markets = Array.isArray(event.markets) ? event.markets : [];
-
-        return markets
-          .filter((market) => market.archived !== true)
-          .filter((market) => market.closed !== true)
-          .filter((market) => market.acceptingOrders !== false)
-          .map((market) => buildGameFromMarket(event, market, league));
-      }),
+      .map((event) => buildGameFromEvent(event, league)),
   );
 
   const games = builtGames.filter((game): game is EventOdds => Boolean(game));
@@ -697,10 +879,9 @@ export async function fetchLeagueGames(league: {
   const dedupedMap = new Map<string, EventOdds>();
 
   for (const game of games) {
-    const eventSlug = game.debug?.eventSlug;
     const dedupeKey = makeDedupeKey(
       league.key,
-      { id: "", slug: eventSlug } as PolymarketEvent,
+      { id: "", slug: game.debug?.eventSlug } as PolymarketEvent,
       game.away_team,
       game.home_team,
       game.commence_time,
@@ -713,18 +894,15 @@ export async function fetchLeagueGames(league: {
       continue;
     }
 
-    const existingSlug = normalizeSlug(existing.debug?.marketSlug || "");
-    const currentSlug = normalizeSlug(game.debug?.marketSlug || "");
+    const existingMarketCount = existing.bookmakers[0]?.markets.length ?? 0;
+    const currentMarketCount = game.bookmakers[0]?.markets.length ?? 0;
+    const existingVolume = existing.polymarket?.volume ?? 0;
+    const currentVolume = game.polymarket?.volume ?? 0;
 
-    const existingScore =
-      (existingSlug.includes("moneyline") ? 2 : 0) +
-      (existing.debug?.question?.toLowerCase().includes("moneyline") ? 1 : 0);
-
-    const currentScore =
-      (currentSlug.includes("moneyline") ? 2 : 0) +
-      (game.debug?.question?.toLowerCase().includes("moneyline") ? 1 : 0);
-
-    if (currentScore > existingScore) {
+    if (
+      currentMarketCount > existingMarketCount ||
+      (currentMarketCount === existingMarketCount && currentVolume > existingVolume)
+    ) {
       dedupedMap.set(dedupeKey, game);
     }
   }
@@ -748,15 +926,14 @@ export async function fetchLeagueGames(league: {
           homeColor: game.home_team_info?.color,
           commenceTime: game.commence_time,
           isLive: game.isLive,
-          marketSlug: game.debug?.marketSlug,
+          markets: game.bookmakers[0]?.markets.map((market) => ({
+            key: market.key,
+            label: market.label,
+            line: market.line,
+            volume: market.polymarket?.volume,
+            conditionId: market.polymarket?.condition_id,
+          })),
           eventSlug: game.debug?.eventSlug,
-          question: game.debug?.question,
-          conditionId: game.polymarket?.condition_id,
-          volume: game.polymarket?.volume,
-          volume24hr: game.polymarket?.volume_24hr,
-          liquidity: game.polymarket?.liquidity,
-          awayTokenId: game.outcome_token_ids?.away,
-          homeTokenId: game.outcome_token_ids?.home,
         },
         null,
         2,

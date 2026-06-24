@@ -30,13 +30,35 @@ type LeagueMeta = {
 type OddsOutcome = {
   name: string;
   price: number;
+  point?: number;
+  tokenId?: string;
+  polymarketOutcome?: string;
+  polymarketOutcomeIndex?: number;
+};
+
+type OddsMarket = {
+  key: "h2h" | "spreads" | "totals" | string;
+  label?: string;
+  line?: number;
+  outcomes: OddsOutcome[];
+  polymarket?: {
+    event_id: string;
+    event_slug: string | null;
+    market_id: string;
+    market_slug: string | null;
+    condition_id: string | null;
+    question: string | null;
+    outcomes: string[];
+    clob_token_ids: string[];
+    sports_market_type?: string | null;
+    volume: number | null;
+    volume_24hr: number | null;
+    liquidity: number | null;
+  };
 };
 
 type Bookmaker = {
-  markets: {
-    key: string;
-    outcomes: OddsOutcome[];
-  }[];
+  markets: OddsMarket[];
 };
 
 type TeamInfo = {
@@ -52,6 +74,7 @@ type BetSlipDataWithTeamAlias = BetSlipData & {
   teamAlias?: string | null;
   isLive?: boolean;
   teamColor?: string | null;
+  polymarketTokenId?: string | null;
 };
 
 type GameWithLiveStatus = Game & {
@@ -68,6 +91,15 @@ function getOutcomeByName(
   teamName: string,
 ) {
   return outcomes?.find((outcome) => outcome.name === teamName);
+}
+
+function getOutcomeByOutcomeName(
+  outcomes: OddsOutcome[] | undefined,
+  outcomeName: string,
+) {
+  return outcomes?.find(
+    (outcome) => outcome.name.toLowerCase() === outcomeName.toLowerCase(),
+  );
 }
 
 function formatPrice(price?: number) {
@@ -308,49 +340,119 @@ function getGameIsLive(game: Game): boolean {
   return startTimestamp <= Date.now();
 }
 
+function formatPoint(value?: number) {
+  if (value === undefined || value === null || !Number.isFinite(value)) {
+    return "";
+  }
+
+  return value > 0 ? `+${value}` : `${value}`;
+}
+
+function getMarketDisplayLabel(market?: OddsMarket) {
+  if (!market) return "";
+  if (market.key === "h2h") return "Moneyline";
+  if (market.key === "spreads") return market.label ?? "Spread";
+  if (market.key === "totals") return market.label ?? "Total";
+  return market.label ?? market.key;
+}
+
+function getOutcomeSelectionLabel({
+  market,
+  outcome,
+  teamInfo,
+}: {
+  market: OddsMarket;
+  outcome: OddsOutcome;
+  teamInfo?: TeamInfo;
+}) {
+  if (market.key === "spreads") {
+    return `${getTeamDisplayName(outcome.name, teamInfo)} ${formatPoint(outcome.point)}`;
+  }
+
+  if (market.key === "totals") {
+    return `${outcome.name} ${market.line ?? outcome.point ?? ""}`.trim();
+  }
+
+  return getTeamDisplayName(outcome.name, teamInfo);
+}
+
+function getOutcomeButtonLabel({
+  market,
+  outcome,
+  team,
+  teamInfo,
+}: {
+  market: OddsMarket;
+  outcome?: OddsOutcome;
+  team?: string;
+  teamInfo?: TeamInfo;
+}) {
+  if (!outcome) return "—";
+
+  if (market.key === "spreads") {
+    const ticker = team ? getTeamTicker(team, teamInfo) : outcome.name;
+    return `${ticker} ${formatPoint(outcome.point)}`;
+  }
+
+  if (market.key === "totals") {
+    return `${outcome.name[0]?.toUpperCase() ?? ""} ${market.line ?? outcome.point ?? ""}`.trim();
+  }
+
+  if (team) return getTeamTicker(team, teamInfo);
+
+  return outcome.name;
+}
+
 function buildBetData({
   game,
-  team,
+  market,
   outcome,
-  side,
-  info,
+  teamInfo,
 }: {
   game: Game;
-  team: string;
+  market: OddsMarket;
   outcome?: OddsOutcome;
-  side: "away" | "home";
-  info?: TeamInfo;
+  teamInfo?: TeamInfo;
 }): BetSlipDataWithTeamAlias {
   const odds = formatPrice(outcome?.price);
   const impliedPercent = formatImpliedPercent(outcome?.price);
-
-  const polymarketTokenId =
-    side === "away"
-      ? game.outcome_token_ids?.away
-      : game.outcome_token_ids?.home;
+  const selectionLabel = outcome
+    ? getOutcomeSelectionLabel({ market, outcome, teamInfo })
+    : "Unavailable";
+  const marketMeta = market.polymarket;
+  const outcomeIndex = outcome?.polymarketOutcomeIndex ?? null;
+  const tokenId =
+    outcome?.tokenId ??
+    (outcomeIndex !== null && outcomeIndex !== undefined
+      ? marketMeta?.clob_token_ids[outcomeIndex]
+      : undefined);
+  const isTeamMarket = market.key === "h2h" || market.key === "spreads";
 
   return {
-    team,
+    team: selectionLabel,
     gameId: game.id,
     league: game.sport_key,
-    market: "h2h",
+    market: market.key,
     odds,
     impliedPercent,
     isLive: getGameIsLive(game),
-    matchup: `${game.away_team} vs. ${game.home_team}`,
-    matchupAlias: getMatchupDisplayName(game),
-    polymarketEventId: game.polymarket?.event_id ?? null,
-    polymarketEventSlug: game.polymarket?.event_slug ?? null,
-    polymarketMarketId: game.polymarket?.market_id ?? null,
-    polymarketConditionId: game.polymarket?.condition_id ?? null,
-    polymarketMarketSlug: game.polymarket?.market_slug ?? null,
-    polymarketOutcome: team,
-    polymarketOutcomeIndex: side === "away" ? 0 : 1,
-    polymarketTokenId: polymarketTokenId ?? null,
-    teamAlias: info?.alias ?? null,
-    teamLogo: info?.logo ?? null,
-    teamLogoAlt: info?.name ?? team,
-    teamColor: info?.color ?? null,
+    matchup: `${getMarketDisplayLabel(market)} • ${game.away_team} vs. ${game.home_team}`,
+    matchupAlias: `${getMarketDisplayLabel(market)} • ${getMatchupDisplayName(game)}`,
+    polymarketEventId: marketMeta?.event_id ?? game.polymarket?.event_id ?? null,
+    polymarketEventSlug:
+      marketMeta?.event_slug ?? game.polymarket?.event_slug ?? null,
+    polymarketMarketId: marketMeta?.market_id ?? game.polymarket?.market_id ?? null,
+    polymarketConditionId:
+      marketMeta?.condition_id ?? game.polymarket?.condition_id ?? null,
+    polymarketMarketSlug:
+      marketMeta?.market_slug ?? game.polymarket?.market_slug ?? null,
+    polymarketOutcome: outcome?.polymarketOutcome ?? outcome?.name ?? null,
+    polymarketOutcomeIndex: outcomeIndex,
+    polymarketTokenId: tokenId ?? null,
+    teamAlias: null,
+    teamLogo: isTeamMarket ? (teamInfo?.logo ?? null) : null,
+    teamLogoAlt: isTeamMarket ? (teamInfo?.name ?? outcome?.name ?? selectionLabel) : null,
+    teamColor: isTeamMarket ? (teamInfo?.color ?? null) : null,
   };
 }
 
@@ -392,16 +494,20 @@ function TeamRow({
   );
 }
 
-function MoneylineFace({
+function MarketFace({
   selected,
   isLive,
   teamColor,
+  label,
+  odds,
   children,
 }: {
   selected: boolean;
   isLive?: boolean;
   teamColor?: string | null;
-  children: ReactNode;
+  label?: string;
+  odds?: string;
+  children?: ReactNode;
 }) {
   const { shellStyle, faceStyle } = getTeamColorStyles({
     color: teamColor,
@@ -422,7 +528,7 @@ function MoneylineFace({
     >
       <div
         className={[
-          "flex h-[42px] w-full translate-y-[-2px] items-center justify-center overflow-hidden rounded-xl px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
+          "flex h-[42px] w-full translate-y-[-2px] items-center justify-between gap-1 overflow-hidden rounded-xl px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
           isLive
             ? "bg-zinc-900"
             : selected
@@ -431,19 +537,101 @@ function MoneylineFace({
         ].join(" ")}
         style={faceStyle}
       >
-        {children}
+        {children ??
+          (isLive ? (
+            <span className="flex w-full justify-center">
+              <FaLock className="h-3.5 w-3.5 text-zinc-500" />
+            </span>
+          ) : (
+            <>
+              <span className="min-w-0 truncate text-[11px] font-bold leading-none tracking-[0.06em] text-zinc-300">
+                {label}
+              </span>
+              <span className="shrink-0 text-[13px] font-bold leading-none tracking-tight text-zinc-100">
+                {odds}
+              </span>
+            </>
+          ))}
       </div>
     </div>
   );
 }
 
-function MobileMoneylineModalButton({
-  betData,
-  ticker,
+function DesktopMarketCell({
+  game,
+  market,
+  outcome,
+  team,
+  teamInfo,
+  selectedBet,
+  onSelect,
 }: {
-  betData: BetSlipDataWithTeamAlias;
-  ticker: string;
+  game: Game;
+  market?: OddsMarket;
+  outcome?: OddsOutcome;
+  team?: string;
+  teamInfo?: TeamInfo;
+  selectedBet: BetSlipDataWithTeamAlias | null;
+  onSelect: (data: BetSlipDataWithTeamAlias) => void;
 }) {
+  if (!market || !outcome) {
+    return (
+      <div className="rounded-xl bg-zinc-900/60">
+        <div className="flex h-[42px] items-center justify-center rounded-xl text-[13px] font-semibold text-zinc-700">
+          —
+        </div>
+      </div>
+    );
+  }
+
+  const betData = buildBetData({ game, market, outcome, teamInfo });
+  const isLive = Boolean(betData.isLive);
+  const selected =
+    selectedBet?.gameId === betData.gameId &&
+    selectedBet.market === betData.market &&
+    selectedBet.polymarketTokenId === betData.polymarketTokenId;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(betData)}
+      className="block w-full cursor-pointer"
+    >
+      <MarketFace
+        selected={selected}
+        isLive={isLive}
+        teamColor={betData.teamColor}
+        label={getOutcomeButtonLabel({ market, outcome, team, teamInfo })}
+        odds={betData.odds}
+      />
+    </button>
+  );
+}
+
+function MobileMarketModalButton({
+  game,
+  market,
+  outcome,
+  team,
+  teamInfo,
+}: {
+  game: Game;
+  market?: OddsMarket;
+  outcome?: OddsOutcome;
+  team?: string;
+  teamInfo?: TeamInfo;
+}) {
+  if (!market || !outcome) {
+    return (
+      <div className="rounded-xl bg-zinc-900/60">
+        <div className="flex h-[42px] items-center justify-center rounded-xl text-[13px] font-semibold text-zinc-700">
+          —
+        </div>
+      </div>
+    );
+  }
+
+  const betData = buildBetData({ game, market, outcome, teamInfo });
   const { shellStyle, faceStyle } = getTeamColorStyles({
     color: betData.teamColor,
     selected: false,
@@ -451,16 +639,7 @@ function MobileMoneylineModalButton({
   });
 
   return (
-    <div
-      className={[
-        "group relative rounded-xl",
-        betData.isLive ? "bg-zinc-800" : "bg-zinc-800",
-      ].join(" ")}
-      style={{
-        paddingBottom: "4px",
-        ...shellStyle,
-      }}
-    >
+    <div className="group relative rounded-xl bg-zinc-800" style={{ paddingBottom: "4px", ...shellStyle }}>
       <BetSlipModal
         team={betData.team}
         teamAlias={betData.teamAlias}
@@ -492,20 +671,22 @@ function MobileMoneylineModalButton({
 
       <div
         className={[
-          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
+          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-between gap-1.5 rounded-xl px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
           betData.isLive ? "bg-zinc-900" : "",
         ].join(" ")}
         style={faceStyle}
       >
         {betData.isLive ? (
-          <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+          <span className="flex w-full justify-center">
+            <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+          </span>
         ) : (
           <>
-            <span className="text-[10px] font-bold leading-none tracking-[0.12em] text-zinc-200">
-              {ticker}
+            <span className="min-w-0 truncate text-[10px] font-bold leading-none tracking-[0.08em] text-zinc-300">
+              {getOutcomeButtonLabel({ market, outcome, team, teamInfo })}
             </span>
 
-            <span className="text-[18px] font-bold leading-none tracking-tight text-zinc-100">
+            <span className="shrink-0 text-[13px] font-bold leading-none tracking-tight text-zinc-100">
               {betData.odds}
             </span>
           </>
@@ -515,58 +696,21 @@ function MobileMoneylineModalButton({
   );
 }
 
-function MoneylineCell({
-  game,
-  team,
-  outcome,
-  side,
-  selected,
-  onSelect,
-}: {
-  game: Game;
-  team: string;
-  outcome?: OddsOutcome;
-  side: "away" | "home";
-  selected: boolean;
-  onSelect: (data: BetSlipDataWithTeamAlias) => void;
-}) {
-  const teamInfo = side === "away" ? game.away_team_info : game.home_team_info;
-  const betData = buildBetData({ game, team, outcome, side, info: teamInfo });
-  const isLive = Boolean(betData.isLive);
-
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(betData)}
-      className="block w-full cursor-pointer"
-    >
-      <MoneylineFace
-        selected={selected}
-        isLive={isLive}
-        teamColor={betData.teamColor}
-      >
-        {isLive ? (
-          <FaLock className="h-3.5 w-3.5 text-zinc-500" />
-        ) : (
-          <span className="text-[13px] font-semibold leading-none tracking-tight text-zinc-100">
-            {betData.odds}
-          </span>
-        )}
-      </MoneylineFace>
-    </button>
-  );
-}
-
 function DateMarketHeader({ date }: { date: string }) {
   return (
-    <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_84px] xl:items-end xl:gap-2">
+    <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_92px_92px_92px] xl:items-end xl:gap-2">
       <div className="text-[18px] font-semibold leading-none tracking-tight text-zinc-100">
         {date}
       </div>
 
-      <div className="hidden items-center justify-center pb-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 xl:flex">
-        Moneyline
-      </div>
+      {['Moneyline', 'Spread', 'Total'].map((label) => (
+        <div
+          key={label}
+          className="hidden items-center justify-center pb-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 xl:flex"
+        >
+          {label}
+        </div>
+      ))}
     </div>
   );
 }
@@ -622,70 +766,91 @@ function GameCard({
   onSelectBet: (data: BetSlipDataWithTeamAlias) => void;
 }) {
   const bookmaker = game.bookmakers[0];
-  const h2h = getMarket(bookmaker, "h2h")?.outcomes;
+  const h2h = getMarket(bookmaker, "h2h");
+  const spread = getMarket(bookmaker, "spreads");
+  const total = getMarket(bookmaker, "totals");
 
-  const awayMoneyline = getOutcomeByName(h2h, game.away_team);
-  const homeMoneyline = getOutcomeByName(h2h, game.home_team);
+  const awayMoneyline = getOutcomeByName(h2h?.outcomes, game.away_team);
+  const homeMoneyline = getOutcomeByName(h2h?.outcomes, game.home_team);
+  const awaySpread = getOutcomeByName(spread?.outcomes, game.away_team);
+  const homeSpread = getOutcomeByName(spread?.outcomes, game.home_team);
+  const overTotal = getOutcomeByOutcomeName(total?.outcomes, "Over");
+  const underTotal = getOutcomeByOutcomeName(total?.outcomes, "Under");
   const eventHref = `/event/${game.slug}`;
 
-  const awaySelected =
-    selectedBet?.gameId === game.id && selectedBet.team === game.away_team;
-
-  const homeSelected =
-    selectedBet?.gameId === game.id && selectedBet.team === game.home_team;
-
-  const awayBetData = buildBetData({
-    game,
-    team: game.away_team,
-    outcome: awayMoneyline,
-    side: "away",
-    info: game.away_team_info,
-  });
-
-  const homeBetData = buildBetData({
-    game,
-    team: game.home_team,
-    outcome: homeMoneyline,
-    side: "home",
-    info: game.home_team_info,
-  });
 
   return (
     <>
       <article className="relative xl:hidden">
         <GameCardHeader game={game} eventHref={eventHref} />
 
-        <div>
-          <TeamRow
-            team={game.away_team}
-            info={game.away_team_info}
-            sportKey={game.sport_key}
-          />
+        <div className="grid gap-2.5">
+          <div>
+            <TeamRow
+              team={game.away_team}
+              info={game.away_team_info}
+              sportKey={game.sport_key}
+            />
 
-          <TeamRow
-            team={game.home_team}
-            info={game.home_team_info}
-            sportKey={game.sport_key}
-          />
-        </div>
+            <div className="grid grid-cols-3 gap-2">
+              <MobileMarketModalButton
+                game={game}
+                market={h2h}
+                outcome={awayMoneyline}
+                team={game.away_team}
+                teamInfo={game.away_team_info}
+              />
+              <MobileMarketModalButton
+                game={game}
+                market={spread}
+                outcome={awaySpread}
+                team={game.away_team}
+                teamInfo={game.away_team_info}
+              />
+              <MobileMarketModalButton
+                game={game}
+                market={total}
+                outcome={overTotal}
+              />
+            </div>
+          </div>
 
-        <div className="mt-2 grid grid-cols-2 gap-2.5 md:gap-3">
-          <MobileMoneylineModalButton
-            betData={awayBetData}
-            ticker={getTeamTicker(game.away_team, game.away_team_info)}
-          />
+          <div>
+            <TeamRow
+              team={game.home_team}
+              info={game.home_team_info}
+              sportKey={game.sport_key}
+            />
 
-          <MobileMoneylineModalButton
-            betData={homeBetData}
-            ticker={getTeamTicker(game.home_team, game.home_team_info)}
-          />
+            <div className="grid grid-cols-3 gap-2">
+              <MobileMarketModalButton
+                game={game}
+                market={h2h}
+                outcome={homeMoneyline}
+                team={game.home_team}
+                teamInfo={game.home_team_info}
+              />
+              <MobileMarketModalButton
+                game={game}
+                market={spread}
+                outcome={homeSpread}
+                team={game.home_team}
+                teamInfo={game.home_team_info}
+              />
+              <MobileMarketModalButton
+                game={game}
+                market={total}
+                outcome={underTotal}
+              />
+            </div>
+          </div>
         </div>
       </article>
 
       <article className="relative hidden xl:block">
         <GameCardHeader game={game} eventHref={eventHref} />
 
-        <div className="grid grid-cols-[minmax(0,1fr)_84px] gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_92px_92px_92px] gap-2">
           <div>
             <TeamRow
               team={game.away_team}
@@ -701,21 +866,63 @@ function GameCard({
           </div>
 
           <div className="flex flex-col gap-2">
-            <MoneylineCell
+            <DesktopMarketCell
               game={game}
-              team={game.away_team}
+              market={h2h}
               outcome={awayMoneyline}
-              side="away"
-              selected={awaySelected}
+              team={game.away_team}
+              teamInfo={game.away_team_info}
+              selectedBet={selectedBet}
               onSelect={onSelectBet}
             />
 
-            <MoneylineCell
+            <DesktopMarketCell
               game={game}
-              team={game.home_team}
+              market={h2h}
               outcome={homeMoneyline}
-              side="home"
-              selected={homeSelected}
+              team={game.home_team}
+              teamInfo={game.home_team_info}
+              selectedBet={selectedBet}
+              onSelect={onSelectBet}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <DesktopMarketCell
+              game={game}
+              market={spread}
+              outcome={awaySpread}
+              team={game.away_team}
+              teamInfo={game.away_team_info}
+              selectedBet={selectedBet}
+              onSelect={onSelectBet}
+            />
+
+            <DesktopMarketCell
+              game={game}
+              market={spread}
+              outcome={homeSpread}
+              team={game.home_team}
+              teamInfo={game.home_team_info}
+              selectedBet={selectedBet}
+              onSelect={onSelectBet}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <DesktopMarketCell
+              game={game}
+              market={total}
+              outcome={overTotal}
+              selectedBet={selectedBet}
+              onSelect={onSelectBet}
+            />
+
+            <DesktopMarketCell
+              game={game}
+              market={total}
+              outcome={underTotal}
+              selectedBet={selectedBet}
               onSelect={onSelectBet}
             />
           </div>
@@ -723,6 +930,43 @@ function GameCard({
       </article>
     </>
   );
+}
+
+function getFirstBetForLeague(league?: LeagueBlock) {
+  const firstGame = league?.games[0];
+  if (!firstGame) return null;
+
+  const bookmaker = firstGame.bookmakers[0];
+  const h2h = getMarket(bookmaker, "h2h");
+  const spread = getMarket(bookmaker, "spreads");
+  const total = getMarket(bookmaker, "totals");
+  const awayMoneyline = getOutcomeByName(h2h?.outcomes, firstGame.away_team);
+  const awaySpread = getOutcomeByName(spread?.outcomes, firstGame.away_team);
+  const overTotal = getOutcomeByOutcomeName(total?.outcomes, "Over");
+
+  if (h2h && awayMoneyline) {
+    return buildBetData({
+      game: firstGame,
+      market: h2h,
+      outcome: awayMoneyline,
+      teamInfo: firstGame.away_team_info,
+    });
+  }
+
+  if (spread && awaySpread) {
+    return buildBetData({
+      game: firstGame,
+      market: spread,
+      outcome: awaySpread,
+      teamInfo: firstGame.away_team_info,
+    });
+  }
+
+  if (total && overTotal) {
+    return buildBetData({ game: firstGame, market: total, outcome: overTotal });
+  }
+
+  return null;
 }
 
 export default function GamesClient({
@@ -740,22 +984,7 @@ export default function GamesClient({
 }) {
   const totalGames = league?.games.length ?? 0;
 
-  const firstBet = useMemo(() => {
-    const firstGame = league?.games[0];
-    if (!firstGame) return null;
-
-    const bookmaker = firstGame.bookmakers[0];
-    const h2h = getMarket(bookmaker, "h2h")?.outcomes;
-    const awayMoneyline = getOutcomeByName(h2h, firstGame.away_team);
-
-    return buildBetData({
-      game: firstGame,
-      team: firstGame.away_team,
-      outcome: awayMoneyline,
-      side: "away",
-      info: firstGame.away_team_info,
-    });
-  }, [league]);
+  const firstBet = useMemo(() => getFirstBetForLeague(league), [league]);
 
   const [selectedBet, setSelectedBet] =
     useState<BetSlipDataWithTeamAlias | null>(firstBet);
@@ -796,7 +1025,7 @@ export default function GamesClient({
           <LeagueTabs leagues={leagues} selectedLeague={selectedLeague} />
         </header>
 
-        <div className="mt-4 grid gap-6 md:mt-[26px] xl:grid-cols-[minmax(0,860px)_420px] xl:items-start xl:justify-center">
+        <div className="mt-4 grid gap-6 md:mt-[26px] xl:grid-cols-[minmax(0,980px)_420px] xl:items-start xl:justify-center">
           <main className="min-w-0">
             <section className="space-y-4">
               <div className="grid grid-cols-[112px_minmax(0,1fr)_112px] items-end gap-3">
@@ -893,7 +1122,7 @@ export default function GamesClient({
                 />
               ) : (
                 <div className="invisible p-5 text-sm text-zinc-500">
-                  Select a moneyline to place a bet.
+                  Select a market to place a bet.
                 </div>
               )}
             </div>

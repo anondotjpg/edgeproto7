@@ -1756,6 +1756,7 @@ export function BetSlipPanel({
           league: currentBet.league,
           market: currentBet.market,
           selection: currentBet.team,
+          odds: numericOdds,
           stake,
 
           polymarketEventId: currentBet.polymarketEventId,

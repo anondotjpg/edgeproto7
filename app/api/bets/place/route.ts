@@ -4,7 +4,11 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { privyServer } from "@/lib/privy-server";
 
 const MIN_ALLOWED_AMERICAN_ODDS = -190;
+const ALLOWED_MARKETS = new Set(["h2h", "spreads", "totals"]);
+
 const DUPLICATE_OPEN_BET_INDEX = "bets_one_open_polymarket_pick_per_account_idx";
+const DUPLICATE_OPEN_BET_OUTCOME_INDEX =
+  "bets_one_open_polymarket_outcome_per_account";
 const LEGACY_DUPLICATE_OPEN_BET_INDEX =
   "bets_unique_open_account_condition_token";
 
@@ -45,10 +49,16 @@ type EligibleGameRow = {
 };
 
 type ServerBetDetails = {
-  side: "away" | "home";
   selection: string;
   odds: number;
   outcomeIndex: number;
+  polymarketOutcome: string;
+  polymarketTokenId: string;
+  polymarketEventId: string | null;
+  polymarketEventSlug: string | null;
+  polymarketMarketId: string | null;
+  polymarketConditionId: string | null;
+  polymarketMarketSlug: string | null;
   teamLogo: string | null;
   teamLogoAlt: string | null;
 };
@@ -77,6 +87,16 @@ function cleanInteger(value: unknown) {
   return parsed;
 }
 
+function cleanNumber(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) return null;
+
+  return parsed;
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
 
@@ -91,60 +111,179 @@ function getRecordText(record: Record<string, unknown> | null, key: string) {
   return record ? cleanText(record[key]) : null;
 }
 
+function getRecordNumber(record: Record<string, unknown> | null, key: string) {
+  return record ? cleanNumber(record[key]) : null;
+}
+
 function getTeamInfoValue(teamInfo: unknown, key: string) {
   return getRecordText(asRecord(teamInfo), key);
 }
 
-function getTokenSide(
-  outcomeTokenIds: unknown,
-  polymarketTokenId: string,
-): "away" | "home" | null {
-  const tokenIds = asRecord(outcomeTokenIds);
-  const awayTokenId = getRecordText(tokenIds, "away");
-  const homeTokenId = getRecordText(tokenIds, "home");
+function formatPoint(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "";
+  }
 
-  if (awayTokenId === polymarketTokenId) return "away";
-  if (homeTokenId === polymarketTokenId) return "home";
-
-  return null;
+  return value > 0 ? `+${value}` : `${value}`;
 }
 
-function getServerBetDetails(
-  game: EligibleGameRow,
-  polymarketTokenId: string,
-): ServerBetDetails | null {
-  const side = getTokenSide(game.outcome_token_ids, polymarketTokenId);
-  if (!side) return null;
+function getOutcomeTokenId({
+  outcome,
+  marketPolymarket,
+  index,
+}: {
+  outcome: Record<string, unknown> | null;
+  marketPolymarket: Record<string, unknown> | null;
+  index: number;
+}) {
+  const directTokenId = getRecordText(outcome, "tokenId");
+  if (directTokenId) return directTokenId;
 
-  const selection = side === "away" ? game.away_team : game.home_team;
-  const outcomeIndex = side === "away" ? 0 : 1;
-  const teamInfo = side === "away" ? game.away_team_info : game.home_team_info;
+  const clobTokenIds = asArray(marketPolymarket?.clob_token_ids);
+  const tokenFromMarket = clobTokenIds[index];
 
+  return cleanText(tokenFromMarket);
+}
+
+function getMarketPolymarket({
+  game,
+  marketRecord,
+}: {
+  game: EligibleGameRow;
+  marketRecord: Record<string, unknown> | null;
+}) {
+  return asRecord(marketRecord?.polymarket) ?? asRecord(game.polymarket);
+}
+
+function getTeamLogoForOutcome(game: EligibleGameRow, outcomeName: string) {
+  const outcome = outcomeName.trim();
+
+  if (outcome === game.away_team) {
+    return {
+      teamLogo: getTeamInfoValue(game.away_team_info, "logo"),
+      teamLogoAlt: getTeamInfoValue(game.away_team_info, "name") ?? game.away_team,
+    };
+  }
+
+  if (outcome === game.home_team) {
+    return {
+      teamLogo: getTeamInfoValue(game.home_team_info, "logo"),
+      teamLogoAlt: getTeamInfoValue(game.home_team_info, "name") ?? game.home_team,
+    };
+  }
+
+  return {
+    teamLogo: null,
+    teamLogoAlt: outcome,
+  };
+}
+
+function getSelectionLabel({
+  marketKey,
+  marketRecord,
+  outcome,
+  outcomeName,
+}: {
+  marketKey: string;
+  marketRecord: Record<string, unknown> | null;
+  outcome: Record<string, unknown> | null;
+  outcomeName: string;
+}) {
+  const line = getRecordNumber(marketRecord, "line");
+  const point = getRecordNumber(outcome, "point");
+
+  if (marketKey === "spreads") {
+    return `${outcomeName} ${formatPoint(point ?? line)}`.trim();
+  }
+
+  if (marketKey === "totals") {
+    return `${outcomeName} ${line ?? point ?? ""}`.trim();
+  }
+
+  return outcomeName;
+}
+
+function getServerBetDetails({
+  game,
+  requestMarket,
+  requestPolymarketConditionId,
+  requestPolymarketTokenId,
+}: {
+  game: EligibleGameRow;
+  requestMarket: string;
+  requestPolymarketConditionId: string;
+  requestPolymarketTokenId: string;
+}): ServerBetDetails | null {
   const bookmakers = asArray(game.bookmakers);
   const bookmaker = bookmakers.find((item) => asRecord(item)?.markets);
   const markets = asArray(asRecord(bookmaker)?.markets);
-  const h2hMarket = markets.find(
-    (item) => getRecordText(asRecord(item), "key") === "h2h",
-  );
-  const outcomes = asArray(asRecord(h2hMarket)?.outcomes);
+  const matchingMarkets = markets
+    .map(asRecord)
+    .filter((market): market is Record<string, unknown> => {
+      return getRecordText(market, "key") === requestMarket;
+    });
 
-  const outcomeByName = outcomes.find((item) => {
-    return getRecordText(asRecord(item), "name") === selection;
-  });
+  for (const marketRecord of matchingMarkets) {
+    const marketPolymarket = getMarketPolymarket({ game, marketRecord });
+    const serverConditionId = getRecordText(marketPolymarket, "condition_id");
 
-  const outcome = asRecord(outcomeByName ?? outcomes[outcomeIndex]);
-  const odds = Number(outcome?.price);
+    if (
+      serverConditionId &&
+      serverConditionId !== requestPolymarketConditionId
+    ) {
+      continue;
+    }
 
-  if (!Number.isFinite(odds) || odds === 0) return null;
+    const outcomes = asArray(marketRecord.outcomes);
 
-  return {
-    side,
-    selection,
-    odds,
-    outcomeIndex,
-    teamLogo: getTeamInfoValue(teamInfo, "logo"),
-    teamLogoAlt: getTeamInfoValue(teamInfo, "name") ?? selection,
-  };
+    for (let index = 0; index < outcomes.length; index += 1) {
+      const outcome = asRecord(outcomes[index]);
+      const tokenId = getOutcomeTokenId({
+        outcome,
+        marketPolymarket,
+        index,
+      });
+
+      if (tokenId !== requestPolymarketTokenId) continue;
+
+      const odds = Number(outcome?.price);
+
+      if (!Number.isFinite(odds) || odds === 0) return null;
+
+      const outcomeName =
+        getRecordText(outcome, "name") ??
+        getRecordText(outcome, "polymarketOutcome") ??
+        "Selection";
+
+      const polymarketOutcome =
+        getRecordText(outcome, "polymarketOutcome") ?? outcomeName;
+      const polymarketOutcomeIndex =
+        cleanInteger(outcome?.polymarketOutcomeIndex) ?? index;
+      const teamLogoData = getTeamLogoForOutcome(game, outcomeName);
+
+      return {
+        selection: getSelectionLabel({
+          marketKey: requestMarket,
+          marketRecord,
+          outcome,
+          outcomeName,
+        }),
+        odds,
+        outcomeIndex: polymarketOutcomeIndex,
+        polymarketOutcome,
+        polymarketTokenId: tokenId,
+        polymarketEventId: getRecordText(marketPolymarket, "event_id"),
+        polymarketEventSlug: getRecordText(marketPolymarket, "event_slug"),
+        polymarketMarketId: getRecordText(marketPolymarket, "market_id"),
+        polymarketConditionId: serverConditionId,
+        polymarketMarketSlug: getRecordText(marketPolymarket, "market_slug"),
+        teamLogo: teamLogoData.teamLogo,
+        teamLogoAlt: teamLogoData.teamLogoAlt,
+      };
+    }
+  }
+
+  return null;
 }
 
 function blockBet(message: string, reason: string) {
@@ -175,6 +314,7 @@ function isDuplicateBetError(error: RpcLikeError | string | null | undefined) {
     lowerErrorText.includes("duplicate key") ||
     lowerErrorText.includes("duplicate") ||
     errorText.includes(DUPLICATE_OPEN_BET_INDEX) ||
+    errorText.includes(DUPLICATE_OPEN_BET_OUTCOME_INDEX) ||
     errorText.includes(LEGACY_DUPLICATE_OPEN_BET_INDEX)
   );
 }
@@ -242,14 +382,7 @@ export async function POST(req: Request) {
     const requestMarket = cleanText(body.market) ?? "h2h";
     const stake = Number(body.stake);
 
-    const requestPolymarketEventId = cleanText(body.polymarketEventId);
-    const requestPolymarketEventSlug = cleanText(body.polymarketEventSlug);
-    const requestPolymarketMarketId = cleanText(body.polymarketMarketId);
     const requestPolymarketConditionId = cleanText(body.polymarketConditionId);
-    const requestPolymarketMarketSlug = cleanText(body.polymarketMarketSlug);
-    const requestPolymarketOutcomeIndex = cleanInteger(
-      body.polymarketOutcomeIndex,
-    );
     const requestPolymarketTokenId = cleanText(body.polymarketTokenId);
     const requestTeamLogo = cleanText(body.teamLogo);
     const requestTeamLogoAlt = cleanText(body.teamLogoAlt);
@@ -260,6 +393,10 @@ export async function POST(req: Request) {
 
     if (!gameId || !requestLeague || !requestMarket) {
       return blockBet("Missing bet details.", "missing_bet_details");
+    }
+
+    if (!ALLOWED_MARKETS.has(requestMarket)) {
+      return blockBet("This market is not available.", "market_not_allowed");
     }
 
     if (!Number.isFinite(stake) || stake <= 0) {
@@ -313,6 +450,11 @@ export async function POST(req: Request) {
     }
 
     const game = eligibleGame as EligibleGameRow;
+
+    if (game.sport_key !== requestLeague) {
+      return blockBet("This market changed. Refresh and try again.", "league_changed");
+    }
+
     const gameHasStarted =
       Boolean(game.is_live) ||
       Date.parse(String(game.commence_time)) <= Date.now();
@@ -321,44 +463,27 @@ export async function POST(req: Request) {
       return blockBet("Game Started", "game_started");
     }
 
-    const eligiblePolymarket = asRecord(game.polymarket);
-    const serverPolymarketEventId = getRecordText(
-      eligiblePolymarket,
-      "event_id",
-    );
-    const serverPolymarketEventSlug = getRecordText(
-      eligiblePolymarket,
-      "event_slug",
-    );
-    const serverPolymarketMarketId = getRecordText(
-      eligiblePolymarket,
-      "market_id",
-    );
-    const serverPolymarketMarketSlug = getRecordText(
-      eligiblePolymarket,
-      "market_slug",
-    );
-    const serverPolymarketConditionId = getRecordText(
-      eligiblePolymarket,
-      "condition_id",
-    );
-
-    if (
-      serverPolymarketConditionId &&
-      serverPolymarketConditionId !== requestPolymarketConditionId
-    ) {
-      return blockBet(
-        "This market changed. Refresh and try again.",
-        "market_changed",
-      );
-    }
-
-    const serverBet = getServerBetDetails(game, requestPolymarketTokenId);
+    const serverBet = getServerBetDetails({
+      game,
+      requestMarket,
+      requestPolymarketConditionId,
+      requestPolymarketTokenId,
+    });
 
     if (!serverBet) {
       return blockBet(
         "This outcome is no longer available. Refresh and try again.",
         "outcome_unavailable",
+      );
+    }
+
+    if (
+      serverBet.polymarketConditionId &&
+      serverBet.polymarketConditionId !== requestPolymarketConditionId
+    ) {
+      return blockBet(
+        "This market changed. Refresh and try again.",
+        "market_changed",
       );
     }
 
@@ -369,14 +494,17 @@ export async function POST(req: Request) {
       );
     }
 
+    const finalConditionId =
+      serverBet.polymarketConditionId ?? requestPolymarketConditionId;
+
     const { data: duplicateBets, error: duplicateBetError } =
       await supabaseAdmin
         .from("bets")
         .select("id, account_id")
         .eq("user_id", dbUser.id)
         .in("account_id", cleanAccountIds)
-        .eq("polymarket_condition_id", requestPolymarketConditionId)
-        .eq("polymarket_token_id", requestPolymarketTokenId)
+        .eq("polymarket_condition_id", finalConditionId)
+        .eq("polymarket_token_id", serverBet.polymarketTokenId)
         .eq("status", "open")
         .limit(1);
 
@@ -404,20 +532,14 @@ export async function POST(req: Request) {
           p_odds: serverBet.odds,
           p_stake: stake,
 
-          p_polymarket_event_id:
-            serverPolymarketEventId ?? requestPolymarketEventId,
-          p_polymarket_event_slug:
-            serverPolymarketEventSlug ?? requestPolymarketEventSlug,
-          p_polymarket_market_id:
-            serverPolymarketMarketId ?? requestPolymarketMarketId,
-          p_polymarket_condition_id:
-            serverPolymarketConditionId ?? requestPolymarketConditionId,
-          p_polymarket_market_slug:
-            serverPolymarketMarketSlug ?? requestPolymarketMarketSlug,
-          p_polymarket_outcome: serverBet.selection,
-          p_polymarket_outcome_index:
-            requestPolymarketOutcomeIndex ?? serverBet.outcomeIndex,
-          p_polymarket_token_id: requestPolymarketTokenId,
+          p_polymarket_event_id: serverBet.polymarketEventId,
+          p_polymarket_event_slug: serverBet.polymarketEventSlug,
+          p_polymarket_market_id: serverBet.polymarketMarketId,
+          p_polymarket_condition_id: finalConditionId,
+          p_polymarket_market_slug: serverBet.polymarketMarketSlug,
+          p_polymarket_outcome: serverBet.polymarketOutcome,
+          p_polymarket_outcome_index: serverBet.outcomeIndex,
+          p_polymarket_token_id: serverBet.polymarketTokenId,
           p_team_logo: serverBet.teamLogo ?? requestTeamLogo,
           p_team_logo_alt: serverBet.teamLogoAlt ?? requestTeamLogoAlt,
         },
@@ -445,8 +567,11 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       betIds: placedBetIds,
+      market: requestMarket,
       odds: serverBet.odds,
       selection: serverBet.selection,
+      polymarketConditionId: finalConditionId,
+      polymarketTokenId: serverBet.polymarketTokenId,
     });
   } catch (error) {
     console.error("Place bet error:", error);
