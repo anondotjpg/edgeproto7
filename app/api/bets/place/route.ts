@@ -6,6 +6,17 @@ import { privyServer } from "@/lib/privy-server";
 const MIN_ALLOWED_AMERICAN_ODDS = -190;
 const ALLOWED_MARKETS = new Set(["h2h", "spreads", "totals"]);
 
+const MLB_TOTAL_MARKET_LOGO =
+  "https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg";
+const WNBA_TOTAL_MARKET_LOGO =
+  "https://polymarket-upload.s3.us-east-2.amazonaws.com/wnba-logo-PAR4befDAubM.png";
+
+const TOTAL_MARKET_LOGOS_BY_LEAGUE: Record<string, string> = {
+  mlb: MLB_TOTAL_MARKET_LOGO,
+  wnba: WNBA_TOTAL_MARKET_LOGO,
+};
+
+
 const DUPLICATE_OPEN_BET_INDEX = "bets_one_open_polymarket_pick_per_account_idx";
 const DUPLICATE_OPEN_BET_OUTCOME_INDEX =
   "bets_one_open_polymarket_outcome_per_account";
@@ -156,6 +167,10 @@ function getMarketPolymarket({
   marketRecord: Record<string, unknown> | null;
 }) {
   return asRecord(marketRecord?.polymarket) ?? asRecord(game.polymarket);
+}
+
+function getTotalMarketLogoForLeague(sportKey: string) {
+  return TOTAL_MARKET_LOGOS_BY_LEAGUE[sportKey.toLowerCase()] ?? null;
 }
 
 function getTeamLogoForOutcome(game: EligibleGameRow, outcomeName: string) {
@@ -582,6 +597,13 @@ export async function POST(req: Request) {
       }
     }
 
+    const totalMarketLogo =
+      requestMarket === "totals" ? getTotalMarketLogoForLeague(game.sport_key) : null;
+    const finalTeamLogo = totalMarketLogo ?? serverBet.teamLogo ?? requestTeamLogo;
+    const finalTeamLogoAlt = totalMarketLogo
+      ? `${game.sport_key.toUpperCase()} Total`
+      : serverBet.teamLogoAlt ?? requestTeamLogoAlt;
+
     const placedBetIds: string[] = [];
 
     for (const cleanAccountId of cleanAccountIds) {
@@ -605,8 +627,8 @@ export async function POST(req: Request) {
           p_polymarket_outcome: serverBet.polymarketOutcome,
           p_polymarket_outcome_index: serverBet.outcomeIndex,
           p_polymarket_token_id: serverBet.polymarketTokenId,
-          p_team_logo: serverBet.teamLogo ?? requestTeamLogo,
-          p_team_logo_alt: serverBet.teamLogoAlt ?? requestTeamLogoAlt,
+          p_team_logo: finalTeamLogo,
+          p_team_logo_alt: finalTeamLogoAlt,
         },
       );
 
