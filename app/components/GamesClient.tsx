@@ -594,10 +594,8 @@ function DesktopMarketCell({
 }) {
   if (!market || !outcome) {
     return (
-      <div className="rounded-xl bg-zinc-900/60">
-        <div className="flex h-[42px] items-center justify-center rounded-xl text-[13px] font-semibold text-zinc-700">
-          —
-        </div>
+      <div className="flex h-[42px] items-center justify-center text-[13px] font-semibold text-zinc-700">
+        —
       </div>
     );
   }

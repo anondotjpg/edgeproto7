@@ -794,10 +794,8 @@ function DesktopMarketCell({
 }) {
   if (!betData) {
     return (
-      <div className="rounded-xl bg-zinc-800" style={{ paddingBottom: "2px" }}>
-        <div className="flex h-[42px] translate-y-[-2px] items-center justify-center rounded-xl bg-zinc-900 text-[13px] font-semibold text-zinc-700">
-          —
-        </div>
+      <div className="flex h-[42px] items-center justify-center text-[13px] font-semibold text-zinc-700">
+        —
       </div>
     );
   }
