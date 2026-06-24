@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import ChallengeCta from "../components/ChallengeCta";
 import OwnedAccountsSection from "../components/OwnedAccountsSection";
 import type { PlanKey } from "@/lib/plans";
@@ -247,98 +246,14 @@ function AccountCard({
   );
 }
 
-function MobileChallengeCarousel() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const rowRef = useRef<HTMLDivElement | null>(null);
-  const scrollFrameRef = useRef<number | null>(null);
-
-  function updateActiveIndex() {
-    const row = rowRef.current;
-    if (!row) return;
-
-    const cards = Array.from(row.children) as HTMLElement[];
-    const viewportCenter = row.scrollLeft + row.clientWidth / 2;
-
-    let closestIndex = 0;
-    let closestDistance = Number.POSITIVE_INFINITY;
-
-    cards.forEach((card, index) => {
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const distance = Math.abs(cardCenter - viewportCenter);
-
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestIndex = index;
-      }
-    });
-
-    setActiveIndex(closestIndex);
-  }
-
-  function handleScroll() {
-    if (scrollFrameRef.current !== null) return;
-
-    scrollFrameRef.current = window.requestAnimationFrame(() => {
-      scrollFrameRef.current = null;
-      updateActiveIndex();
-    });
-  }
-
-  function scrollToIndex(index: number) {
-    const row = rowRef.current;
-    const card = row?.children[index] as HTMLElement | undefined;
-
-    if (!row || !card) return;
-
-    setActiveIndex(index);
-
-    row.scrollTo({
-      left: card.offsetLeft,
-      behavior: "smooth",
-    });
-  }
-
-  useEffect(() => {
-    return () => {
-      if (scrollFrameRef.current !== null) {
-        window.cancelAnimationFrame(scrollFrameRef.current);
-      }
-    };
-  }, []);
-
+function MobileChallengeStack() {
   return (
-    <div className="relative md:hidden">
-      <div
-        ref={rowRef}
-        onScroll={handleScroll}
-        className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pt-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {ACCOUNT_PLANS.map((plan) => (
-          <div
-            key={plan.planKey}
-            className="w-full shrink-0 snap-start snap-always"
-          >
-            <AccountCard {...plan} glowEnabled={false} />
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-5 flex items-center justify-center gap-2">
-        {ACCOUNT_PLANS.map((plan, index) => (
-          <button
-            key={plan.planKey}
-            type="button"
-            aria-label={`Show ${plan.sizeLabel} challenge`}
-            onClick={() => scrollToIndex(index)}
-            className={[
-              "h-1.5 rounded-full transition-all duration-300",
-              index === activeIndex
-                ? "w-5 bg-zinc-200"
-                : "w-1.5 bg-zinc-700",
-            ].join(" ")}
-          />
-        ))}
-      </div>
+    <div className="grid gap-6 pt-3 md:hidden">
+      {ACCOUNT_PLANS.map((plan) => (
+        <div key={plan.planKey} className="w-full">
+          <AccountCard {...plan} glowEnabled={false} />
+        </div>
+      ))}
     </div>
   );
 }
@@ -385,7 +300,7 @@ export default function AccountsPage() {
               </p>
             </div>
 
-            <MobileChallengeCarousel />
+            <MobileChallengeStack />
 
             <div className="hidden gap-7 sm:gap-5 md:grid md:grid-cols-2 md:justify-center xl:grid-cols-4">
               {ACCOUNT_PLANS.map((plan) => (
