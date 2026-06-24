@@ -11,6 +11,9 @@ const DUPLICATE_OPEN_BET_OUTCOME_INDEX =
   "bets_one_open_polymarket_outcome_per_account";
 const LEGACY_DUPLICATE_OPEN_BET_INDEX =
   "bets_unique_open_account_condition_token";
+const DUPLICATE_OPEN_EVENT_INDEX =
+  "bets_one_open_polymarket_event_per_account";
+const DUPLICATE_OPEN_GAME_INDEX = "bets_one_open_game_per_account";
 
 type PlaceBetBody = {
   accountIds?: string[];
@@ -304,6 +307,20 @@ function getErrorText(error: RpcLikeError | string | null | undefined) {
     .join(" ");
 }
 
+function isDuplicateEventBetError(
+  error: RpcLikeError | string | null | undefined,
+) {
+  const errorText = getErrorText(error);
+  const lowerErrorText = errorText.toLowerCase();
+
+  return (
+    errorText.includes(DUPLICATE_OPEN_EVENT_INDEX) ||
+    errorText.includes(DUPLICATE_OPEN_GAME_INDEX) ||
+    lowerErrorText.includes("duplicate open event bet") ||
+    lowerErrorText.includes("already have a bet on this event")
+  );
+}
+
 function isDuplicateBetError(error: RpcLikeError | string | null | undefined) {
   const errorText = getErrorText(error);
   const lowerErrorText = errorText.toLowerCase();
@@ -315,7 +332,9 @@ function isDuplicateBetError(error: RpcLikeError | string | null | undefined) {
     lowerErrorText.includes("duplicate") ||
     errorText.includes(DUPLICATE_OPEN_BET_INDEX) ||
     errorText.includes(DUPLICATE_OPEN_BET_OUTCOME_INDEX) ||
-    errorText.includes(LEGACY_DUPLICATE_OPEN_BET_INDEX)
+    errorText.includes(LEGACY_DUPLICATE_OPEN_BET_INDEX) ||
+    errorText.includes(DUPLICATE_OPEN_EVENT_INDEX) ||
+    errorText.includes(DUPLICATE_OPEN_GAME_INDEX)
   );
 }
 
@@ -344,6 +363,10 @@ function cleanRpcError(error: RpcLikeError | string) {
 
   if (message.includes("Invalid odds")) {
     return "Invalid odds.";
+  }
+
+  if (isDuplicateEventBetError(error)) {
+    return "You already have a bet on this event for this account.";
   }
 
   if (isDuplicateBetError(error)) {
@@ -382,6 +405,7 @@ export async function POST(req: Request) {
     const requestMarket = cleanText(body.market) ?? "h2h";
     const stake = Number(body.stake);
 
+    const requestPolymarketEventId = cleanText(body.polymarketEventId);
     const requestPolymarketConditionId = cleanText(body.polymarketConditionId);
     const requestPolymarketTokenId = cleanText(body.polymarketTokenId);
     const requestTeamLogo = cleanText(body.teamLogo);
@@ -496,6 +520,7 @@ export async function POST(req: Request) {
 
     const finalConditionId =
       serverBet.polymarketConditionId ?? requestPolymarketConditionId;
+    const finalEventId = serverBet.polymarketEventId ?? requestPolymarketEventId;
 
     const { data: duplicateBets, error: duplicateBetError } =
       await supabaseAdmin
@@ -515,6 +540,46 @@ export async function POST(req: Request) {
         "You already placed this bet on this account.",
         "duplicate_open_bet",
       );
+    }
+
+    const { data: duplicateGameBets, error: duplicateGameBetError } =
+      await supabaseAdmin
+        .from("bets")
+        .select("id, account_id, market, selection")
+        .eq("user_id", dbUser.id)
+        .in("account_id", cleanAccountIds)
+        .eq("game_id", game.id)
+        .eq("status", "open")
+        .limit(1);
+
+    if (duplicateGameBetError) throw duplicateGameBetError;
+
+    if (duplicateGameBets?.length) {
+      return blockBet(
+        "You already have a bet on this event for this account.",
+        "duplicate_event_bet",
+      );
+    }
+
+    if (finalEventId) {
+      const { data: duplicateEventBets, error: duplicateEventBetError } =
+        await supabaseAdmin
+          .from("bets")
+          .select("id, account_id, market, selection")
+          .eq("user_id", dbUser.id)
+          .in("account_id", cleanAccountIds)
+          .eq("polymarket_event_id", finalEventId)
+          .eq("status", "open")
+          .limit(1);
+
+      if (duplicateEventBetError) throw duplicateEventBetError;
+
+      if (duplicateEventBets?.length) {
+        return blockBet(
+          "You already have a bet on this event for this account.",
+          "duplicate_event_bet",
+        );
+      }
     }
 
     const placedBetIds: string[] = [];
@@ -548,6 +613,10 @@ export async function POST(req: Request) {
       if (rpcError) {
         const cleanedMessage = cleanRpcError(rpcError);
 
+        if (isDuplicateEventBetError(rpcError)) {
+          return blockBet(cleanedMessage, "duplicate_event_bet");
+        }
+
         if (isDuplicateBetError(rpcError)) {
           return blockBet(cleanedMessage, "duplicate_open_bet");
         }
@@ -570,6 +639,7 @@ export async function POST(req: Request) {
       market: requestMarket,
       odds: serverBet.odds,
       selection: serverBet.selection,
+      polymarketEventId: finalEventId,
       polymarketConditionId: finalConditionId,
       polymarketTokenId: serverBet.polymarketTokenId,
     });
