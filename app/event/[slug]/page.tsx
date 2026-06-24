@@ -7,11 +7,30 @@ export type OddsOutcome = {
   name: string;
   price: number;
   point?: number;
+  tokenId?: string;
+  polymarketOutcome?: string;
+  polymarketOutcomeIndex?: number;
 };
 
-type OddsMarket = {
-  key: string;
+export type OddsMarket = {
+  key: "h2h" | "spreads" | "totals" | string;
+  label?: string;
+  line?: number;
   outcomes: OddsOutcome[];
+  polymarket?: {
+    event_id: string;
+    event_slug: string | null;
+    market_id: string;
+    market_slug: string | null;
+    condition_id: string | null;
+    question: string | null;
+    outcomes: string[];
+    clob_token_ids: string[];
+    sports_market_type?: string | null;
+    volume: number | null;
+    volume_24hr: number | null;
+    liquidity: number | null;
+  };
 };
 
 export type Bookmaker = {
@@ -53,12 +72,17 @@ export type Game = {
     question: string | null;
     outcomes: string[];
     clob_token_ids: string[];
+    volume?: number | null;
+    volume_24hr?: number | null;
+    liquidity?: number | null;
   };
 
   outcome_token_ids?: {
     away?: string;
     home?: string;
   };
+
+  debug?: unknown;
 };
 
 type EventResponse = {
@@ -97,17 +121,6 @@ async function getEvent(slug: string): Promise<EventResponse> {
   return data;
 }
 
-function getMarket(bookmaker: Bookmaker | undefined, marketKey: string) {
-  return bookmaker?.markets?.find((market) => market.key === marketKey);
-}
-
-function getOutcomeByName(
-  outcomes: OddsOutcome[] | undefined,
-  teamName: string,
-): OddsOutcome | undefined {
-  return outcomes?.find((outcome) => outcome.name === teamName);
-}
-
 export default async function EventPage({ params }: EventPageProps) {
   const { slug } = await params;
   const data = await getEvent(slug);
@@ -140,26 +153,16 @@ export default async function EventPage({ params }: EventPageProps) {
     );
   }
 
-  const bookmaker = game.bookmakers?.[0];
-  const h2h = getMarket(bookmaker, "h2h")?.outcomes;
-
-  const awayMoneyline = getOutcomeByName(h2h, game.away_team);
-  const homeMoneyline = getOutcomeByName(h2h, game.home_team);
-
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white">
-      <div className="relative mx-auto w-full max-w-[1480px] px-4 pt-8 pb-24 sm:px-6 sm:py-6 md:pb-6">
+      <div className="relative mx-auto w-full max-w-[1660px] px-4 pt-8 pb-24 sm:px-6 sm:py-6 md:pb-6">
         <header className="h-[38px] pt-2 xl:pr-[420px]">
           <div className="invisible">
             <BackButton />
           </div>
         </header>
 
-        <EventBettingClient
-          game={game}
-          awayMoneyline={awayMoneyline}
-          homeMoneyline={homeMoneyline}
-        >
+        <EventBettingClient game={game}>
           <PriceHistoryChart
             slug={game.slug}
             awayColor={game.away_team_info?.color}

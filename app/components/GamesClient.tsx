@@ -503,6 +503,7 @@ function MarketFace({
   teamColor,
   label,
   odds,
+  centered = false,
   children,
 }: {
   selected: boolean;
@@ -510,6 +511,7 @@ function MarketFace({
   teamColor?: string | null;
   label?: string;
   odds?: string;
+  centered?: boolean;
   children?: ReactNode;
 }) {
   const { shellStyle, faceStyle } = getTeamColorStyles({
@@ -531,7 +533,8 @@ function MarketFace({
     >
       <div
         className={[
-          "flex h-[42px] w-full translate-y-[-2px] items-center justify-between gap-1 overflow-hidden rounded-xl px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
+          "flex h-[42px] w-full translate-y-[-2px] items-center overflow-hidden rounded-xl px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
+          centered ? "justify-center gap-1.5" : "justify-between gap-1",
           isLive
             ? "bg-zinc-900"
             : selected
@@ -547,10 +550,22 @@ function MarketFace({
             </span>
           ) : (
             <>
-              <span className="min-w-0 truncate text-[11px] font-bold leading-none tracking-[0.06em] text-zinc-300">
+              <span
+                className={[
+                  "font-bold leading-none text-zinc-300",
+                  centered
+                    ? "text-[11px] tracking-[0.06em]"
+                    : "min-w-0 truncate text-[11px] tracking-[0.06em]",
+                ].join(" ")}
+              >
                 {label}
               </span>
-              <span className="shrink-0 text-[13px] font-bold leading-none tracking-tight text-zinc-100">
+              <span
+                className={[
+                  "shrink-0 font-bold leading-none tracking-tight text-zinc-100",
+                  centered ? "text-[13px]" : "text-[13px]",
+                ].join(" ")}
+              >
                 {odds}
               </span>
             </>
@@ -606,6 +621,7 @@ function DesktopMarketCell({
         teamColor={betData.teamColor}
         label={getOutcomeButtonLabel({ market, outcome, team, teamInfo })}
         odds={betData.odds}
+        centered={market.key === "h2h"}
       />
     </button>
   );
@@ -642,7 +658,13 @@ function MobileMarketModalButton({
   });
 
   return (
-    <div className="group relative rounded-xl bg-zinc-800" style={{ paddingBottom: "4px", ...shellStyle }}>
+    <div
+      className="group relative rounded-xl bg-zinc-800"
+      style={{
+        paddingBottom: "4px",
+        ...shellStyle,
+      }}
+    >
       <BetSlipModal
         team={betData.team}
         teamAlias={betData.teamAlias}
@@ -674,22 +696,20 @@ function MobileMarketModalButton({
 
       <div
         className={[
-          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-between gap-1.5 rounded-xl px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
+          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
           betData.isLive ? "bg-zinc-900" : "",
         ].join(" ")}
         style={faceStyle}
       >
         {betData.isLive ? (
-          <span className="flex w-full justify-center">
-            <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
-          </span>
+          <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
         ) : (
           <>
-            <span className="min-w-0 truncate text-[10px] font-bold leading-none tracking-[0.08em] text-zinc-300">
+            <span className="text-[10px] font-bold leading-none tracking-[0.12em] text-zinc-200">
               {getOutcomeButtonLabel({ market, outcome, team, teamInfo })}
             </span>
 
-            <span className="shrink-0 text-[13px] font-bold leading-none tracking-tight text-zinc-100">
+            <span className="text-[13px] font-bold leading-none tracking-tight text-zinc-100">
               {betData.odds}
             </span>
           </>
@@ -787,42 +807,36 @@ function GameCard({
       <article className="relative xl:hidden">
         <GameCardHeader game={game} eventHref={eventHref} />
 
-        <div className="grid gap-3">
-          <div>
-            <TeamRow
-              team={game.away_team}
-              info={game.away_team_info}
-              sportKey={game.sport_key}
-            />
+        <div>
+          <TeamRow
+            team={game.away_team}
+            info={game.away_team_info}
+            sportKey={game.sport_key}
+          />
 
-            <div className="mt-1">
-              <MobileMarketModalButton
-                game={game}
-                market={h2h}
-                outcome={awayMoneyline}
-                team={game.away_team}
-                teamInfo={game.away_team_info}
-              />
-            </div>
-          </div>
+          <TeamRow
+            team={game.home_team}
+            info={game.home_team_info}
+            sportKey={game.sport_key}
+          />
+        </div>
 
-          <div>
-            <TeamRow
-              team={game.home_team}
-              info={game.home_team_info}
-              sportKey={game.sport_key}
-            />
+        <div className="mt-2 grid grid-cols-2 gap-2.5 md:gap-3">
+          <MobileMarketModalButton
+            game={game}
+            market={h2h}
+            outcome={awayMoneyline}
+            team={game.away_team}
+            teamInfo={game.away_team_info}
+          />
 
-            <div className="mt-1">
-              <MobileMarketModalButton
-                game={game}
-                market={h2h}
-                outcome={homeMoneyline}
-                team={game.home_team}
-                teamInfo={game.home_team_info}
-              />
-            </div>
-          </div>
+          <MobileMarketModalButton
+            game={game}
+            market={h2h}
+            outcome={homeMoneyline}
+            team={game.home_team}
+            teamInfo={game.home_team_info}
+          />
         </div>
       </article>
 

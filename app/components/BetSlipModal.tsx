@@ -106,6 +106,21 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function removeMarketPrefixFromMatchup(value: string) {
+  const cleanValue = value.replace(/\s+/g, " ").trim();
+  const parts = cleanValue.split(/\s*[•·]\s*/);
+
+  if (parts.length >= 2) {
+    const possibleMatchup = parts.slice(1).join(" • ").trim();
+
+    if (/\bvs\.?\b/i.test(possibleMatchup)) {
+      return possibleMatchup;
+    }
+  }
+
+  return cleanValue;
+}
+
 function getMatchupDisplayName({
   matchup,
   matchupAlias,
@@ -120,13 +135,19 @@ function getMatchupDisplayName({
 }) {
   const cleanMatchupAlias = matchupAlias?.trim();
 
-  if (cleanMatchupAlias) return cleanMatchupAlias;
+  if (cleanMatchupAlias) {
+    return removeMarketPrefixFromMatchup(cleanMatchupAlias);
+  }
 
   const cleanAlias = teamAlias?.trim();
 
-  if (!cleanAlias) return matchup;
+  if (!cleanAlias) {
+    return removeMarketPrefixFromMatchup(matchup);
+  }
 
-  return matchup.replace(new RegExp(escapeRegExp(team), "g"), cleanAlias);
+  return removeMarketPrefixFromMatchup(
+    matchup.replace(new RegExp(escapeRegExp(team), "g"), cleanAlias),
+  );
 }
 
 const HOLD_TO_PLACE_MS = 1250;
