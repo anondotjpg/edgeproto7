@@ -639,7 +639,7 @@ function MobileExtraMarketsCard({
 
   return (
     <article className="grid gap-3 rounded-xl border border-zinc-800 p-2.5 md:hidden">
-      <div className="px-0.5 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+      <div className="px-0.5 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500 hidden">
         More Markets
       </div>
 
