@@ -234,10 +234,10 @@ function AccountHero({
 }) {
   return (
     <div className="flex min-h-[64px] items-start justify-between gap-4">
-      <div className="min-w-0 pt-1">
+      <div className="min-w-0">
         <h2
           className={[
-            "truncate text-[42px] font-semibold leading-[0.86] tracking-[-0.07em] sm:text-[48px]",
+            "truncate text-[38px] font-semibold leading-none tracking-[-0.065em] sm:text-[44px]",
             getAccountHeroTitleClassName(planKey),
           ].join(" ")}
         >
@@ -246,7 +246,7 @@ function AccountHero({
       </div>
 
       <div className="shrink-0 text-right">
-        <p className="text-[32px] font-semibold leading-[0.9] tracking-[-0.052em] text-zinc-50 tabular-nums sm:text-[36px]">
+        <p className="text-[32px] font-semibold leading-none tracking-[-0.052em] text-zinc-50 tabular-nums sm:text-[36px]">
           {feeLabel}
         </p>
       </div>
@@ -749,11 +749,11 @@ function CheckoutContent({
                     </p>
 
                     <div className="mt-1.5 flex flex-wrap items-end gap-x-2 gap-y-1 pr-8">
-                      <p className="break-all text-[28px] font-semibold leading-none tracking-tight text-zinc-50">
+                      <p className="break-all text-[24px] font-semibold leading-none tracking-tight text-zinc-50">
                         {invoice.expected_amount_display}
                       </p>
 
-                      <p className="pb-0.5 text-[13px] font-bold leading-none text-zinc-400">
+                      <p className="pb-0.5 text-[12px] font-bold leading-none text-zinc-400">
                         {invoice.asset}
                       </p>
                     </div>
