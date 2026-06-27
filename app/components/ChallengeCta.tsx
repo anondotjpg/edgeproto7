@@ -233,11 +233,11 @@ function AccountHero({
   planKey: PlanKey;
 }) {
   return (
-    <div className="flex min-h-[64px] items-start justify-between gap-4">
+    <div className="flex min-h-[52px] items-start justify-between gap-3.5">
       <div className="min-w-0">
         <h2
           className={[
-            "truncate text-[38px] font-semibold leading-none tracking-[-0.065em] sm:text-[44px]",
+            "truncate text-[32px] font-semibold leading-none tracking-[-0.058em] sm:text-[38px]",
             getAccountHeroTitleClassName(planKey),
           ].join(" ")}
         >
@@ -246,7 +246,7 @@ function AccountHero({
       </div>
 
       <div className="shrink-0 text-right">
-        <p className="text-[32px] font-semibold leading-none tracking-[-0.052em] text-zinc-50 tabular-nums sm:text-[36px]">
+        <p className="text-[26px] font-semibold leading-none tracking-[-0.045em] text-zinc-50 tabular-nums sm:text-[30px]">
           {feeLabel}
         </p>
       </div>
@@ -559,7 +559,7 @@ function CheckoutContent({
         planKey={planKey}
       />
 
-      <div className="mt-4 min-h-[336px]">
+      <div className="mt-3 min-h-[336px]">
         <AnimatePresence mode="wait">
           {step === "method" ? (
             <motion.div
