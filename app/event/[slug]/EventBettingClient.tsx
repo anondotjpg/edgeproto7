@@ -507,7 +507,7 @@ function MobileMoneylineModalButton({
         {...betData}
         teamColor={betData.teamColor}
         triggerClassName={[
-          "peer flex h-10 w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0",
+          "peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0",
           betData.isLive ? "bg-zinc-900" : "bg-zinc-900",
         ].join(" ")}
         triggerContentClassName="sr-only"
@@ -515,7 +515,7 @@ function MobileMoneylineModalButton({
 
       <div
         className={[
-          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
+          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
           betData.isLive ? "bg-zinc-900" : "",
         ].join(" ")}
         style={faceStyle}
@@ -528,7 +528,7 @@ function MobileMoneylineModalButton({
               {ticker}
             </span>
 
-            <span className="text-[18px] font-bold leading-none tracking-tight text-zinc-100">
+            <span className="text-[13px] font-bold leading-none tracking-tight text-zinc-100">
               {betData.odds}
             </span>
           </>
@@ -546,26 +546,26 @@ function MobileMarketModalButton({
   label: string;
 }) {
   return (
-    <div className="group relative rounded-xl bg-zinc-800" style={{ paddingBottom: "3px" }}>
+    <div className="group relative rounded-xl bg-zinc-800" style={{ paddingBottom: "4px" }}>
       <BetSlipModal
         {...betData}
         teamColor={betData.teamColor}
-        triggerClassName="peer flex h-10 w-full translate-y-[-3px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-zinc-900 px-2.5 text-center transition-transform duration-100 hover:translate-y-[-2px] active:translate-y-0"
+        triggerClassName="peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-zinc-900 px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0"
         triggerContentClassName="sr-only"
       />
 
-      <div className="pointer-events-none absolute inset-0 flex translate-y-[-3px] items-center justify-between gap-1.5 rounded-xl px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-2px] peer-active:translate-y-0 group-hover:translate-y-[-2px] group-active:translate-y-0">
+      <div className="pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0">
         {betData.isLive ? (
           <span className="flex w-full justify-center">
             <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
           </span>
         ) : (
           <>
-            <span className="min-w-0 truncate text-[10px] font-bold leading-none tracking-[0.08em] text-zinc-300">
+            <span className="text-[10px] font-bold leading-none tracking-[0.12em] text-zinc-200">
               {label}
             </span>
 
-            <span className="shrink-0 text-[13px] font-bold leading-none tracking-tight text-zinc-100">
+            <span className="text-[13px] font-bold leading-none tracking-tight text-zinc-100">
               {betData.odds}
             </span>
           </>
