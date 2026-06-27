@@ -81,7 +81,7 @@ export default function LeagueTabs({
         </div>
       </div>
 
-      <div className="no-scrollbar relative z-20 hidden w-min items-center gap-4 overflow-x-auto rounded-lg lg:flex lg:gap-2 lg:bg-zinc-900/70">
+      <div className="no-scrollbar relative z-20 hidden w-min items-center gap-4 overflow-x-auto rounded-lg lg:flex lg:gap-2 lg:bg-[#0b0b0d]">
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
 
@@ -94,7 +94,7 @@ export default function LeagueTabs({
                 "sm:rounded-full sm:px-4 sm:py-2",
                 isActive
                   ? "text-white sm:text-zinc-100"
-                  : "text-zinc-500 sm:text-zinc-300",
+                  : "text-zinc-600 sm:text-zinc-400",
               ].join(" ")}
             >
               {isActive ? (
@@ -106,7 +106,7 @@ export default function LeagueTabs({
                     damping: 34,
                     mass: 0.8,
                   }}
-                  className="absolute inset-0 hidden rounded-lg bg-zinc-800 m-[3px] sm:block"
+                  className="absolute inset-0 hidden rounded-lg bg-[#18181b] m-[3px] sm:block"
                 />
               ) : null}
 
