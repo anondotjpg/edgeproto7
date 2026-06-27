@@ -110,7 +110,7 @@ function MiniGoalProgressBar({
   value: number;
   tone: MiniGoalBarTone;
 }) {
-  const barCount = 14;
+  const barCount = 21;
   const isCompleteTone = tone !== "goal";
 
   const progress = isCompleteTone ? 100 : Math.min(Math.max(value, 0), 100);
@@ -158,7 +158,7 @@ function MiniGoalProgressBar({
   };
 
   return (
-    <div className="mt-2 grid h-7 w-[clamp(138px,52%,172px)] grid-cols-[repeat(14,minmax(0,1fr))] gap-[3px]">
+    <div className="mt-2 grid h-7 w-[clamp(138px,52%,172px)] grid-cols-[repeat(21,minmax(0,1fr))] gap-[3px]">
       {Array.from({ length: barCount }).map((_, index) => {
         const fill = getBarFill(index);
 
