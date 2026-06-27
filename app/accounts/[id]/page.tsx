@@ -1048,13 +1048,13 @@ export default async function AccountPage({ params }: AccountPageProps) {
                         pnlColor(realizedPnl),
                       ].join(" ")}
                     >
-                      {formatSignedMoney(realizedPnl)} realized
+                      {formatSignedMoney(realizedPnl)}
                     </div>
                   ) : null}
                 </div>
 
                 <div className="mt-1 truncate text-[13px] font-medium leading-tight text-zinc-500">
-                  {formatMoney(currentBalance)} available
+                  {formatMoney(currentBalance)} avail.
                 </div>
               </div>
             </div>
