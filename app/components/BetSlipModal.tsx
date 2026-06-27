@@ -1846,7 +1846,7 @@ export function BetSlipPanel({
     onPlaced,
   ]);
 
-  return (
+  const panelContent = (
     <BetSlipContent
       team={bet.team}
       teamAlias={bet.teamAlias}
@@ -1880,6 +1880,16 @@ export function BetSlipPanel({
       onPlaceBet={placeBet}
     />
   );
+
+  if (panelMode === "sidebar") {
+    return (
+      <div className="h-full min-h-full w-full bg-[#0b0b0d] text-white">
+        {panelContent}
+      </div>
+    );
+  }
+
+  return panelContent;
 }
 
 export default function BetSlipModal({
