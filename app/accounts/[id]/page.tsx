@@ -288,7 +288,7 @@ function SegmentedProgressBars({
 
       <div className="flex h-8 w-full items-center sm:h-9">
         <div
-          className="grid h-6 w-full items-stretch gap-1.5 sm:h-7"
+          className="grid h-6 w-full items-stretch gap-[3px] sm:h-7"
           style={{ gridTemplateColumns: `repeat(${barCount}, minmax(0, 1fr))` }}
         >
           {Array.from({ length: barCount }).map((_, index) => {
@@ -341,15 +341,15 @@ function ResponsiveProgressBars({
   return (
     <>
       <div className="md:hidden">
-        <SegmentedProgressBars value={value} barCount={28} tone={tone} />
+        <SegmentedProgressBars value={value} barCount={42} tone={tone} />
       </div>
 
       <div className="hidden md:block xl:hidden">
-        <SegmentedProgressBars value={value} barCount={35} tone={tone} />
+        <SegmentedProgressBars value={value} barCount={53} tone={tone} />
       </div>
 
       <div className="hidden xl:block">
-        <SegmentedProgressBars value={value} barCount={42} tone={tone} />
+        <SegmentedProgressBars value={value} barCount={63} tone={tone} />
       </div>
     </>
   );
@@ -363,15 +363,15 @@ function LossRuleProgressBar({ value }: { value: number }) {
   return (
     <>
       <div className="md:hidden">
-        <SegmentedProgressBars value={value} barCount={14} tone="loss" />
+        <SegmentedProgressBars value={value} barCount={21} tone="loss" />
       </div>
 
       <div className="hidden md:block xl:hidden">
-        <SegmentedProgressBars value={value} barCount={35} tone="loss" />
+        <SegmentedProgressBars value={value} barCount={53} tone="loss" />
       </div>
 
       <div className="hidden xl:block">
-        <SegmentedProgressBars value={value} barCount={42} tone="loss" />
+        <SegmentedProgressBars value={value} barCount={63} tone="loss" />
       </div>
     </>
   );

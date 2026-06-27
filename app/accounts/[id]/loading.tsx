@@ -29,7 +29,7 @@ function BarsSkeleton({ barCount }: { barCount: number }) {
   return (
     <div className="flex h-8 w-full items-center sm:h-9">
       <div
-        className="grid h-6 w-full items-stretch gap-1.5 sm:h-7"
+        className="grid h-6 w-full items-stretch gap-[3px] sm:h-7"
         style={{ gridTemplateColumns: `repeat(${barCount}, minmax(0, 1fr))` }}
       >
         {Array.from({ length: barCount }).map((_, index) => (
@@ -44,15 +44,15 @@ function ResponsiveBarsSkeleton() {
   return (
     <>
       <div className="md:hidden">
-        <BarsSkeleton barCount={28} />
+        <BarsSkeleton barCount={42} />
       </div>
 
       <div className="hidden md:block xl:hidden">
-        <BarsSkeleton barCount={35} />
+        <BarsSkeleton barCount={53} />
       </div>
 
       <div className="hidden xl:block">
-        <BarsSkeleton barCount={42} />
+        <BarsSkeleton barCount={63} />
       </div>
     </>
   );
@@ -92,15 +92,15 @@ function LossRuleBarsSkeleton() {
   return (
     <>
       <div className="md:hidden">
-        <BarsSkeleton barCount={14} />
+        <BarsSkeleton barCount={21} />
       </div>
 
       <div className="hidden md:block xl:hidden">
-        <BarsSkeleton barCount={35} />
+        <BarsSkeleton barCount={53} />
       </div>
 
       <div className="hidden xl:block">
-        <BarsSkeleton barCount={42} />
+        <BarsSkeleton barCount={63} />
       </div>
     </>
   );
