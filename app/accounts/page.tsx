@@ -62,7 +62,7 @@ function DotPatternBackground() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 hidden overflow-hidden md:block"
+      className="pointer-events-none absolute inset-0 hidden overflow-hidden"
     >
       <div
         className="absolute inset-0 opacity-[0.18]"
