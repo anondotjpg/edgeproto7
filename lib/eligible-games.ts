@@ -255,7 +255,7 @@ function getCommenceTime(
   );
 }
 
-function isWithinLast24HoursFromNowUtc(dateString: string): boolean {
+function isWithinEligibleGameWindowFromNowUtc(dateString: string): boolean {
   const timestamp = Date.parse(dateString);
 
   if (!Number.isFinite(timestamp)) {
@@ -263,9 +263,10 @@ function isWithinLast24HoursFromNowUtc(dateString: string): boolean {
   }
 
   const nowUtcMs = Date.now();
-  const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+  const lookbackMs = 24 * 60 * 60 * 1000;
+  const lookaheadMs = 10 * 24 * 60 * 60 * 1000;
 
-  return timestamp >= nowUtcMs - twentyFourHoursMs;
+  return timestamp >= nowUtcMs - lookbackMs && timestamp <= nowUtcMs + lookaheadMs;
 }
 
 function hasGameStarted(dateString: string): boolean {
@@ -751,7 +752,7 @@ async function buildGameFromEvent(
 
   const commenceTime = getCommenceTime(event, moneylineMarket);
 
-  if (!isWithinLast24HoursFromNowUtc(commenceTime)) {
+  if (!isWithinEligibleGameWindowFromNowUtc(commenceTime)) {
     return null;
   }
 
