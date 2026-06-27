@@ -545,56 +545,27 @@ function MobileMarketModalButton({
   betData: BetSlipDataWithTeamAlias;
   label: string;
 }) {
-  const neutralShellStyle: CSSProperties | undefined = betData.isLive
-    ? undefined
-    : {
-        backgroundColor: "#27272a",
-      };
-
-  const neutralFaceStyle: CSSProperties | undefined = betData.isLive
-    ? undefined
-    : {
-        backgroundColor: "#18181b",
-        boxShadow: "inset 0 1px 0 #27272a",
-      };
-
   return (
-    <div
-      className={[
-        "group relative rounded-xl",
-        betData.isLive ? "bg-zinc-800" : "bg-zinc-800",
-      ].join(" ")}
-      style={{
-        paddingBottom: "4px",
-        ...neutralShellStyle,
-      }}
-    >
+    <div className="group relative rounded-xl bg-zinc-800" style={{ paddingBottom: "2px" }}>
       <BetSlipModal
         {...betData}
-        teamColor={null}
-        triggerClassName={[
-          "peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0",
-          betData.isLive ? "bg-zinc-900" : "bg-zinc-900",
-        ].join(" ")}
+        teamColor={betData.teamColor}
+        triggerClassName="peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-zinc-900 px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0"
         triggerContentClassName="sr-only"
       />
 
-      <div
-        className={[
-          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
-          betData.isLive ? "bg-zinc-900" : "",
-        ].join(" ")}
-        style={neutralFaceStyle}
-      >
+      <div className="pointer-events-none absolute inset-0 flex translate-y-[-2px] items-center justify-between gap-1 rounded-xl bg-zinc-900 px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-1px] peer-active:translate-y-0 group-hover:translate-y-[-1px] group-active:translate-y-0">
         {betData.isLive ? (
-          <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+          <span className="flex w-full justify-center">
+            <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+          </span>
         ) : (
           <>
-            <span className="text-[10px] font-bold leading-none tracking-[0.12em] text-zinc-200">
+            <span className="min-w-0 truncate text-[11px] font-bold leading-none tracking-[0.06em] text-zinc-300">
               {label}
             </span>
 
-            <span className="text-[13px] font-bold leading-none tracking-tight text-zinc-100">
+            <span className="shrink-0 text-[13px] font-bold leading-none tracking-tight text-zinc-100">
               {betData.odds}
             </span>
           </>
@@ -652,6 +623,10 @@ function MobileExtraMarketsCard({
   overTotalBetData,
   underTotalBetData,
   game,
+  awaySpread,
+  homeSpread,
+  overTotal,
+  underTotal,
 }: {
   spread?: OddsMarket;
   total?: OddsMarket;
@@ -660,6 +635,10 @@ function MobileExtraMarketsCard({
   overTotalBetData?: BetSlipDataWithTeamAlias;
   underTotalBetData?: BetSlipDataWithTeamAlias;
   game: Game;
+  awaySpread?: OddsOutcome;
+  homeSpread?: OddsOutcome;
+  overTotal?: OddsOutcome;
+  underTotal?: OddsOutcome;
 }) {
   const hasSpread = Boolean(spread && awaySpreadBetData && homeSpreadBetData);
   const hasTotal = Boolean(total && overTotalBetData && underTotalBetData);
@@ -681,12 +660,30 @@ function MobileExtraMarketsCard({
           <div className="grid grid-cols-2 gap-2.5">
             <MobileMarketModalButton
               betData={awaySpreadBetData}
-              label={getTeamTicker(game.away_team, game.away_team_info)}
+              label={
+                spread && awaySpread
+                  ? getOutcomeButtonLabel({
+                      market: spread,
+                      outcome: awaySpread,
+                      team: game.away_team,
+                      teamInfo: game.away_team_info,
+                    })
+                  : getTeamTicker(game.away_team, game.away_team_info)
+              }
             />
 
             <MobileMarketModalButton
               betData={homeSpreadBetData}
-              label={getTeamTicker(game.home_team, game.home_team_info)}
+              label={
+                spread && homeSpread
+                  ? getOutcomeButtonLabel({
+                      market: spread,
+                      outcome: homeSpread,
+                      team: game.home_team,
+                      teamInfo: game.home_team_info,
+                    })
+                  : getTeamTicker(game.home_team, game.home_team_info)
+              }
             />
           </div>
         </div>
@@ -699,8 +696,22 @@ function MobileExtraMarketsCard({
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
-            <MobileMarketModalButton betData={overTotalBetData} label="Over" />
-            <MobileMarketModalButton betData={underTotalBetData} label="Under" />
+            <MobileMarketModalButton
+              betData={overTotalBetData}
+              label={
+                total && overTotal
+                  ? getOutcomeButtonLabel({ market: total, outcome: overTotal })
+                  : "Over"
+              }
+            />
+            <MobileMarketModalButton
+              betData={underTotalBetData}
+              label={
+                total && underTotal
+                  ? getOutcomeButtonLabel({ market: total, outcome: underTotal })
+                  : "Under"
+              }
+            />
           </div>
         </div>
       ) : null}
@@ -1172,6 +1183,10 @@ export default function EventBettingClient({
             game={game}
             spread={marketSet.spread}
             total={marketSet.total}
+            awaySpread={marketSet.awaySpread}
+            homeSpread={marketSet.homeSpread}
+            overTotal={marketSet.overTotal}
+            underTotal={marketSet.underTotal}
             awaySpreadBetData={betData.awaySpread}
             homeSpreadBetData={betData.homeSpread}
             overTotalBetData={betData.overTotal}
