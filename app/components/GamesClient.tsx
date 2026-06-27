@@ -802,7 +802,7 @@ function GameCard({
 
   return (
     <>
-      <article className="relative overflow-hidden rounded-2xl border border-zinc-800/50 bg-[#101014] px-3 py-2.5 xl:hidden">
+      <article className="relative overflow-hidden xl:hidden">
         <GameCardHeader game={game} eventHref={eventHref} />
 
         <div>
