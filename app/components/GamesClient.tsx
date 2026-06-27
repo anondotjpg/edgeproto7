@@ -746,7 +746,9 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
         <div
           className={[
             "inline-flex h-6 shrink-0 items-center text-[13px] font-medium leading-none xl:h-7 xl:text-[14px]",
-            isLive ? "gap-1.5 text-zinc-100" : "text-zinc-300",
+            isLive
+              ? "gap-1.5 text-zinc-100"
+              : "rounded-full bg-[#121216] px-2.5 text-zinc-300",
           ].join(" ")}
         >
           {isLive ? (
