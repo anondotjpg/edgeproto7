@@ -211,6 +211,49 @@ function getAccountTitle(planKey: PlanKey) {
   return `${accountSize / 1000}K Account`;
 }
 
+function getAccountHeroTitleClassName(planKey: PlanKey) {
+  if (planKey === "10000") {
+    return "bg-linear-to-br from-[#fff2bd] via-[#ddb449] to-[#987021] bg-clip-text text-transparent";
+  }
+
+  if (planKey === "5000") {
+    return "bg-linear-to-br from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent";
+  }
+
+  return "text-zinc-50";
+}
+
+function AccountHero({
+  accountTitle,
+  feeLabel,
+  planKey,
+}: {
+  accountTitle: string;
+  feeLabel: string;
+  planKey: PlanKey;
+}) {
+  return (
+    <div className="flex min-h-[64px] items-start justify-between gap-4">
+      <div className="min-w-0 pt-1">
+        <h2
+          className={[
+            "truncate text-[42px] font-semibold leading-[0.86] tracking-[-0.07em] sm:text-[48px]",
+            getAccountHeroTitleClassName(planKey),
+          ].join(" ")}
+        >
+          {accountTitle}
+        </h2>
+      </div>
+
+      <div className="shrink-0 text-right">
+        <p className="text-[32px] font-semibold leading-[0.9] tracking-[-0.052em] text-zinc-50 tabular-nums sm:text-[36px]">
+          {feeLabel}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function getPlanFeeLabel(planKey: PlanKey) {
   const planFeeCents = PLAN_FEE_CENTS[planKey];
 
@@ -457,6 +500,7 @@ function PaymentBadge({
 
 function CheckoutContent({
   accountTitle,
+  planKey,
   feeLabel,
   step,
   setStep,
@@ -476,6 +520,7 @@ function CheckoutContent({
   applyPromoCode,
 }: {
   accountTitle: string;
+  planKey: PlanKey;
   feeLabel: string;
   step: DepositStep;
   setStep: (step: DepositStep) => void;
@@ -508,19 +553,11 @@ function CheckoutContent({
 
   return (
     <>
-      <div className="flex min-h-[42px] items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="block text-[12px] font-medium uppercase leading-none tracking-[0.16em] text-zinc-500">
-            {accountTitle}
-          </p>
-        </div>
-
-        <div className="flex min-w-[88px] shrink-0 items-start justify-end">
-          <span className="block text-[24px] font-semibold leading-none tracking-tight text-zinc-50 tabular-nums">
-            {displayFeeLabel}
-          </span>
-        </div>
-      </div>
+      <AccountHero
+        accountTitle={accountTitle}
+        feeLabel={displayFeeLabel}
+        planKey={planKey}
+      />
 
       <div className="mt-4 min-h-[336px]">
         <AnimatePresence mode="wait">
@@ -612,7 +649,7 @@ function CheckoutContent({
                         type="button"
                         onClick={() => createInvoice(method.chain)}
                         disabled={disabled}
-                        className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3.5 text-left transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex w-full cursor-pointer items-center rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3.5 text-left transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <div className="flex min-w-0 items-center gap-3">
                           <PaymentBadge
@@ -631,10 +668,6 @@ function CheckoutContent({
                                 : `${method.subtitle} on ${method.network}`}
                             </div>
                           </div>
-                        </div>
-
-                        <div className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-[12px] font-bold text-zinc-300">
-                          {method.asset}
                         </div>
                       </button>
                     );
@@ -1139,6 +1172,7 @@ export default function ChallengeCta({
   const checkoutContent = (
     <CheckoutContent
       accountTitle={accountTitle}
+      planKey={planKey}
       feeLabel={feeLabel}
       step={step}
       setStep={setStep}
