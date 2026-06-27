@@ -745,10 +745,8 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
       <div className="flex min-w-0 items-center gap-2 xl:gap-2.5">
         <div
           className={[
-            "inline-flex h-[22px] shrink-0 items-center text-[12px] font-medium leading-none xl:h-7 xl:text-[14px]",
-            isLive
-              ? "gap-1.5 text-zinc-100"
-              : "rounded-full bg-[#121216] px-2.5 text-zinc-300",
+            "inline-flex h-6 shrink-0 items-center text-[14px] font-medium leading-none xl:h-7 xl:text-[14px]",
+            isLive ? "gap-1.5 text-zinc-100" : "text-zinc-300",
           ].join(" ")}
         >
           {isLive ? (
@@ -770,10 +768,10 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
 
       <Link
         href={eventHref}
-        className="inline-flex h-[26px] shrink-0 items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium text-zinc-100 transition-colors hover:text-zinc-300 xl:h-7 xl:px-2.5"
+        className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[14px] font-medium text-zinc-100 transition-colors hover:text-zinc-300"
       >
         <span>View</span>
-        <FaChevronRight className="h-2 w-2 xl:h-2.5 xl:w-2.5" />
+        <FaChevronRight className="h-2.5 w-2.5" />
       </Link>
     </div>
   );
@@ -804,7 +802,7 @@ function GameCard({
 
   return (
     <>
-      <article className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-[#101014] px-3 py-2.5 xl:hidden">
+      <article className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-[#0b0b0d] px-3 py-2.5 xl:hidden">
         <GameCardHeader game={game} eventHref={eventHref} />
 
         <div>
