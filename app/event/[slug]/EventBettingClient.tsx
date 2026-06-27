@@ -545,20 +545,49 @@ function MobileMarketModalButton({
   betData: BetSlipDataWithTeamAlias;
   label: string;
 }) {
+  const neutralShellStyle: CSSProperties | undefined = betData.isLive
+    ? undefined
+    : {
+        backgroundColor: "#27272a",
+      };
+
+  const neutralFaceStyle: CSSProperties | undefined = betData.isLive
+    ? undefined
+    : {
+        backgroundColor: "#18181b",
+        boxShadow: "inset 0 1px 0 #27272a",
+      };
+
   return (
-    <div className="group relative rounded-xl bg-zinc-800" style={{ paddingBottom: "4px" }}>
+    <div
+      className={[
+        "group relative rounded-xl",
+        betData.isLive ? "bg-zinc-800" : "bg-zinc-800",
+      ].join(" ")}
+      style={{
+        paddingBottom: "4px",
+        ...neutralShellStyle,
+      }}
+    >
       <BetSlipModal
         {...betData}
-        teamColor={betData.teamColor}
-        triggerClassName="peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-zinc-900 px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0"
+        teamColor={null}
+        triggerClassName={[
+          "peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0",
+          betData.isLive ? "bg-zinc-900" : "bg-zinc-900",
+        ].join(" ")}
         triggerContentClassName="sr-only"
       />
 
-      <div className="pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0">
+      <div
+        className={[
+          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
+          betData.isLive ? "bg-zinc-900" : "",
+        ].join(" ")}
+        style={neutralFaceStyle}
+      >
         {betData.isLive ? (
-          <span className="flex w-full justify-center">
-            <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
-          </span>
+          <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
         ) : (
           <>
             <span className="text-[10px] font-bold leading-none tracking-[0.12em] text-zinc-200">
