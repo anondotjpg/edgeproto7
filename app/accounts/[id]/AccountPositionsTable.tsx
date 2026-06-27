@@ -394,7 +394,7 @@ function PositionsSegmentedControl({
                     damping: 34,
                     mass: 0.8,
                   }}
-                  className="absolute inset-0 m-[3px] rounded-lg bg-zinc-800"
+                  className="absolute inset-0 m-[3px] rounded-lg bg-zinc-800/70"
                 />
               ) : null}
 
