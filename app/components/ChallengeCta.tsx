@@ -255,15 +255,15 @@ function AccountHero({
 
         .account-title-shimmer-gold {
           background-image:
-            linear-gradient(105deg, transparent 0%, transparent 46%, rgba(255, 248, 221, 0.34) 50%, transparent 54%, transparent 100%),
-            linear-gradient(135deg, #fff2bd 0%, #ddb449 52%, #987021 100%);
+            linear-gradient(105deg, transparent 0%, transparent 46%, rgba(255, 238, 176, 0.28) 50%, transparent 54%, transparent 100%),
+            linear-gradient(135deg, #e2b64b 0%, #bd8f2d 52%, #7f5b1d 100%);
           background-size: 260% 100%, 100% 100%;
         }
 
         .account-title-shimmer-silver {
           background-image:
-            linear-gradient(105deg, transparent 0%, transparent 46%, rgba(255, 255, 255, 0.32) 50%, transparent 54%, transparent 100%),
-            linear-gradient(135deg, #ffffff 0%, #d4d4d8 52%, #71717a 100%);
+            linear-gradient(105deg, transparent 0%, transparent 46%, rgba(244, 244, 245, 0.26) 50%, transparent 54%, transparent 100%),
+            linear-gradient(135deg, #c5c5cc 0%, #92929b 52%, #5e5e66 100%);
           background-size: 260% 100%, 100% 100%;
         }
       `}</style>
