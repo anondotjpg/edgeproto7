@@ -213,11 +213,11 @@ function getAccountTitle(planKey: PlanKey) {
 
 function getAccountHeroTitleClassName(planKey: PlanKey) {
   if (planKey === "10000") {
-    return "bg-linear-to-br from-[#fff2bd] via-[#ddb449] to-[#987021] bg-clip-text text-transparent";
+    return "account-title-shimmer-gold";
   }
 
   if (planKey === "5000") {
-    return "bg-linear-to-br from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent";
+    return "account-title-shimmer-silver";
   }
 
   return "text-zinc-50";
@@ -233,24 +233,61 @@ function AccountHero({
   planKey: PlanKey;
 }) {
   return (
-    <div className="flex min-h-[52px] items-start justify-between gap-3.5">
-      <div className="min-w-0">
-        <h2
-          className={[
-            "truncate text-[32px] font-semibold leading-none tracking-[-0.058em] sm:text-[38px]",
-            getAccountHeroTitleClassName(planKey),
-          ].join(" ")}
-        >
-          {accountTitle}
-        </h2>
-      </div>
+    <>
+      <style>{`
+        @keyframes accountTitleSingleShimmer {
+          0% {
+            background-position: 145% 0, 0 0;
+          }
+          100% {
+            background-position: -145% 0, 0 0;
+          }
+        }
 
-      <div className="shrink-0 text-right">
-        <p className="text-[26px] font-semibold leading-none tracking-[-0.045em] text-zinc-50 tabular-nums sm:text-[30px]">
-          {feeLabel}
-        </p>
+        .account-title-shimmer-gold,
+        .account-title-shimmer-silver {
+          color: transparent;
+          background-repeat: no-repeat;
+          -webkit-background-clip: text;
+          background-clip: text;
+          animation: accountTitleSingleShimmer 5s linear infinite;
+        }
+
+        .account-title-shimmer-gold {
+          background-image:
+            linear-gradient(105deg, transparent 0%, transparent 46%, rgba(255, 248, 221, 0.34) 50%, transparent 54%, transparent 100%),
+            linear-gradient(135deg, #fff2bd 0%, #ddb449 52%, #987021 100%);
+          background-size: 260% 100%, 100% 100%;
+        }
+
+        .account-title-shimmer-silver {
+          background-image:
+            linear-gradient(105deg, transparent 0%, transparent 46%, rgba(255, 255, 255, 0.32) 50%, transparent 54%, transparent 100%),
+            linear-gradient(135deg, #ffffff 0%, #d4d4d8 52%, #71717a 100%);
+          background-size: 260% 100%, 100% 100%;
+        }
+      `}</style>
+
+      <div className="flex min-h-[52px] items-start justify-between gap-3.5">
+        <div className="min-w-0">
+          <h2 className="inline-block max-w-full align-top text-[32px] font-semibold leading-none tracking-[-0.058em] sm:text-[38px]">
+            <span
+              className={["block truncate", getAccountHeroTitleClassName(planKey)].join(
+                " ",
+              )}
+            >
+              {accountTitle}
+            </span>
+          </h2>
+        </div>
+
+        <div className="shrink-0 text-right">
+          <p className="text-[26px] font-semibold leading-none tracking-[-0.045em] text-zinc-50 tabular-nums sm:text-[30px]">
+            {feeLabel}
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
