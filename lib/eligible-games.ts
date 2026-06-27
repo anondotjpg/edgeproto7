@@ -5,7 +5,7 @@ export const LEAGUES = [
   { key: "wnba", label: "WNBA", tag: 100254, teamLeague: "wnba" },
 ] as const;
 
-const MIN_MARKET_VOLUME = 1000;
+const MIN_MARKET_VOLUME = 500;
 
 export type LeagueKey = (typeof LEAGUES)[number]["key"];
 export type MarketKey = "h2h" | "spreads" | "totals";
