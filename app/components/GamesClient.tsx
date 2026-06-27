@@ -310,14 +310,14 @@ function formatMarketVolume(value: number | null | undefined) {
 
 function getLogoClassName(sportKey: string) {
   return sportKey === "mlb"
-    ? "h-7 w-7 rounded-sm object-contain xl:h-7 xl:w-7"
-    : "h-7 w-7 rounded-sm object-contain xl:h-7 xl:w-7";
+    ? "h-[30px] w-[30px] rounded-sm object-contain xl:h-7 xl:w-7"
+    : "h-[30px] w-[30px] rounded-sm object-contain xl:h-7 xl:w-7";
 }
 
 function getLogoFallbackClassName(sportKey: string) {
   return sportKey === "mlb"
-    ? "h-7 w-7 rounded-sm bg-zinc-950 xl:h-7 xl:w-7"
-    : "h-7 w-7 rounded-sm bg-zinc-950 xl:h-7 xl:w-7";
+    ? "h-[30px] w-[30px] rounded-sm bg-zinc-950 xl:h-7 xl:w-7"
+    : "h-[30px] w-[30px] rounded-sm bg-zinc-950 xl:h-7 xl:w-7";
 }
 
 function getGameIsLive(game: Game): boolean {
@@ -471,7 +471,7 @@ function TeamRow({
   const displayName = getTeamDisplayName(team, info);
 
   return (
-    <div className="flex h-[38px] items-center gap-2 px-0 py-0.5 xl:h-[46px] xl:gap-2.5 xl:px-2 xl:py-1">
+    <div className="flex h-[42px] items-center gap-2 px-0 py-0.5 xl:h-[46px] xl:gap-2.5 xl:px-2 xl:py-1">
       {info?.logo ? (
         <img
           src={info.logo}
@@ -483,12 +483,12 @@ function TeamRow({
       )}
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <div className="truncate text-[14px] font-semibold leading-tight text-zinc-100 xl:text-[15px]">
+        <div className="truncate text-[15px] font-semibold leading-tight text-zinc-100 xl:text-[15px]">
           {displayName}
         </div>
 
         {info?.record ? (
-          <div className="shrink-0 text-[13px] font-medium leading-tight text-zinc-500 xl:text-[15px]">
+          <div className="shrink-0 text-[14px] font-medium leading-tight text-zinc-500 xl:text-[15px]">
             {info.record}
           </div>
         ) : null}
@@ -641,7 +641,7 @@ function MobileMarketModalButton({
   if (!market || !outcome) {
     return (
       <div className="rounded-xl bg-zinc-900/60">
-        <div className="flex h-10 items-center justify-center rounded-xl text-[13px] font-semibold text-zinc-700">
+        <div className="flex h-[41px] items-center justify-center rounded-xl text-[13px] font-semibold text-zinc-700">
           —
         </div>
       </div>
@@ -686,7 +686,7 @@ function MobileMarketModalButton({
         teamLogoAlt={betData.teamLogoAlt}
         teamColor={betData.teamColor}
         triggerClassName={[
-          "peer flex h-10 w-full translate-y-[-3px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-2px] active:translate-y-0",
+          "peer flex h-[41px] w-full translate-y-[-3px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-2px] active:translate-y-0",
           betData.isLive ? "bg-zinc-900" : "bg-zinc-900",
         ].join(" ")}
         triggerContentClassName="sr-only"
@@ -741,14 +741,14 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
   const isLive = getGameIsLive(game);
 
   return (
-    <div className="mb-1.5 flex min-w-0 items-center justify-between gap-2 xl:mb-3 xl:gap-3">
+    <div className="mb-2 flex min-w-0 items-center justify-between gap-2.5 xl:mb-3 xl:gap-3">
       <div className="flex min-w-0 items-center gap-2 xl:gap-2.5">
         <div
           className={[
-            "inline-flex h-5 shrink-0 items-center text-[12px] font-medium leading-none xl:h-7 xl:text-[14px]",
+            "inline-flex h-[22px] shrink-0 items-center text-[12px] font-medium leading-none xl:h-7 xl:text-[14px]",
             isLive
               ? "gap-1.5 text-zinc-100"
-              : "rounded-full bg-[#121216] px-2 text-zinc-300 xl:px-2.5",
+              : "rounded-full bg-[#121216] px-2.5 text-zinc-300",
           ].join(" ")}
         >
           {isLive ? (
@@ -770,7 +770,7 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
 
       <Link
         href={eventHref}
-        className="inline-flex h-6 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[12px] font-medium text-zinc-100 transition-colors hover:text-zinc-300 xl:h-7 xl:gap-1.5 xl:px-2.5 xl:text-[13px]"
+        className="inline-flex h-[26px] shrink-0 items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium text-zinc-100 transition-colors hover:text-zinc-300 xl:h-7 xl:px-2.5"
       >
         <span>View</span>
         <FaChevronRight className="h-2 w-2 xl:h-2.5 xl:w-2.5" />
@@ -804,7 +804,7 @@ function GameCard({
 
   return (
     <>
-      <article className="relative overflow-hidden rounded-2xl border border-zinc-800/50 bg-[#0b0b0d] p-2.5 xl:hidden">
+      <article className="relative overflow-hidden rounded-2xl border border-zinc-800/50 bg-[#0b0b0d] px-3 py-2.5 xl:hidden">
         <GameCardHeader game={game} eventHref={eventHref} />
 
         <div>
@@ -821,7 +821,7 @@ function GameCard({
           />
         </div>
 
-        <div className="mt-1.5 grid grid-cols-2 gap-2 md:gap-3">
+        <div className="mt-1.5 grid grid-cols-2 gap-2.5 md:gap-3">
           <MobileMarketModalButton
             game={game}
             market={h2h}
