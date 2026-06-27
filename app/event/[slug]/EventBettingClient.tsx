@@ -422,7 +422,7 @@ function EventHeader({ game }: { game: Game }) {
         href={getPolymarketHref(game)}
         target="_blank"
         rel="noreferrer"
-        className="absolute right-0 top-0 hidden items-center gap-1.5 text-[12px] font-medium text-zinc-300 transition-colors hover:text-white md:inline-flex"
+        className="absolute right-0 top-0 hidden items-center gap-1.5 text-[12px] font-medium text-zinc-300 transition-colors hover:text-white"
       >
         <span>Polymarket</span>
         <FiArrowUpRight className="h-3.5 w-3.5" />
