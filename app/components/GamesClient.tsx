@@ -4,7 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FaChevronDown, FaChevronRight, FaLock } from "react-icons/fa";
+import { FaChevronRight, FaLock } from "react-icons/fa";
 import LastUpdatedAgo from "./LastUpdatedAgo";
 import LeagueTabs from "./LeagueTabs";
 import BetSlipModal, { BetSlipPanel, type BetSlipData } from "./BetSlipModal";
@@ -873,9 +873,9 @@ function GameCard({
                 >
                   <div className="grid gap-3 pt-1 md:gap-3.5">
                     {hasSpread ? (
-                      <div className="grid gap-1.5">
-                        <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600">
-                          Spread
+                      <div className="grid gap-2">
+                        <div className="px-0.5 text-[12px] font-medium leading-none text-zinc-400">
+                          {spread?.label ?? "Spread"}
                         </div>
 
                         <div className="grid grid-cols-2 gap-2.5 md:gap-3">
@@ -899,9 +899,9 @@ function GameCard({
                     ) : null}
 
                     {hasTotal ? (
-                      <div className="grid gap-1.5">
-                        <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600">
-                          Total
+                      <div className="grid gap-2">
+                        <div className="px-0.5 text-[12px] font-medium leading-none text-zinc-400">
+                          {total?.label ?? "Total"}
                         </div>
 
                         <div className="grid grid-cols-2 gap-2.5 md:gap-3">
