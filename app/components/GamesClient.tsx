@@ -719,12 +719,57 @@ function MobileMarketModalButton({
   );
 }
 
-function DateMarketHeader({ date }: { date: string }) {
+
+function HideLiveToggle({
+  enabled,
+  onToggle,
+  disabled = false,
+}: {
+  enabled: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
+}) {
   return (
-    <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_112px_112px_112px] xl:items-end xl:gap-2">
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={disabled}
+      role="switch"
+      aria-checked={enabled}
+      className="inline-flex h-[29px] shrink-0 items-center gap-[7px] text-[14.5px] font-medium leading-none text-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      <span>Hide live</span>
+
+      <span
+        className={[
+          "relative h-[19px] w-[38px] shrink-0 rounded-full p-[2.5px] transition-colors duration-200",
+          enabled ? "bg-emerald-500" : "bg-zinc-800",
+        ].join(" ")}
+      >
+        <motion.span
+          animate={{ x: enabled ? 19 : 0 }}
+          transition={{ type: "spring", stiffness: 520, damping: 34 }}
+          className="block h-3.5 w-3.5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+        />
+      </span>
+    </button>
+  );
+}
+
+function DateMarketHeader({
+  date,
+  action,
+}: {
+  date: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex items-end justify-between gap-3 xl:grid xl:grid-cols-[minmax(0,1fr)_112px_112px_112px] xl:items-end xl:gap-2">
       <div className="text-[18px] font-semibold leading-none tracking-tight text-zinc-100">
         {date}
       </div>
+
+      {action ? <div className="shrink-0 xl:hidden">{action}</div> : null}
 
       {['Moneyline', 'Spread', 'Total'].map((label) => (
         <div
@@ -1012,8 +1057,8 @@ function GameCard({
   );
 }
 
-function getFirstBetForLeague(league?: LeagueBlock) {
-  const firstGame = league?.games[0];
+function getFirstBetForGames(games?: Game[]) {
+  const firstGame = games?.[0];
   if (!firstGame) return null;
 
   const bookmaker = firstGame.bookmakers[0];
@@ -1049,6 +1094,10 @@ function getFirstBetForLeague(league?: LeagueBlock) {
   return null;
 }
 
+function getFirstBetForLeague(league?: LeagueBlock) {
+  return getFirstBetForGames(league?.games);
+}
+
 export default function GamesClient({
   data,
   league,
@@ -1062,12 +1111,39 @@ export default function GamesClient({
   selectedLeague: string;
   selectedLeagueMeta: LeagueMeta;
 }) {
-  const totalGames = league?.games.length ?? 0;
+  const allGames = useMemo(() => league?.games ?? [], [league?.games]);
+  const liveGameCount = useMemo(
+    () => allGames.filter((game) => getGameIsLive(game)).length,
+    [allGames],
+  );
+
+  const [hideLiveGames, setHideLiveGames] = useState(false);
+
+  const visibleGames = useMemo(() => {
+    if (!hideLiveGames) return allGames;
+    return allGames.filter((game) => !getGameIsLive(game));
+  }, [allGames, hideLiveGames]);
+
+  const totalGames = visibleGames.length;
 
   const firstBet = useMemo(() => getFirstBetForLeague(league), [league]);
+  const visibleFirstBet = useMemo(
+    () => getFirstBetForGames(visibleGames),
+    [visibleGames],
+  );
 
   const [selectedBet, setSelectedBet] =
     useState<BetSlipDataWithTeamAlias | null>(firstBet);
+
+  function renderHideLiveToggle() {
+    return (
+      <HideLiveToggle
+        enabled={hideLiveGames}
+        onToggle={() => setHideLiveGames((current) => !current)}
+        disabled={liveGameCount === 0}
+      />
+    );
+  }
 
   const groupedGames = useMemo(() => {
     const groups: {
@@ -1076,7 +1152,7 @@ export default function GamesClient({
       games: Game[];
     }[] = [];
 
-    for (const game of league?.games ?? []) {
+    for (const game of visibleGames) {
       const key = getGameDateKey(game.commence_time);
       const existingGroup = groups.find((group) => group.key === key);
 
@@ -1092,11 +1168,11 @@ export default function GamesClient({
     }
 
     return groups;
-  }, [league?.games]);
+  }, [visibleGames]);
 
   useEffect(() => {
-    setSelectedBet(firstBet);
-  }, [firstBet]);
+    setSelectedBet(visibleFirstBet);
+  }, [visibleFirstBet]);
 
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white">
@@ -1121,12 +1197,14 @@ export default function GamesClient({
                   </p>
                 </div>
 
-                <div className="flex w-[112px] justify-end">
+                <div className="hidden w-[112px] items-end justify-end xl:flex">
                   {league?.error ? (
-                    <div className="hidden rounded-full border border-red-900/60 bg-red-950/60 px-3 py-1 text-[11px] font-medium text-red-400 sm:block">
+                    <div className="rounded-full border border-red-900/60 bg-red-950/60 px-3 py-1 text-[11px] font-medium text-red-400">
                       {league.error}
                     </div>
-                  ) : null}
+                  ) : (
+                    renderHideLiveToggle()
+                  )}
                 </div>
               </div>
 
@@ -1134,11 +1212,19 @@ export default function GamesClient({
                 <div className="text-[13px] text-zinc-400">
                   No active {selectedLeagueMeta.label} markets right now
                 </div>
+              ) : visibleGames.length === 0 ? (
+                <div className="flex items-center justify-between gap-3 text-[13px] text-zinc-400">
+                  <span>No non-live {selectedLeagueMeta.label} markets right now</span>
+                  <span className="xl:hidden">{renderHideLiveToggle()}</span>
+                </div>
               ) : (
                 <div className="grid gap-7">
-                  {groupedGames.map((group) => (
+                  {groupedGames.map((group, groupIndex) => (
                     <div key={group.key} className="grid gap-3 xl:gap-2">
-                      <DateMarketHeader date={group.date} />
+                      <DateMarketHeader
+                        date={group.date}
+                        action={groupIndex === 0 ? renderHideLiveToggle() : null}
+                      />
 
                       <div className="grid gap-2.5 md:gap-3">
                         {group.games.map((game, index) => (
