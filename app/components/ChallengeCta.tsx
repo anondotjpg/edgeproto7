@@ -211,83 +211,37 @@ function getAccountTitle(planKey: PlanKey) {
   return `${accountSize / 1000}K Account`;
 }
 
-function getAccountHeroTitleClassName(planKey: PlanKey) {
-  if (planKey === "10000") {
-    return "account-title-shimmer-gold";
-  }
-
-  if (planKey === "5000") {
-    return "account-title-shimmer-silver";
-  }
-
-  return "text-zinc-50";
-}
-
 function AccountHero({
   accountTitle,
   feeLabel,
-  planKey,
 }: {
   accountTitle: string;
   feeLabel: string;
-  planKey: PlanKey;
 }) {
   return (
-    <>
-      <style>{`
-        @keyframes accountTitleSingleShimmer {
-          0% {
-            background-position: 145% 0, 0 0;
-          }
-          100% {
-            background-position: -145% 0, 0 0;
-          }
-        }
-
-        .account-title-shimmer-gold,
-        .account-title-shimmer-silver {
-          color: transparent;
-          background-repeat: no-repeat;
-          -webkit-background-clip: text;
-          background-clip: text;
-          animation: accountTitleSingleShimmer 5s linear infinite;
-        }
-
-        .account-title-shimmer-gold {
-          background-image:
-            linear-gradient(105deg, transparent 0%, transparent 46%, rgba(255, 238, 176, 0.28) 50%, transparent 54%, transparent 100%),
-            linear-gradient(135deg, #e2b64b 0%, #bd8f2d 52%, #7f5b1d 100%);
-          background-size: 260% 100%, 100% 100%;
-        }
-
-        .account-title-shimmer-silver {
-          background-image:
-            linear-gradient(105deg, transparent 0%, transparent 46%, rgba(244, 244, 245, 0.26) 50%, transparent 54%, transparent 100%),
-            linear-gradient(135deg, #c5c5cc 0%, #92929b 52%, #5e5e66 100%);
-          background-size: 260% 100%, 100% 100%;
-        }
-      `}</style>
-
-      <div className="flex min-h-[52px] items-start justify-between gap-3.5">
+    <div className="rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3.5">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="inline-block max-w-full align-top text-[32px] font-semibold leading-none tracking-[-0.058em] sm:text-[38px]">
-            <span
-              className={["block truncate", getAccountHeroTitleClassName(planKey)].join(
-                " ",
-              )}
-            >
-              {accountTitle}
-            </span>
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600">
+            Challenge
+          </p>
+
+          <h2 className="mt-1 truncate text-[15px] font-semibold leading-5 tracking-[-0.01em] text-zinc-100">
+            {accountTitle}
           </h2>
         </div>
 
         <div className="shrink-0 text-right">
-          <p className="text-[26px] font-semibold leading-none tracking-[-0.045em] text-zinc-50 tabular-nums sm:text-[30px]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600">
+            Total
+          </p>
+
+          <p className="mt-1 text-[20px] font-semibold leading-none tracking-[-0.025em] text-zinc-50 tabular-nums">
             {feeLabel}
           </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -537,7 +491,6 @@ function PaymentBadge({
 
 function CheckoutContent({
   accountTitle,
-  planKey,
   feeLabel,
   step,
   setStep,
@@ -557,7 +510,6 @@ function CheckoutContent({
   applyPromoCode,
 }: {
   accountTitle: string;
-  planKey: PlanKey;
   feeLabel: string;
   step: DepositStep;
   setStep: (step: DepositStep) => void;
@@ -593,7 +545,6 @@ function CheckoutContent({
       <AccountHero
         accountTitle={accountTitle}
         feeLabel={displayFeeLabel}
-        planKey={planKey}
       />
 
       <div className="mt-3 min-h-[336px]">
@@ -1209,7 +1160,6 @@ export default function ChallengeCta({
   const checkoutContent = (
     <CheckoutContent
       accountTitle={accountTitle}
-      planKey={planKey}
       feeLabel={feeLabel}
       step={step}
       setStep={setStep}
