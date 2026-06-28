@@ -233,7 +233,7 @@ function AccountHero({
 
         <div className="shrink-0 text-right">
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600">
-            Total
+            Fee
           </p>
 
           <p className="mt-1 text-[20px] font-semibold leading-none tracking-[-0.025em] text-zinc-50 tabular-nums">
