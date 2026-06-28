@@ -9,6 +9,7 @@ import LastUpdatedAgo from "./LastUpdatedAgo";
 import LeagueTabs from "./LeagueTabs";
 import BetSlipModal, { BetSlipPanel, type BetSlipData } from "./BetSlipModal";
 import type { Game } from "../page";
+import { FiChevronDown } from "react-icons/fi";
 
 type LeagueBlock = {
   leagueKey: string;
@@ -847,17 +848,16 @@ function GameCard({
             <button
               type="button"
               onClick={() => setMoreBetsOpen((current) => !current)}
-              aria-expanded={moreBetsOpen}
-              className="flex h-9 w-full cursor-pointer items-center gap-1.5 rounded-xl px-0 text-left text-[13px] font-semibold text-zinc-400 transition-colors hover:text-zinc-100"
+              className="mt-2 inline-flex items-center gap-1.5 text-[14px] font-medium text-zinc-100 transition-colors hover:text-zinc-300"
             >
               <span>More Bets</span>
 
               <motion.span
                 animate={{ rotate: moreBetsOpen ? 180 : 0 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="grid h-5 w-5 place-items-center text-zinc-500"
+                className="grid place-items-center text-zinc-100"
               >
-                <FaChevronDown className="h-2.5 w-2.5" />
+                <FiChevronDown className="h-3 w-3" />
               </motion.span>
             </button>
 
