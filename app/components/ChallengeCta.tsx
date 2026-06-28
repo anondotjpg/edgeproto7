@@ -234,34 +234,34 @@ function AccountHero({
   planKey: PlanKey;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3.5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600">
-            Challenge
+    <div className="rounded-[20px] border border-zinc-800 bg-black/30 px-4 py-4">
+      <div className="flex min-h-[48px] items-center justify-between gap-5">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-medium uppercase leading-none tracking-[0.16em] text-zinc-600">
+            Checkout
           </p>
 
-          <div className="mt-1 flex min-w-0 items-center gap-1">
+          <div className="mt-2 flex min-w-0 items-center gap-1.5">
             <MdAccountBalanceWallet
               aria-hidden="true"
               className={[
-                "h-[17px] w-[17px] shrink-0",
+                "h-[19px] w-[19px] shrink-0",
                 getAccountIconClassName(planKey),
               ].join(" ")}
             />
 
-            <h2 className="truncate text-[15px] font-semibold leading-5 tracking-[-0.01em] text-zinc-100">
+            <h2 className="truncate text-[17px] font-semibold leading-5 tracking-[-0.015em] text-zinc-100">
               {accountTitle}
             </h2>
           </div>
         </div>
 
         <div className="shrink-0 text-right">
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600">
-            Fee
+          <p className="text-[10px] font-medium uppercase leading-none tracking-[0.16em] text-zinc-600">
+            Total
           </p>
 
-          <p className="mt-1 text-[20px] font-semibold leading-none tracking-[-0.025em] text-zinc-50 tabular-nums">
+          <p className="mt-2 text-[24px] font-semibold leading-none tracking-[-0.03em] text-zinc-50 tabular-nums">
             {feeLabel}
           </p>
         </div>
