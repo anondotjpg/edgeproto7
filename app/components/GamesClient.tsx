@@ -3,7 +3,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { FaChevronRight, FaLock } from "react-icons/fa";
+import { AnimatePresence, motion } from "framer-motion";
+import { FaChevronDown, FaChevronRight, FaLock } from "react-icons/fa";
 import LastUpdatedAgo from "./LastUpdatedAgo";
 import LeagueTabs from "./LeagueTabs";
 import BetSlipModal, { BetSlipPanel, type BetSlipData } from "./BetSlipModal";
@@ -799,6 +800,10 @@ function GameCard({
   const underTotal = getOutcomeByOutcomeName(total?.outcomes, "Under");
   const eventHref = `/event/${game.slug}`;
 
+  const [moreBetsOpen, setMoreBetsOpen] = useState(false);
+  const hasSpread = Boolean(spread && awaySpread && homeSpread);
+  const hasTotal = Boolean(total && overTotal && underTotal);
+  const hasMoreBets = hasSpread || hasTotal;
 
   return (
     <>
@@ -836,6 +841,90 @@ function GameCard({
             teamInfo={game.home_team_info}
           />
         </div>
+
+        {hasMoreBets ? (
+          <div className="mt-2.5">
+            <button
+              type="button"
+              onClick={() => setMoreBetsOpen((current) => !current)}
+              aria-expanded={moreBetsOpen}
+              className="flex h-9 w-full cursor-pointer items-center gap-1.5 rounded-xl px-0 text-left text-[13px] font-semibold text-zinc-400 transition-colors hover:text-zinc-100"
+            >
+              <span>More Bets</span>
+
+              <motion.span
+                animate={{ rotate: moreBetsOpen ? 180 : 0 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="grid h-5 w-5 place-items-center text-zinc-500"
+              >
+                <FaChevronDown className="h-2.5 w-2.5" />
+              </motion.span>
+            </button>
+
+            <AnimatePresence initial={false}>
+              {moreBetsOpen ? (
+                <motion.div
+                  key="mobile-more-bets"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid gap-3 pt-1 md:gap-3.5">
+                    {hasSpread ? (
+                      <div className="grid gap-1.5">
+                        <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600">
+                          Spread
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                          <MobileMarketModalButton
+                            game={game}
+                            market={spread}
+                            outcome={awaySpread}
+                            team={game.away_team}
+                            teamInfo={game.away_team_info}
+                          />
+
+                          <MobileMarketModalButton
+                            game={game}
+                            market={spread}
+                            outcome={homeSpread}
+                            team={game.home_team}
+                            teamInfo={game.home_team_info}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {hasTotal ? (
+                      <div className="grid gap-1.5">
+                        <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600">
+                          Total
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                          <MobileMarketModalButton
+                            game={game}
+                            market={total}
+                            outcome={overTotal}
+                          />
+
+                          <MobileMarketModalButton
+                            game={game}
+                            market={total}
+                            outcome={underTotal}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
+        ) : null}
       </article>
 
       <article className="relative hidden xl:block">
