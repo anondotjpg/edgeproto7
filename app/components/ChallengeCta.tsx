@@ -6,6 +6,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLogin, usePrivy } from "@privy-io/react-auth";
 import { FiCheck, FiCopy } from "react-icons/fi";
+import { MdAccountBalanceWallet } from "react-icons/md";
 import type { PlanKey } from "@/lib/plans";
 import {
   Drawer,
@@ -211,12 +212,26 @@ function getAccountTitle(planKey: PlanKey) {
   return `${accountSize / 1000}K Account`;
 }
 
+function getAccountIconClassName(planKey: PlanKey) {
+  if (planKey === "10000") {
+    return "text-[#d7a83a]";
+  }
+
+  if (planKey === "5000") {
+    return "text-zinc-300";
+  }
+
+  return "text-zinc-500";
+}
+
 function AccountHero({
   accountTitle,
   feeLabel,
+  planKey,
 }: {
   accountTitle: string;
   feeLabel: string;
+  planKey: PlanKey;
 }) {
   return (
     <div className="rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3.5">
@@ -226,9 +241,19 @@ function AccountHero({
             Challenge
           </p>
 
-          <h2 className="mt-1 truncate text-[15px] font-semibold leading-5 tracking-[-0.01em] text-zinc-100">
-            {accountTitle}
-          </h2>
+          <div className="mt-1 flex min-w-0 items-center gap-1">
+            <MdAccountBalanceWallet
+              aria-hidden="true"
+              className={[
+                "h-[17px] w-[17px] shrink-0",
+                getAccountIconClassName(planKey),
+              ].join(" ")}
+            />
+
+            <h2 className="truncate text-[15px] font-semibold leading-5 tracking-[-0.01em] text-zinc-100">
+              {accountTitle}
+            </h2>
+          </div>
         </div>
 
         <div className="shrink-0 text-right">
@@ -492,6 +517,7 @@ function PaymentBadge({
 function CheckoutContent({
   accountTitle,
   feeLabel,
+  planKey,
   step,
   setStep,
   invoice,
@@ -511,6 +537,7 @@ function CheckoutContent({
 }: {
   accountTitle: string;
   feeLabel: string;
+  planKey: PlanKey;
   step: DepositStep;
   setStep: (step: DepositStep) => void;
   invoice: DepositInvoice | null;
@@ -545,6 +572,7 @@ function CheckoutContent({
       <AccountHero
         accountTitle={accountTitle}
         feeLabel={displayFeeLabel}
+        planKey={planKey}
       />
 
       <div className="mt-3 min-h-[336px]">
@@ -1161,6 +1189,7 @@ export default function ChallengeCta({
     <CheckoutContent
       accountTitle={accountTitle}
       feeLabel={feeLabel}
+      planKey={planKey}
       step={step}
       setStep={setStep}
       invoice={invoice}
