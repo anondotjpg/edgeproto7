@@ -848,7 +848,7 @@ function GameCard({
             <button
               type="button"
               onClick={() => setMoreBetsOpen((current) => !current)}
-              className="mt-2 inline-flex items-center gap-1.5 text-[14px] font-semibold text-zinc-300 transition-colors hover:text-zinc-500"
+              className="mt-2 inline-flex items-center gap-1.5 text-[14px] font-medium text-zinc-100 transition-colors hover:text-zinc-300"
             >
               <span>More Bets</span>
 
