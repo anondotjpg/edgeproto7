@@ -580,7 +580,7 @@ function CheckoutContent({
             >
               <div>
                 <h3 className="text-[18px] font-semibold leading-none tracking-tight text-zinc-50">
-                  Choose payment
+                  Pay with crypto
                 </h3>
               </div>
 
