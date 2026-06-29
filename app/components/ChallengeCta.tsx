@@ -234,7 +234,7 @@ function AccountHero({
   planKey: PlanKey;
 }) {
   return (
-    <div className="rounded-[20px] border border-zinc-800 bg-black/30 px-4 py-4">
+    <div className="px-0">
       <div className="flex min-h-[48px] items-center justify-between gap-5">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-medium uppercase leading-none tracking-[0.16em] text-zinc-600">
@@ -352,13 +352,6 @@ function getPaymentSubtitle({
   return "Send the quoted amount.";
 }
 
-function getTargetReceiveDisplay(invoice: DepositInvoice) {
-  return (
-    invoice.quoted_destination_amount_display ??
-    invoice.expected_destination_amount_display ??
-    null
-  );
-}
 
 function StatusPill({ status }: { status: DepositInvoiceStatus }) {
   return (
@@ -575,8 +568,8 @@ function CheckoutContent({
         planKey={planKey}
       />
 
-      <div className="mt-3 min-h-[336px]">
-        <AnimatePresence mode="wait">
+      <div className="mt-4 h-[356px] overflow-y-auto overflow-x-hidden pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <AnimatePresence mode="wait" initial={false}>
           {step === "method" ? (
             <motion.div
               key="method"
@@ -584,7 +577,7 @@ function CheckoutContent({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -18 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex min-h-[336px] flex-col"
+              className="pr-1"
             >
               <div>
                 <h3 className="text-[18px] font-semibold leading-none tracking-tight text-zinc-50">
@@ -696,8 +689,6 @@ function CheckoutContent({
                   {error}
                 </div>
               ) : null}
-
-              <div className="mt-auto" />
             </motion.div>
           ) : null}
 
@@ -708,7 +699,7 @@ function CheckoutContent({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -18 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex min-h-[336px] flex-col"
+              className="pr-1"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -788,43 +779,6 @@ function CheckoutContent({
                     }
                   />
 
-                  <div className="grid grid-cols-2 gap-3 hidden">
-                    {getTargetReceiveDisplay(invoice) ? (
-                      <div className="rounded-2xl bg-black/30 p-4">
-                        <p className="text-[12px] font-medium text-zinc-500">
-                          Target receive
-                        </p>
-
-                        <p className="mt-1 break-all text-[14px] font-semibold text-zinc-100">
-                          {getTargetReceiveDisplay(invoice)} USDC
-                        </p>
-                      </div>
-                    ) : null}
-
-                    {invoice.edge_min_destination_amount_display ? (
-                      <div className="rounded-2xl bg-black/30 p-4">
-                        <p className="text-[12px] font-medium text-zinc-500">
-                          Minimum accepted
-                        </p>
-
-                        <p className="mt-1 break-all text-[14px] font-semibold text-zinc-100">
-                          {invoice.edge_min_destination_amount_display} USDC
-                        </p>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {invoice.received_destination_amount_display ? (
-                    <div className="rounded-2xl bg-black/30 p-4 hidden">
-                      <div className="flex items-center justify-between gap-3 text-[12px]">
-                        <span className="text-zinc-500">Received</span>
-                        <span className="break-all text-right font-semibold text-zinc-100">
-                          {invoice.received_destination_amount_display} USDC
-                        </span>
-                      </div>
-                    </div>
-                  ) : null}
-
                   {invoice.discount_amount_cents &&
                   invoice.discount_amount_cents > 0 ? (
                     <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
@@ -873,16 +827,14 @@ function CheckoutContent({
               )}
 
               {invoice.status === "paid" && invoice.credited_account_id ? (
-                <div className="mt-auto pt-5">
+                <div className="mt-5">
                   <OffsetButton
                     onClick={() => openAccount(invoice.credited_account_id!)}
                   >
                     Open account
                   </OffsetButton>
                 </div>
-              ) : (
-                <div className="mt-auto" />
-              )}
+              ) : null}
 
               {invoice.status !== "paid" ? (
                 <button
