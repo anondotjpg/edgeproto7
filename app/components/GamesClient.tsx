@@ -1136,11 +1136,12 @@ export default function GamesClient({
     useState<BetSlipDataWithTeamAlias | null>(firstBet);
 
   function renderHideLiveToggle() {
+    if (liveGameCount === 0) return null;
+
     return (
       <HideLiveToggle
         enabled={hideLiveGames}
         onToggle={() => setHideLiveGames((current) => !current)}
-        disabled={liveGameCount === 0}
       />
     );
   }
