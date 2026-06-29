@@ -568,7 +568,7 @@ function CheckoutContent({
         planKey={planKey}
       />
 
-      <div className="mt-4 h-[356px] overflow-y-auto overflow-x-hidden pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="mt-4 h-[356px] overflow-y-auto overflow-x-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <AnimatePresence mode="wait" initial={false}>
           {step === "method" ? (
             <motion.div
@@ -577,7 +577,6 @@ function CheckoutContent({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -18 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="pr-1"
             >
               <div>
                 <h3 className="text-[18px] font-semibold leading-none tracking-tight text-zinc-50">
@@ -699,7 +698,6 @@ function CheckoutContent({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -18 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="pr-1"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -742,7 +740,7 @@ function CheckoutContent({
               ) : (
                 <div className="mt-4 grid gap-3">
                   <div className="relative rounded-2xl bg-black/30 p-4">
-                    <div className="absolute right-3 top-3">
+                    <div className="absolute right-4 top-4">
                       <CopyIconButton
                         label="amount"
                         value={invoice.expected_amount_display}
@@ -751,11 +749,11 @@ function CheckoutContent({
                       />
                     </div>
 
-                    <p className="pr-9 text-[12px] font-medium text-zinc-500">
+                    <p className="pr-10 text-[12px] font-medium text-zinc-500">
                       Send quoted amount
                     </p>
 
-                    <div className="mt-1.5 flex flex-wrap items-end gap-x-2 gap-y-1 pr-8">
+                    <div className="mt-1.5 flex flex-wrap items-end gap-x-2 gap-y-1 pr-10">
                       <p className="break-all text-[24px] font-semibold leading-none tracking-tight text-zinc-50">
                         {invoice.expected_amount_display}
                       </p>
