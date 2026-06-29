@@ -216,7 +216,7 @@ function getTeamColorStyles({
     },
     faceStyle: {
       backgroundColor: safeColor,
-      boxShadow: `inset 0 1px 0 ${shadeHexColor(safeColor, 0.16)}`,
+      boxShadow: "none",
     },
   };
 }
@@ -550,7 +550,7 @@ function MarketFace({
   return (
     <div
       className={[
-        "rounded-xl",
+        "rounded-lg",
         isLive ? "bg-zinc-800" : selected ? "bg-zinc-600" : "bg-zinc-800",
       ].join(" ")}
       style={{
@@ -560,7 +560,7 @@ function MarketFace({
     >
       <div
         className={[
-          "flex h-[42px] w-full translate-y-[-2px] items-center overflow-hidden rounded-xl px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
+          "flex h-[42px] w-full translate-y-[-2px] items-center overflow-hidden rounded-lg px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
           centered ? "justify-center gap-1.5" : "justify-between gap-1",
           isLive
             ? "bg-zinc-900"
@@ -667,8 +667,8 @@ function MobileMarketModalButton({
 }) {
   if (!market || !outcome) {
     return (
-      <div className="rounded-xl bg-zinc-900/60">
-        <div className="flex h-[41px] items-center justify-center rounded-xl text-[15.6px] font-semibold text-zinc-700">
+      <div className="rounded-lg bg-zinc-900/60">
+        <div className="flex h-[41px] items-center justify-center rounded-lg text-[15.6px] font-semibold text-zinc-700">
           —
         </div>
       </div>
@@ -684,7 +684,7 @@ function MobileMarketModalButton({
 
   return (
     <div
-      className="group relative rounded-xl bg-zinc-800"
+      className="group relative rounded-lg bg-zinc-800"
       style={{
         paddingBottom: "3px",
         ...shellStyle,
@@ -713,7 +713,7 @@ function MobileMarketModalButton({
         teamLogoAlt={betData.teamLogoAlt}
         teamColor={betData.teamColor}
         triggerClassName={[
-          "peer flex h-[41px] w-full translate-y-[-3px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-2px] active:translate-y-0",
+          "peer flex h-[41px] w-full translate-y-[-3px] cursor-pointer items-center justify-center overflow-hidden rounded-lg px-3 text-center transition-transform duration-100 hover:translate-y-[-2px] active:translate-y-0",
           betData.isLive ? "bg-zinc-900" : "bg-zinc-900",
         ].join(" ")}
         triggerContentClassName="sr-only"
@@ -721,7 +721,7 @@ function MobileMarketModalButton({
 
       <div
         className={[
-          "pointer-events-none absolute inset-0 flex translate-y-[-3px] items-center justify-center gap-1.5 rounded-xl px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-2px] peer-active:translate-y-0 group-hover:translate-y-[-2px] group-active:translate-y-0",
+          "pointer-events-none absolute inset-0 flex translate-y-[-3px] items-center justify-center gap-1.5 rounded-lg px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-2px] peer-active:translate-y-0 group-hover:translate-y-[-2px] group-active:translate-y-0",
           betData.isLive ? "bg-zinc-900" : "",
         ].join(" ")}
         style={faceStyle}

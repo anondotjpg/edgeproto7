@@ -364,7 +364,7 @@ function getTeamActionButtonStyles(color?: string | null) {
     } as CSSProperties,
     faceStyle: {
       backgroundColor: safeColor,
-      boxShadow: `inset 0 1px 0 ${shadeHexColor(safeColor, 0.16)}`,
+      boxShadow: "none",
     } as CSSProperties,
     progressStyle: {
       backgroundColor: shadeHexColor(safeColor, -0.18),
@@ -661,7 +661,7 @@ function OffsetPlaceBetButton({
   if (mobileLayout) {
     return (
       <div
-        className="mt-3 mb-4 rounded-2xl bg-zinc-800"
+        className="mt-3 mb-4 rounded-xl bg-zinc-800"
         style={{
           paddingBottom: "2px",
           ...shellStyle,
@@ -684,7 +684,7 @@ function OffsetPlaceBetButton({
           onPointerLeave={onPointerLeave}
           onPointerCancel={onPointerCancel}
           disabled={disabled}
-          className="relative h-16 w-full cursor-pointer select-none overflow-hidden rounded-2xl bg-zinc-900 text-[16px] font-semibold text-zinc-100 disabled:cursor-not-allowed"
+          className="relative h-16 w-full cursor-pointer select-none overflow-hidden rounded-xl bg-zinc-900 text-[16px] font-semibold text-zinc-100 disabled:cursor-not-allowed"
           style={faceStyle}
         >
           <span
@@ -706,7 +706,7 @@ function OffsetPlaceBetButton({
   return (
     <div
       className={[
-        "rounded-2xl bg-zinc-800",
+        "rounded-xl bg-zinc-800",
         panelMode === "sidebar" ? "mt-3 mb-5" : "mt-3 mb-0",
       ].join(" ")}
       style={{
@@ -730,7 +730,7 @@ function OffsetPlaceBetButton({
         onPointerCancel={onPointerCancel}
         disabled={disabled}
         className={[
-          "relative w-full translate-y-[-2px] cursor-pointer select-none overflow-hidden rounded-2xl bg-zinc-900 font-semibold text-zinc-100 transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed",
+          "relative w-full translate-y-[-2px] cursor-pointer select-none overflow-hidden rounded-xl bg-zinc-900 font-semibold text-zinc-100 transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed",
           panelMode === "sidebar" ? "h-12 text-[15px]" : "h-12 text-[15px]",
         ].join(" ")}
         style={faceStyle}

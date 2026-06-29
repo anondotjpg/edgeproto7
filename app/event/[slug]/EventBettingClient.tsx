@@ -135,7 +135,7 @@ function getTeamColorStyles({
     },
     faceStyle: {
       backgroundColor: safeColor,
-      boxShadow: `inset 0 1px 0 ${shadeHexColor(safeColor, 0.16)}`,
+      boxShadow: "none",
     },
   };
 }
@@ -495,7 +495,7 @@ function MobileMoneylineModalButton({
   return (
     <div
       className={[
-        "group relative rounded-xl",
+        "group relative rounded-lg",
         betData.isLive ? "bg-zinc-800" : "bg-zinc-800",
       ].join(" ")}
       style={{
@@ -507,7 +507,7 @@ function MobileMoneylineModalButton({
         {...betData}
         teamColor={betData.teamColor}
         triggerClassName={[
-          "peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0",
+          "peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-lg px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0",
           betData.isLive ? "bg-zinc-900" : "bg-zinc-900",
         ].join(" ")}
         triggerContentClassName="sr-only"
@@ -515,7 +515,7 @@ function MobileMoneylineModalButton({
 
       <div
         className={[
-          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-xl px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
+          "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-lg px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
           betData.isLive ? "bg-zinc-900" : "",
         ].join(" ")}
         style={faceStyle}
@@ -546,15 +546,15 @@ function MobileMarketModalButton({
   label: string;
 }) {
   return (
-    <div className="group relative rounded-xl bg-zinc-800" style={{ paddingBottom: "2px" }}>
+    <div className="group relative rounded-lg bg-zinc-800" style={{ paddingBottom: "2px" }}>
       <BetSlipModal
         {...betData}
         teamColor={betData.teamColor}
-        triggerClassName="peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-zinc-900 px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0"
+        triggerClassName="peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-zinc-900 px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0"
         triggerContentClassName="sr-only"
       />
 
-      <div className="pointer-events-none absolute inset-0 flex translate-y-[-2px] items-center justify-between gap-1 rounded-xl bg-zinc-900 px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-1px] peer-active:translate-y-0 group-hover:translate-y-[-1px] group-active:translate-y-0">
+      <div className="pointer-events-none absolute inset-0 flex translate-y-[-2px] items-center justify-between gap-1 rounded-lg bg-zinc-900 px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-1px] peer-active:translate-y-0 group-hover:translate-y-[-1px] group-active:translate-y-0">
         {betData.isLive ? (
           <span className="flex w-full justify-center">
             <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
@@ -782,7 +782,7 @@ function MarketFace({
   return (
     <div
       className={[
-        "rounded-xl",
+        "rounded-lg",
         isLive ? "bg-zinc-800" : selected ? "bg-zinc-600" : "bg-zinc-800",
       ].join(" ")}
       style={{
@@ -792,7 +792,7 @@ function MarketFace({
     >
       <div
         className={[
-          "flex h-[42px] w-full translate-y-[-2px] items-center overflow-hidden rounded-xl px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
+          "flex h-[42px] w-full translate-y-[-2px] items-center overflow-hidden rounded-lg px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
           centerContent ? "justify-center gap-1.5" : "justify-between gap-1",
           isLive
             ? "bg-zinc-900"
@@ -852,7 +852,7 @@ function DesktopMarketCell({
     <div className="relative">
       <div
         className={[
-          "rounded-xl xl:hidden",
+          "rounded-lg xl:hidden",
           isLive ? "bg-zinc-800" : selected ? "bg-zinc-600" : "bg-zinc-800",
         ].join(" ")}
         style={{
@@ -865,7 +865,7 @@ function DesktopMarketCell({
             {...betData}
             teamColor={betData.teamColor}
             triggerClassName={[
-              "peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-xl px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
+              "peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
               isLive ? "bg-zinc-900" : selected ? "bg-zinc-700" : "bg-zinc-900",
             ].join(" ")}
             triggerContentClassName="sr-only"
@@ -873,7 +873,7 @@ function DesktopMarketCell({
 
           <div
             className={[
-              "pointer-events-none absolute inset-0 flex translate-y-[-2px] items-center rounded-xl px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-1px] peer-active:translate-y-0 group-hover:translate-y-[-1px] group-active:translate-y-0",
+              "pointer-events-none absolute inset-0 flex translate-y-[-2px] items-center rounded-lg px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-1px] peer-active:translate-y-0 group-hover:translate-y-[-1px] group-active:translate-y-0",
               centerContent ? "justify-center gap-1.5" : "justify-between gap-1",
               isLive ? "bg-zinc-900" : selected ? "bg-zinc-700" : "bg-zinc-900",
             ].join(" ")}
