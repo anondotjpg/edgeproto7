@@ -238,7 +238,7 @@ function AccountHero({
       <div className="flex min-h-[48px] items-center justify-between gap-5">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-medium uppercase leading-none tracking-[0.16em] text-zinc-600">
-            Checkout
+            Challenge
           </p>
 
           <div className="mt-2 flex min-w-0 items-center gap-1.5">
@@ -258,7 +258,7 @@ function AccountHero({
 
         <div className="shrink-0 text-right">
           <p className="text-[10px] font-medium uppercase leading-none tracking-[0.16em] text-zinc-600">
-            Total
+            Fee
           </p>
 
           <p className="mt-2 text-[24px] font-semibold leading-none tracking-[-0.03em] text-zinc-50 tabular-nums">

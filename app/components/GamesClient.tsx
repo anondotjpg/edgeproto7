@@ -84,6 +84,31 @@ type GameWithLiveStatus = Game & {
   is_live?: boolean;
 };
 
+const HIDE_LIVE_GAMES_STORAGE_KEY = "edge:hide-live-games";
+
+function readStoredHideLiveGames() {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return window.localStorage.getItem(HIDE_LIVE_GAMES_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function writeStoredHideLiveGames(value: boolean) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(
+      HIDE_LIVE_GAMES_STORAGE_KEY,
+      value ? "true" : "false",
+    );
+  } catch {
+    // Ignore storage failures so the toggle still works in-memory.
+  }
+}
+
 function getMarket(bookmaker: Bookmaker | undefined, marketKey: string) {
   return bookmaker?.markets.find((market) => market.key === marketKey);
 }
@@ -1117,7 +1142,7 @@ export default function GamesClient({
     [allGames],
   );
 
-  const [hideLiveGames, setHideLiveGames] = useState(false);
+  const [hideLiveGames, setHideLiveGames] = useState(readStoredHideLiveGames);
 
   const visibleGames = useMemo(() => {
     if (!hideLiveGames) return allGames;
@@ -1135,13 +1160,21 @@ export default function GamesClient({
   const [selectedBet, setSelectedBet] =
     useState<BetSlipDataWithTeamAlias | null>(firstBet);
 
+  function toggleHideLiveGames() {
+    setHideLiveGames((current) => {
+      const nextValue = !current;
+      writeStoredHideLiveGames(nextValue);
+      return nextValue;
+    });
+  }
+
   function renderHideLiveToggle() {
     if (liveGameCount === 0) return null;
 
     return (
       <HideLiveToggle
         enabled={hideLiveGames}
-        onToggle={() => setHideLiveGames((current) => !current)}
+        onToggle={toggleHideLiveGames}
       />
     );
   }
