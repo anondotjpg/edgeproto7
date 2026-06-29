@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import AppSidebar from "./components/AppSidebar";
 import TopRightAuth from "./components/TopRightAuth";
 import Providers from "./providers";
 import ResponsiveToaster from "./components/ResponsiveToaster";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -44,7 +45,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
+      className={`${inter.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
     >
       <head>
         <meta name="theme-color" content="#09090b" />
@@ -61,7 +62,7 @@ export default function RootLayout({
         <link rel="apple-touch-startup-image" href="/splash.png" />
       </head>
 
-      <body className="relative min-h-screen overflow-x-hidden bg-[#09090b] text-white">
+      <body className="relative min-h-screen overflow-x-hidden bg-[#09090b] font-sans text-white">
         <Providers>
           <style>{`
             html,
