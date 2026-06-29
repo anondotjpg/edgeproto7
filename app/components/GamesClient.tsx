@@ -722,7 +722,7 @@ function MobileMarketModalButton({
       <div
         className={[
           "pointer-events-none absolute inset-0 flex translate-y-[-3px] items-center justify-center gap-1.5 rounded-lg px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-2px] peer-active:translate-y-0 group-hover:translate-y-[-2px] group-active:translate-y-0",
-          betData.isLive ? "bg-zinc-900" : "",
+          betData.isLive || !betData.teamColor ? "bg-zinc-900" : "",
         ].join(" ")}
         style={faceStyle}
       >

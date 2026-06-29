@@ -546,15 +546,15 @@ function MobileMarketModalButton({
   label: string;
 }) {
   return (
-    <div className="group relative rounded-lg bg-zinc-800" style={{ paddingBottom: "2px" }}>
+    <div className="group relative rounded-lg bg-zinc-800" style={{ paddingBottom: "4px" }}>
       <BetSlipModal
         {...betData}
         teamColor={betData.teamColor}
-        triggerClassName="peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-zinc-900 px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0"
+        triggerClassName="peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-zinc-900 px-2.5 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0"
         triggerContentClassName="sr-only"
       />
 
-      <div className="pointer-events-none absolute inset-0 flex translate-y-[-2px] items-center justify-between gap-1 rounded-lg bg-zinc-900 px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-1px] peer-active:translate-y-0 group-hover:translate-y-[-1px] group-active:translate-y-0">
+      <div className="pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-between gap-1 rounded-lg bg-zinc-900 px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0">
         {betData.isLive ? (
           <span className="flex w-full justify-center">
             <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
