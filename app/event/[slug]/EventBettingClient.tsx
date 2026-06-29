@@ -524,11 +524,11 @@ function MobileMoneylineModalButton({
           <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
         ) : (
           <>
-            <span className="text-[10px] font-bold leading-none tracking-[0.12em] text-zinc-200">
+            <span className="text-[12px] font-bold leading-none tracking-[0.12em] text-zinc-200">
               {ticker}
             </span>
 
-            <span className="text-[13px] font-bold leading-none tracking-tight text-zinc-100">
+            <span className="text-[15.6px] font-bold leading-none tracking-tight text-zinc-100">
               {betData.odds}
             </span>
           </>
@@ -561,11 +561,11 @@ function MobileMarketModalButton({
           </span>
         ) : (
           <>
-            <span className="min-w-0 truncate text-[11px] font-bold leading-none tracking-[0.06em] text-zinc-300">
+            <span className="min-w-0 truncate text-[13.2px] font-bold leading-none tracking-[0.06em] text-zinc-300">
               {label}
             </span>
 
-            <span className="shrink-0 text-[13px] font-bold leading-none tracking-tight text-zinc-100">
+            <span className="shrink-0 text-[15.6px] font-bold leading-none tracking-tight text-zinc-100">
               {betData.odds}
             </span>
           </>

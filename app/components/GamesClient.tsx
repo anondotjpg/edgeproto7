@@ -643,7 +643,7 @@ function MobileMarketModalButton({
   if (!market || !outcome) {
     return (
       <div className="rounded-xl bg-zinc-900/60">
-        <div className="flex h-[41px] items-center justify-center rounded-xl text-[13px] font-semibold text-zinc-700">
+        <div className="flex h-[41px] items-center justify-center rounded-xl text-[15.6px] font-semibold text-zinc-700">
           —
         </div>
       </div>
@@ -705,11 +705,11 @@ function MobileMarketModalButton({
           <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
         ) : (
           <>
-            <span className="text-[10px] font-bold leading-none tracking-[0.12em] text-zinc-200">
+            <span className="text-[12px] font-bold leading-none tracking-[0.12em] text-zinc-200">
               {getOutcomeButtonLabel({ market, outcome, team, teamInfo })}
             </span>
 
-            <span className="text-[13px] font-bold leading-none tracking-tight text-zinc-100">
+            <span className="text-[15.6px] font-bold leading-none tracking-tight text-zinc-100">
               {betData.odds}
             </span>
           </>
