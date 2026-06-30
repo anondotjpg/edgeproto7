@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { type ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLogin, usePrivy } from "@privy-io/react-auth";
+import { toast } from "sonner";
 import { FiCheck, FiCopy } from "react-icons/fi";
 import { MdAccountBalanceWallet } from "react-icons/md";
 import type { PlanKey } from "@/lib/plans";
@@ -75,6 +76,37 @@ type DepositInvoice = {
   subtotal_amount_cents?: number | null;
   discount_amount_cents?: number | null;
   final_amount_cents?: number | null;
+};
+
+type CreateDepositResponse = {
+  invoice?: DepositInvoice;
+  promo?: {
+    code: string | null;
+    subtotalCents: number;
+    discountCents: number;
+    finalCents: number;
+  };
+  code?: string;
+  error?: string;
+  message?: string;
+  toastTitle?: string;
+  toastDescription?: string;
+  openDepositCount?: number;
+  maxOpenDeposits?: number;
+};
+
+
+type PromoValidateResponse = Partial<PromoPreview> & {
+  valid?: boolean;
+  code?: string | null;
+  promoCodeId?: string | null;
+  subtotalCents?: number;
+  discountCents?: number;
+  finalCents?: number;
+  message?: string | null;
+  error?: string;
+  toastTitle?: string;
+  toastDescription?: string;
 };
 
 type ChallengeCtaProps = {
@@ -514,7 +546,6 @@ function CheckoutContent({
   step,
   setStep,
   invoice,
-  error,
   copied,
   countdown,
   creatingChain,
@@ -522,7 +553,6 @@ function CheckoutContent({
   copyText,
   openAccount,
   promoCode,
-  promoMessage,
   appliedPromo,
   isApplyingPromo,
   onPromoCodeChange,
@@ -534,7 +564,6 @@ function CheckoutContent({
   step: DepositStep;
   setStep: (step: DepositStep) => void;
   invoice: DepositInvoice | null;
-  error: string | null;
   copied: string | null;
   countdown: string;
   creatingChain: DepositChain | null;
@@ -542,7 +571,6 @@ function CheckoutContent({
   copyText: (label: string, value: string) => void;
   openAccount: (accountId: string) => void;
   promoCode: string;
-  promoMessage: string | null;
   appliedPromo: PromoPreview | null;
   isApplyingPromo: boolean;
   onPromoCodeChange: (value: string) => void;
@@ -558,7 +586,6 @@ function CheckoutContent({
     Boolean(appliedPromo?.code) && appliedPromo?.code === cleanPromoCode;
   const isFreePromoApplied = isPromoApplied && appliedPromo?.finalCents === 0;
   const isPromoInvoice = invoice?.provider === "promo";
-  const shouldShowPromoMessage = Boolean(promoMessage) && !isPromoApplied;
 
   return (
     <>
@@ -609,12 +636,6 @@ function CheckoutContent({
                     )}
                   </button>
                 </div>
-
-                {shouldShowPromoMessage ? (
-                  <p className="mt-2 text-[12px] leading-5 text-red-300">
-                    {promoMessage}
-                  </p>
-                ) : null}
 
                 {isPromoApplied && appliedPromo ? (
                   <div className="mt-3 border-t border-zinc-900 pt-3">
@@ -682,12 +703,6 @@ function CheckoutContent({
                   })}
                 </div>
               )}
-
-              {error ? (
-                <div className="mt-3 rounded-2xl border border-red-950 bg-red-950/30 px-4 py-3 text-[13px] leading-5 text-red-300">
-                  {error}
-                </div>
-              ) : null}
             </motion.div>
           ) : null}
 
@@ -866,12 +881,10 @@ export default function ChallengeCta({
   const [step, setStep] = useState<DepositStep>("method");
   const [invoice, setInvoice] = useState<DepositInvoice | null>(null);
   const [creatingChain, setCreatingChain] = useState<DepositChain | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   const [promoCode, setPromoCode] = useState("");
-  const [promoMessage, setPromoMessage] = useState<string | null>(null);
   const [appliedPromo, setAppliedPromo] = useState<PromoPreview | null>(null);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
@@ -910,11 +923,9 @@ export default function ChallengeCta({
   function resetFlow() {
     setStep("method");
     setInvoice(null);
-    setError(null);
     setCopied(null);
     setCreatingChain(null);
     setPromoCode("");
-    setPromoMessage(null);
     setAppliedPromo(null);
     setIsApplyingPromo(false);
   }
@@ -953,7 +964,6 @@ export default function ChallengeCta({
 
     setPromoCode(nextValue);
     setAppliedPromo(null);
-    setPromoMessage(null);
   }
 
   async function applyPromoCode() {
@@ -963,14 +973,11 @@ export default function ChallengeCta({
 
     if (!cleanPromoCode) {
       setAppliedPromo(null);
-      setPromoMessage(null);
       return;
     }
 
     try {
       setIsApplyingPromo(true);
-      setError(null);
-      setPromoMessage(null);
 
       const response = await fetch("/api/promo-codes/validate", {
         method: "POST",
@@ -984,20 +991,44 @@ export default function ChallengeCta({
         }),
       });
 
-      const data = (await readJsonResponse(response)) as PromoPreview;
+      const data =
+        ((await readJsonResponse(response)) as PromoValidateResponse | null);
 
       if (!response.ok) {
-        throw new Error(data?.message || "Invalid promo code.");
+        const message = data?.error || data?.message || "Invalid promo code.";
+
+        setAppliedPromo(null);
+
+        toast.error(data?.toastTitle ?? "Promo code not applied", {
+          description: data?.toastDescription ?? message,
+        });
+
+        return;
+      }
+
+      if (!data?.valid) {
+        const message = data?.message || "Invalid promo code.";
+
+        setAppliedPromo(null);
+
+        toast.error(data?.toastTitle ?? "Promo code not applied", {
+          description: data?.toastDescription ?? message,
+        });
+
+        return;
       }
 
       setAppliedPromo(data);
       setPromoCode(data.code ?? cleanPromoCode);
-      setPromoMessage(null);
     } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Invalid promo code.";
+
       setAppliedPromo(null);
-      setPromoMessage(
-        error instanceof Error ? error.message : "Invalid promo code.",
-      );
+
+      toast.error("Promo code not applied", {
+        description: message,
+      });
     } finally {
       setIsApplyingPromo(false);
     }
@@ -1008,7 +1039,6 @@ export default function ChallengeCta({
 
     try {
       setCreatingChain(chain);
-      setError(null);
 
       const cleanPromoCode =
         appliedPromo?.code ?? normalizePromoInput(promoCode);
@@ -1028,22 +1058,59 @@ export default function ChallengeCta({
         }),
       });
 
-      const data = await readJsonResponse(response);
+      const data =
+        ((await readJsonResponse(response)) as CreateDepositResponse | null);
 
       if (!response.ok) {
-        throw new Error(data?.error || "Unable to create deposit invoice.");
+        const message =
+          data?.error || data?.message || "Unable to create deposit invoice.";
+
+        if (response.status === 409 && data?.code === "OPEN_DEPOSIT_LIMIT") {
+          toast.error(data.toastTitle ?? "Two deposits already open", {
+            description:
+              data.toastDescription ??
+              "Complete one deposit or wait for a quote to expire before starting another.",
+          });
+
+          return;
+        }
+
+        if (data?.code === "PROMO_INVALID") {
+          setAppliedPromo(null);
+
+          toast.error(data.toastTitle ?? "Promo code not applied", {
+            description: data.toastDescription ?? message,
+          });
+
+          return;
+        }
+
+        toast.error(data?.toastTitle ?? "Deposit not created", {
+          description: data?.toastDescription ?? message,
+        });
+
+        return;
       }
 
       if (!data?.invoice) {
-        throw new Error("Deposit invoice was not returned.");
+        const message = "Deposit invoice was not returned.";
+
+        toast.error(data?.toastTitle ?? "Deposit not created", {
+          description: data?.toastDescription ?? message,
+        });
+
+        return;
       }
 
       setInvoice(data.invoice);
       setStep("payment");
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Unable to create deposit.",
-      );
+      const message =
+        error instanceof Error ? error.message : "Unable to create deposit.";
+
+      toast.error("Deposit not created", {
+        description: message,
+      });
     } finally {
       setCreatingChain(null);
     }
@@ -1058,7 +1125,9 @@ export default function ChallengeCta({
         setCopied(null);
       }, 1200);
     } catch {
-      setError("Unable to copy. Please copy it manually.");
+      toast.error("Unable to copy", {
+        description: "Please copy it manually.",
+      });
     }
   }
 
@@ -1143,7 +1212,6 @@ export default function ChallengeCta({
       step={step}
       setStep={setStep}
       invoice={invoice}
-      error={error}
       copied={copied}
       countdown={countdown}
       creatingChain={creatingChain}
@@ -1151,7 +1219,6 @@ export default function ChallengeCta({
       copyText={copyText}
       openAccount={openAccount}
       promoCode={promoCode}
-      promoMessage={promoMessage}
       appliedPromo={appliedPromo}
       isApplyingPromo={isApplyingPromo}
       onPromoCodeChange={handlePromoCodeChange}

@@ -23,6 +23,7 @@ type CreateDepositBody = {
 };
 
 const INVOICE_EXPIRY_MS = 10 * 60 * 3000;
+const MAX_OPEN_RELAY_DEPOSITS = 2;
 
 const RELAY_QUOTE_AMOUNT_MULTIPLIER = Number(
   process.env.RELAY_QUOTE_AMOUNT_MULTIPLIER ?? "0.01",
@@ -68,6 +69,48 @@ const INVOICE_SELECT = `
   final_amount_cents
 `;
 
+class OpenDepositLimitError extends Error {
+  openDepositCount: number;
+
+  constructor(openDepositCount: number) {
+    super(
+      "You already have two open deposits. Complete one or wait for one to expire before starting another.",
+    );
+    this.name = "OpenDepositLimitError";
+    this.openDepositCount = openDepositCount;
+  }
+}
+
+function isOpenDepositLimitDbError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+
+  const message =
+    "message" in error && typeof error.message === "string"
+      ? error.message
+      : "";
+
+  return message.toLowerCase().includes("two open deposits");
+}
+
+function openDepositLimitResponse(extra?: {
+  openDepositCount?: number;
+  maxOpenDeposits?: number;
+}) {
+  return NextResponse.json(
+    {
+      code: "OPEN_DEPOSIT_LIMIT",
+      error:
+        "You already have two open deposits. Complete one or wait for one to expire before starting another.",
+      toastTitle: "Two deposits already open",
+      toastDescription:
+        "Complete one deposit or wait for a quote to expire before starting another.",
+      maxOpenDeposits: MAX_OPEN_RELAY_DEPOSITS,
+      ...extra,
+    },
+    { status: 409 },
+  );
+}
+
 function getAccountRuleAmounts(planSize: number) {
   return {
     dailyLossLimitAmount: Math.round(planSize * (DAILY_LOSS_PERCENT / 100)),
@@ -98,6 +141,69 @@ function getEdgeMinBaseCents({
   quoteCents: number;
 }) {
   return RELAY_MIN_FOLLOWS_QUOTE_MULTIPLIER ? quoteCents : finalCents;
+}
+
+async function expireStaleRelayDepositInvoices(userId: string) {
+  const nowIso = new Date().toISOString();
+
+  const { error } = await supabaseAdmin
+    .from("crypto_deposit_invoices")
+    .update({
+      status: "expired",
+      updated_at: nowIso,
+    })
+    .eq("user_id", userId)
+    .eq("provider", "relay")
+    .eq("status", "pending")
+    .lt("expires_at", nowIso);
+
+  if (error) {
+    throw error;
+  }
+}
+
+type OpenRelayDepositRow = {
+  id: string;
+  status: string | null;
+  expires_at: string | null;
+};
+
+async function getOpenRelayDepositCount(userId: string) {
+  const nowMs = Date.now();
+
+  const { data, error } = await supabaseAdmin
+    .from("crypto_deposit_invoices")
+    .select("id, status, expires_at")
+    .eq("user_id", userId)
+    .eq("provider", "relay")
+    .in("status", ["pending", "processing"])
+    .returns<OpenRelayDepositRow[]>();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).filter((invoice) => {
+    if (invoice.status === "processing") return true;
+    if (invoice.status !== "pending") return false;
+    if (!invoice.expires_at) return true;
+
+    const expiresAtMs = new Date(invoice.expires_at).getTime();
+
+    if (!Number.isFinite(expiresAtMs)) return true;
+
+    return expiresAtMs > nowMs;
+  }).length;
+}
+
+async function assertCanCreateRelayDeposit(userId: string) {
+  await expireStaleRelayDepositInvoices(userId);
+
+  const openDepositCount = await getOpenRelayDepositCount(userId);
+
+  if (openDepositCount >= MAX_OPEN_RELAY_DEPOSITS) {
+    throw new OpenDepositLimitError(openDepositCount);
+  }
 }
 
 async function upsertUser({
@@ -413,6 +519,8 @@ export async function POST(req: Request) {
       });
     }
 
+    await assertCanCreateRelayDeposit(userId);
+
     const quoteCents = getQuoteCents(finalCents);
     const destinationAmountAtomic = centsToUsdcAtomic(quoteCents);
     const expectedDestinationAmountDisplay = usdcAtomicToDisplay(
@@ -502,6 +610,10 @@ export async function POST(req: Request) {
       .single();
 
     if (invoiceError) {
+      if (isOpenDepositLimitDbError(invoiceError)) {
+        return openDepositLimitResponse();
+      }
+
       throw invoiceError;
     }
 
@@ -543,6 +655,13 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("[crypto-deposits/create] error", error);
+
+    if (error instanceof OpenDepositLimitError) {
+      return openDepositLimitResponse({
+        openDepositCount: error.openDepositCount,
+        maxOpenDeposits: MAX_OPEN_RELAY_DEPOSITS,
+      });
+    }
 
     return NextResponse.json(
       {

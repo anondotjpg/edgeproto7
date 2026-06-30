@@ -1,9 +1,31 @@
 // app/api/promo-codes/validate/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import type { PlanKey } from "@/lib/plans";
+import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { validatePromoCode } from "@/lib/promo-codes";
+
+function promoToastError({
+  status,
+  code,
+  message,
+}: {
+  status: number;
+  code: "PROMO_VALIDATE_FAILED" | "PROMO_INVALID";
+  message: string;
+}) {
+  return NextResponse.json(
+    {
+      code,
+      valid: false,
+      error: message,
+      message,
+      toastTitle: "Promo code not applied",
+      toastDescription: message,
+    },
+    { status },
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,8 +36,12 @@ export async function POST(req: NextRequest) {
     const privyUserId =
       typeof body.privyUserId === "string" ? body.privyUserId : "";
 
-    if (!planKey || !privyUserId) {
-      return NextResponse.json({ error: "Missing fields." }, { status: 400 });
+    if (!planKey || !(planKey in PLAN_CONFIG) || !privyUserId) {
+      return promoToastError({
+        status: 400,
+        code: "PROMO_VALIDATE_FAILED",
+        message: "Missing fields.",
+      });
     }
 
     const { data: userRow, error: userError } = await supabaseAdmin
@@ -25,7 +51,11 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (userError || !userRow) {
-      return NextResponse.json({ error: "User not found." }, { status: 401 });
+      return promoToastError({
+        status: 401,
+        code: "PROMO_VALIDATE_FAILED",
+        message: "User not found.",
+      });
     }
 
     const result = await validatePromoCode({
@@ -35,14 +65,30 @@ export async function POST(req: NextRequest) {
     });
 
     if (!result.valid) {
-      return NextResponse.json(result, { status: 400 });
+      const message = result.message ?? "Invalid promo code.";
+
+      return NextResponse.json(
+        {
+          ...result,
+          code: "PROMO_INVALID",
+          error: message,
+          message,
+          toastTitle: "Promo code not applied",
+          toastDescription: message,
+        },
+        { status: 400 },
+      );
     }
 
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unable to validate promo." },
-      { status: 500 },
-    );
+    const message =
+      error instanceof Error ? error.message : "Unable to validate promo.";
+
+    return promoToastError({
+      status: 500,
+      code: "PROMO_VALIDATE_FAILED",
+      message,
+    });
   }
 }
