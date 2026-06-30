@@ -41,19 +41,10 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-zinc-900 ${className}`} />;
 }
 
-function getFundedAccountRowClassName(index: number) {
-  const tint =
-    index % 3 === 0
-      ? "bg-zinc-950/80"
-      : index % 3 === 1
-        ? "bg-zinc-900/35"
-        : "bg-zinc-900/20";
-
-  return [
-    "border-b border-zinc-900/80 px-4 py-4 last:border-b-0 sm:px-5 lg:grid lg:grid-cols-[1fr_140px_140px_120px] lg:items-center lg:gap-3",
-    "transition-colors hover:bg-zinc-900/55",
-    tint,
-  ].join(" ");
+function getStaggeredTableRowBg(index: number) {
+  if (index % 3 === 0) return "bg-zinc-950/80";
+  if (index % 3 === 1) return "bg-zinc-900/35";
+  return "bg-zinc-900/20";
 }
 
 function FundedAccountsTableHeader() {
@@ -133,10 +124,13 @@ function PayoutsSkeleton() {
         <section className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80">
           <FundedAccountsTableHeader />
 
-          {Array.from({ length: 3 }).map((_, index) => (
+          {[1, 2, 3].map((row, index) => (
             <div
-              key={`payouts-skeleton-${index}`}
-              className={getFundedAccountRowClassName(index)}
+              key={row}
+              className={[
+                "border-b border-zinc-900/80 px-4 py-4 last:border-b-0 sm:px-5 lg:grid lg:grid-cols-[1fr_140px_140px_120px] lg:items-center lg:gap-3",
+                getStaggeredTableRowBg(index),
+              ].join(" ")}
             >
               <div>
                 <SkeletonBlock className="h-4 w-40" />
@@ -295,7 +289,10 @@ export default function PayoutsPage() {
                   <Link
                     key={account.id}
                     href={`/accounts/${account.id}`}
-                    className={getFundedAccountRowClassName(index)}
+                    className={[
+                      "block border-b border-zinc-900/80 px-4 py-4 last:border-b-0 hover:bg-zinc-900/40 sm:px-5 lg:grid lg:grid-cols-[1fr_140px_140px_120px] lg:items-center lg:gap-3",
+                      getStaggeredTableRowBg(index),
+                    ].join(" ")}
                   >
                     <div className="min-w-0">
                       <div className="truncate text-[15px] font-semibold text-zinc-100">
