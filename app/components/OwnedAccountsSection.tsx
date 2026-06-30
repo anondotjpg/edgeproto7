@@ -567,7 +567,7 @@ export default function OwnedAccountsSection() {
                     ) : (
                       <div className="flex min-h-[60px] items-center justify-between gap-4">
                         <div className="flex min-w-0 flex-1 flex-col justify-center">
-                          <div className="truncate text-[17px] font-semibold leading-[1.05] tracking-tight text-zinc-100">
+                          <div className="truncate text-[17px] font-semibold leading-[1.05] tracking-tight text-zinc-100 overflow-visible">
                             {displayName}
                           </div>
 
