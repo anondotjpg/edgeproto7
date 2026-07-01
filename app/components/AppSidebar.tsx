@@ -15,13 +15,13 @@ const MAIN_NAV_LINKS = [
     label: "Dash",
     href: "/",
     Icon: GoHomeFill,
-    mobileIconClassName: "h-[25px] w-[25px]",
+    mobileIconClassName: "h-[26px] w-[26px]",
   },
   {
     label: "Accounts",
     href: "/accounts",
     Icon: MdAccountBalanceWallet,
-    mobileIconClassName: "h-[25px] w-[25px]",
+    mobileIconClassName: "h-[26px] w-[26px]",
   },
   {
     label: "Portfolio",
@@ -33,7 +33,7 @@ const MAIN_NAV_LINKS = [
     label: "Payouts",
     href: "/payouts",
     Icon: SiCashapp,
-    mobileIconClassName: "h-[21px] w-[21px]",
+    mobileIconClassName: "h-[22px] w-[22px]",
   },
 ] as const;
 
@@ -42,7 +42,7 @@ const SECONDARY_NAV_LINKS = [
     label: "Deposits",
     href: "/deposits",
     Icon: BiSolidPurchaseTag,
-    mobileIconClassName: "h-[25px] w-[25px]",
+    mobileIconClassName: "h-[27px] w-[27px]",
   },
 ] as const;
 
