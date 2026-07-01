@@ -744,7 +744,6 @@ function MobileMarketModalButton({
   );
 }
 
-
 function HideLiveToggle({
   enabled,
   onToggle,
@@ -796,7 +795,7 @@ function DateMarketHeader({
 
       {action ? <div className="shrink-0 xl:hidden">{action}</div> : null}
 
-      {['Moneyline', 'Spread', 'Total'].map((label) => (
+      {["Moneyline", "Spread", "Total"].map((label) => (
         <div
           key={label}
           className="hidden items-center justify-center pb-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 xl:flex"
@@ -1169,13 +1168,22 @@ export default function GamesClient({
   }
 
   function renderHideLiveToggle() {
-    if (liveGameCount === 0) return null;
+    const hasLiveGames = liveGameCount > 0;
 
     return (
-      <HideLiveToggle
-        enabled={hideLiveGames}
-        onToggle={toggleHideLiveGames}
-      />
+      <span
+        className={[
+          "inline-flex",
+          hasLiveGames ? "" : "pointer-events-none invisible",
+        ].join(" ")}
+        aria-hidden={!hasLiveGames}
+      >
+        <HideLiveToggle
+          enabled={hideLiveGames}
+          onToggle={toggleHideLiveGames}
+          disabled={!hasLiveGames}
+        />
+      </span>
     );
   }
 
