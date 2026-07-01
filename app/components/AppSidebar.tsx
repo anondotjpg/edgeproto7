@@ -39,7 +39,7 @@ const MAIN_NAV_LINKS = [
 
 const SECONDARY_NAV_LINKS = [
   {
-    label: "Depos",
+    label: "Deposits",
     href: "/deposits",
     Icon: BiSolidPurchaseTag,
     mobileIconClassName: "h-[25px] w-[25px]",
@@ -56,9 +56,11 @@ function isActivePath(pathname: string, href: string) {
 function DesktopNavLink({
   label,
   href,
+  secondary = false,
 }: {
   label: string;
   href: string;
+  secondary?: boolean;
 }) {
   const pathname = usePathname();
   const isActive = isActivePath(pathname, href);
@@ -67,12 +69,24 @@ function DesktopNavLink({
     <Link
       href={href}
       className={[
-        "group flex h-[42px] w-full items-center rounded-md outline-none transition-colors",
+        "group flex w-full items-center rounded-md outline-none transition-colors",
         "focus:outline-none focus-visible:outline-none",
-        isActive ? "text-zinc-100" : "text-zinc-500 hover:text-zinc-200",
+        secondary ? "h-[36px]" : "h-[42px]",
+        isActive
+          ? "text-zinc-100"
+          : secondary
+            ? "text-zinc-600 hover:text-zinc-300"
+            : "text-zinc-500 hover:text-zinc-200",
       ].join(" ")}
     >
-      <span className="text-[30px] font-semibold leading-none tracking-tight">
+      <span
+        className={[
+          "leading-none tracking-tight",
+          secondary
+            ? "text-[24px] font-semibold"
+            : "text-[30px] font-semibold",
+        ].join(" ")}
+      >
         {label}
       </span>
     </Link>
@@ -118,6 +132,7 @@ export default function AppSidebar() {
                   key={item.label}
                   label={item.label}
                   href={item.href}
+                  secondary
                 />
               ))}
             </div>
