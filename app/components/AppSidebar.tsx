@@ -39,7 +39,7 @@ const MAIN_NAV_LINKS = [
 
 const SECONDARY_NAV_LINKS = [
   {
-    label: "Deposits",
+    label: "Depos",
     href: "/deposits",
     Icon: BiSolidPurchaseTag,
     mobileIconClassName: "h-[25px] w-[25px]",
