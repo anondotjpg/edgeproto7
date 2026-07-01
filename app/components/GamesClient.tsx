@@ -878,28 +878,26 @@ function GameCard({
   const hasTotal = Boolean(total && overTotal && underTotal);
   const hasMoreBets = hasSpread || hasTotal;
 
-  useEffect(() => {
+  function scrollToBottomAfterMoreBetsRender() {
     if (!moreBetsOpen || !shouldAutoScrollOnMoreBetsOpen) return;
     if (typeof window === "undefined") return;
 
     const isMobileLayout = window.matchMedia("(max-width: 1279px)").matches;
     if (!isMobileLayout) return;
 
-    const scrollToBottom = () => {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: "smooth",
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const scrollHeight =
+          document.scrollingElement?.scrollHeight ??
+          document.documentElement.scrollHeight;
+
+        window.scrollTo({
+          top: scrollHeight,
+          behavior: "smooth",
+        });
       });
-    };
-
-    const firstScroll = window.setTimeout(scrollToBottom, 90);
-    const secondScroll = window.setTimeout(scrollToBottom, 280);
-
-    return () => {
-      window.clearTimeout(firstScroll);
-      window.clearTimeout(secondScroll);
-    };
-  }, [moreBetsOpen, shouldAutoScrollOnMoreBetsOpen]);
+    });
+  }
 
   return (
     <>
@@ -964,6 +962,7 @@ function GameCard({
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                  onAnimationComplete={scrollToBottomAfterMoreBetsRender}
                   className="overflow-hidden"
                 >
                   <div className="grid gap-3 pt-1 md:gap-3.5">
