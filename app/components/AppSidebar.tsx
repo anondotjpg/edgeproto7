@@ -42,7 +42,7 @@ const SECONDARY_NAV_LINKS = [
     label: "Deposits",
     href: "/deposits",
     Icon: BiSolidPurchaseTag,
-    mobileIconClassName: "h-[24px] w-[24px]",
+    mobileIconClassName: "h-[25px] w-[25px]",
   },
 ] as const;
 
