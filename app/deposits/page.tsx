@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { usePrivy } from "@privy-io/react-auth";
 import { toast } from "sonner";
 import { FiCheck, FiCopy } from "react-icons/fi";
@@ -480,12 +480,12 @@ function DepositDetails({
       exit={{ opacity: 0, height: 0 }}
       transition={{ type: "spring", stiffness: 360, damping: 34, mass: 0.8 }}
       className={[
-        "overflow-hidden border-b border-zinc-900/80 px-3 pb-4 sm:px-5",
+        "overflow-hidden",
         rowTintClassName,
         wideDesktop ? "xl:min-w-[940px]" : "xl:min-w-[820px]",
       ].join(" ")}
     >
-      <div className="grid gap-3 pt-2 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 px-3 pb-4 pt-2 sm:grid-cols-2 sm:px-5 xl:grid-cols-3">
         {invoice.provider === "relay" ? (
           <DetailCard
             label="Deposit address"
@@ -751,65 +751,69 @@ function DepositRow({
         onCancel={onCancel}
       />
 
-      <div
-        className={[
-          "hidden items-center px-5 py-3.5 text-sm transition-colors hover:bg-zinc-900/55 xl:grid",
-          expanded ? "border-b-0" : "border-b border-zinc-900/80",
-          getDesktopDepositGridClassName(showTimeLeft),
-          getDepositRowTintClassName(index),
-        ].join(" ")}
-      >
-        <DepositTitle invoice={invoice} />
+      <div className="hidden border-b border-zinc-900/80 xl:block">
+        <div
+          className={[
+            "grid items-center px-5 py-3.5 text-sm transition-colors hover:bg-zinc-900/55",
+            getDesktopDepositGridClassName(showTimeLeft),
+            getDepositRowTintClassName(index),
+          ].join(" ")}
+        >
+          <DepositTitle invoice={invoice} />
 
-        <div className="font-medium text-zinc-300">{invoice.asset}</div>
+          <div className="font-medium text-zinc-300">{invoice.asset}</div>
 
-        <StatusText status={invoice.status} />
+          <StatusText status={invoice.status} />
 
-        <div className="text-right font-semibold text-zinc-100">{quantity}</div>
-
-        <div className="text-right font-semibold text-zinc-100">
-          {getDepositTotal(invoice)}
-        </div>
-
-        {showTimeLeft ? (
-          <div className="text-right font-semibold tabular-nums text-zinc-100">
-            {getOpenTimeLabel(invoice, nowMs)}
+          <div className="text-right font-semibold text-zinc-100">
+            {quantity}
           </div>
-        ) : null}
 
-        <div className="flex items-center justify-end gap-3 pl-6">
-          {canCancel ? (
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={canceling}
-              className="inline-flex h-9 w-[50px] cursor-pointer items-center justify-center bg-transparent px-0 text-[12px] font-semibold text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
-            >
-              {canceling ? <InlineSpinner /> : "Cancel"}
-            </button>
+          <div className="text-right font-semibold text-zinc-100">
+            {getDepositTotal(invoice)}
+          </div>
+
+          {showTimeLeft ? (
+            <div className="text-right font-semibold tabular-nums text-zinc-100">
+              {getOpenTimeLabel(invoice, nowMs)}
+            </div>
           ) : null}
 
-          <button
-            type="button"
-            onClick={onToggleExpand}
-            className="h-9 w-[54px] cursor-pointer rounded-xl border border-zinc-800 bg-black/30 px-0 text-[12px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
-          >
-            {expanded ? "Hide" : "View"}
-          </button>
-        </div>
-      </div>
+          <div className="flex items-center justify-end gap-3 pl-6">
+            {canCancel ? (
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={canceling}
+                className="inline-flex h-9 w-[50px] cursor-pointer items-center justify-center bg-transparent px-0 text-[12px] font-semibold text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                {canceling ? <InlineSpinner /> : "Cancel"}
+              </button>
+            ) : null}
 
-      {expanded ? (
-        <div className="hidden xl:block">
-          <DepositDetails
-            invoice={invoice}
-            copied={copied}
-            onCopy={onCopy}
-            wideDesktop={showTimeLeft}
-            rowTintClassName={getDepositRowTintClassName(index)}
-          />
+            <button
+              type="button"
+              onClick={onToggleExpand}
+              className="h-9 w-[54px] cursor-pointer rounded-xl border border-zinc-800 bg-black/30 px-0 text-[12px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+            >
+              {expanded ? "Hide" : "View"}
+            </button>
+          </div>
         </div>
-      ) : null}
+
+        <AnimatePresence initial={false}>
+          {expanded ? (
+            <DepositDetails
+              key={`details-${invoice.id}`}
+              invoice={invoice}
+              copied={copied}
+              onCopy={onCopy}
+              wideDesktop={showTimeLeft}
+              rowTintClassName={getDepositRowTintClassName(index)}
+            />
+          ) : null}
+        </AnimatePresence>
+      </div>
     </>
   );
 }
