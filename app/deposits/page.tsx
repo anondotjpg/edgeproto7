@@ -186,6 +186,17 @@ function getStatusClassName(status: DepositInvoiceStatus) {
   return "text-zinc-300";
 }
 
+function formatRelayStatus(value: string | null | undefined) {
+  const cleanValue = value?.trim();
+
+  if (!cleanValue) return null;
+
+  return cleanValue
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function getDepositTotal(invoice: DepositInvoice) {
   if (typeof invoice.final_amount_cents === "number") {
     return formatCents(invoice.final_amount_cents);
@@ -355,6 +366,18 @@ function StatusText({ status }: { status: DepositInvoiceStatus }) {
   );
 }
 
+function InlineSpinner({ className = "" }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={[
+        "inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-700 border-t-red-400",
+        className,
+      ].join(" ")}
+    />
+  );
+}
+
 function CopyButton({
   label,
   value,
@@ -446,6 +469,8 @@ function DepositDetails({
   rowTintClassName?: string;
 }) {
   const transactionHash = getInvoiceTransactionHash(invoice);
+  const relayStatusLabel =
+    invoice.provider === "relay" ? formatRelayStatus(invoice.relay_status) : null;
 
   return (
     <motion.div
@@ -499,6 +524,15 @@ function DepositDetails({
             label="Transaction"
             value={transactionHash}
             copyLabel={`tx-${invoice.id}`}
+            copied={copied}
+            onCopy={onCopy}
+          />
+        ) : null}
+
+        {relayStatusLabel ? (
+          <DetailCard
+            label="Relay status"
+            value={relayStatusLabel}
             copied={copied}
             onCopy={onCopy}
           />
@@ -608,9 +642,9 @@ function MobileDepositCard({
               type="button"
               onClick={onCancel}
               disabled={canceling}
-              className="h-7 cursor-pointer bg-transparent px-0 text-[11px] font-semibold leading-none text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex h-7 w-[44px] cursor-pointer items-center justify-center bg-transparent px-0 text-[11px] font-semibold leading-none text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
             >
-              {canceling ? "..." : "Cancel"}
+              {canceling ? <InlineSpinner /> : "Cancel"}
             </button>
           ) : null}
 
@@ -719,7 +753,8 @@ function DepositRow({
 
       <div
         className={[
-          "hidden items-center border-b border-zinc-900/80 px-5 py-3.5 text-sm transition-colors hover:bg-zinc-900/55 xl:grid",
+          "hidden items-center px-5 py-3.5 text-sm transition-colors hover:bg-zinc-900/55 xl:grid",
+          expanded ? "border-b-0" : "border-b border-zinc-900/80",
           getDesktopDepositGridClassName(showTimeLeft),
           getDepositRowTintClassName(index),
         ].join(" ")}
@@ -748,9 +783,9 @@ function DepositRow({
               type="button"
               onClick={onCancel}
               disabled={canceling}
-              className="h-9 cursor-pointer bg-transparent px-0 text-[12px] font-semibold text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex h-9 w-[50px] cursor-pointer items-center justify-center bg-transparent px-0 text-[12px] font-semibold text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
             >
-              {canceling ? "..." : "Cancel"}
+              {canceling ? <InlineSpinner /> : "Cancel"}
             </button>
           ) : null}
 

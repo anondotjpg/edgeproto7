@@ -103,6 +103,16 @@ function mixHexColors(from: string, to: string, amount: number) {
   return `rgb(${red}, ${green}, ${blue})`;
 }
 
+
+function ButtonSpinner() {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-400 border-t-zinc-950"
+    />
+  );
+}
+
 function MiniGoalProgressBar({
   value,
   tone,
@@ -547,9 +557,9 @@ export default function OwnedAccountsSection() {
                             type="button"
                             onClick={() => saveAccountName(account.id)}
                             disabled={isSaving}
-                            className="cursor-pointer rounded-lg bg-zinc-100 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-950 disabled:opacity-50"
+                            className="grid min-w-[48px] cursor-pointer place-items-center rounded-lg bg-zinc-100 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-950 disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            {isSaving ? "..." : "Save"}
+                            {isSaving ? <ButtonSpinner /> : "Save"}
                           </button>
 
                           <button
