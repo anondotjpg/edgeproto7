@@ -871,22 +871,40 @@ function DepositsSkeleton() {
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={`deposit-skeleton-${index}`}
-            className="border-b border-zinc-900/80 px-3 py-4 last:border-b-0 sm:px-5 xl:min-w-[940px] xl:py-3.5"
+            className={[
+              "border-b border-zinc-900/80 px-3 py-4 last:border-b-0 sm:px-5 xl:min-w-[940px] xl:py-3.5",
+              getMobileDepositRowTintClassName(index),
+              "xl:bg-transparent",
+            ].join(" ")}
           >
             <div className="xl:hidden">
-              <div className="flex justify-between gap-4">
-                <div>
-                  <SkeletonBlock className="h-5 w-32" />
-                  <SkeletonBlock className="mt-2 h-3 w-24" />
+              <div className="flex min-w-0 items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <SkeletonBlock className="h-4 w-28" />
+                  <SkeletonBlock className="mt-2 h-3 w-20" />
                 </div>
-                <div>
+
+                <div className="shrink-0 text-right">
                   <SkeletonBlock className="ml-auto h-6 w-20" />
-                  <SkeletonBlock className="ml-auto mt-2 h-3 w-10" />
+                  <SkeletonBlock className="ml-auto mt-2 h-3 w-16" />
                 </div>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-2.5">
-                <SkeletonBlock className="h-10" />
-                <SkeletonBlock className="h-10" />
+
+              <div className="mt-3 grid grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)_auto] items-start gap-2.5">
+                <div className="min-w-0">
+                  <SkeletonBlock className="h-3.5 w-16" />
+                  <SkeletonBlock className="mt-2 h-6 w-12" />
+                </div>
+
+                <div className="min-w-0 pl-1">
+                  <SkeletonBlock className="h-3.5 w-16" />
+                  <SkeletonBlock className="mt-2 h-6 w-20" />
+                </div>
+
+                <div className="flex min-w-[96px] shrink-0 items-center justify-end gap-3 pt-[21px]">
+                  <SkeletonBlock className="h-7 w-[44px]" />
+                  <SkeletonBlock className="h-7 w-12 rounded-lg" />
+                </div>
               </div>
             </div>
 
