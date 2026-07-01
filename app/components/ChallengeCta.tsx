@@ -932,7 +932,7 @@ function CheckoutContent({
 
                     {getInvoiceAccountQuantity(invoice, accountQuantity) > 1 ? (
                       <p className="mt-2 text-[12px] font-medium text-zinc-500">
-                        Covers{" "}
+                        Buys{" "}
                         {getAccountQuantityLabel(
                           getInvoiceAccountQuantity(invoice, accountQuantity),
                         )}
