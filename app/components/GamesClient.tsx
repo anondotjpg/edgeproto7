@@ -1167,7 +1167,11 @@ export default function GamesClient({
     [allGames],
   );
 
-  const [hideLiveGames, setHideLiveGames] = useState(readStoredHideLiveGames);
+  const [hideLiveGames, setHideLiveGames] = useState(false);
+
+  useEffect(() => {
+    setHideLiveGames(readStoredHideLiveGames());
+  }, []);
 
   const visibleGames = useMemo(() => {
     if (!hideLiveGames) return allGames;
