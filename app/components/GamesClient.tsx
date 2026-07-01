@@ -789,7 +789,7 @@ function DateMarketHeader({
 }) {
   return (
     <div className="flex items-end justify-between gap-3 xl:grid xl:grid-cols-[minmax(0,1fr)_112px_112px_112px] xl:items-end xl:gap-2">
-      <div className="text-[18px] font-semibold leading-none tracking-tight text-zinc-100">
+      <div className="text-[20px] font-semibold leading-none tracking-tight text-zinc-100">
         {date}
       </div>
 
