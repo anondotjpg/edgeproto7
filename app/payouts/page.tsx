@@ -82,17 +82,6 @@ function FundedAccountsTableHeader() {
   );
 }
 
-function FundedAccountsTableHeaderSkeleton() {
-  return (
-    <div className="hidden border-b border-zinc-900 bg-black/20 px-4 py-2.5 sm:px-5 lg:grid lg:grid-cols-[1fr_140px_140px_120px] lg:items-center lg:gap-3">
-      <SkeletonBlock className="h-3 w-20" />
-      <SkeletonBlock className="h-3 w-16" />
-      <SkeletonBlock className="h-3 w-20" />
-      <SkeletonBlock className="ml-auto h-3 w-12" />
-    </div>
-  );
-}
-
 function EmptyState({
   title,
   description,
@@ -181,7 +170,7 @@ function PayoutsSkeleton() {
       <PayoutSummarySkeleton />
 
       <section className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80">
-        <FundedAccountsTableHeaderSkeleton />
+        <FundedAccountsTableHeader />
 
         {[1, 2, 3].map((row, index) => (
           <div
