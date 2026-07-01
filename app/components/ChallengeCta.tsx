@@ -616,7 +616,7 @@ function QuantitySelector({
   }
 
   return (
-    <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/30 p-3">
+    <div className="mt-3">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <div className="text-[13px] font-semibold leading-none text-zinc-100">
@@ -628,12 +628,12 @@ function QuantitySelector({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center rounded-2xl bg-zinc-950 p-1">
+        <div className="flex shrink-0 items-center rounded-2xl bg-zinc-900/70 p-1">
           <button
             type="button"
             onClick={() => adjustQuantity(-1)}
             disabled={disabled || safeQuantity <= 1}
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-xl text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-xl text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Decrease account quantity"
           >
             −
@@ -647,7 +647,7 @@ function QuantitySelector({
             type="button"
             onClick={() => adjustQuantity(1)}
             disabled={disabled || safeQuantity >= MAX_ACCOUNT_QUANTITY}
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-xl text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-xl text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Increase account quantity"
           >
             +
