@@ -96,18 +96,41 @@ type CreateDepositResponse = {
 };
 
 
-type PromoValidateResponse = Partial<PromoPreview> & {
-  valid?: boolean;
-  code?: string | null;
-  promoCodeId?: string | null;
-  subtotalCents?: number;
-  discountCents?: number;
-  finalCents?: number;
-  message?: string | null;
+type PromoValidateSuccessResponse = PromoPreview & {
   error?: string;
   toastTitle?: string;
   toastDescription?: string;
 };
+
+type PromoValidateErrorResponse = {
+  valid?: false;
+  code?: string;
+  error?: string;
+  message?: string | null;
+  toastTitle?: string;
+  toastDescription?: string;
+};
+
+type PromoValidateResponse =
+  | PromoValidateSuccessResponse
+  | PromoValidateErrorResponse;
+
+function isPromoValidateSuccess(
+  value: PromoValidateResponse | null,
+): value is PromoValidateSuccessResponse {
+  if (!value || value.valid !== true) {
+    return false;
+  }
+
+  return (
+    (typeof value.code === "string" || value.code === null) &&
+    (typeof value.promoCodeId === "string" || value.promoCodeId === null) &&
+    typeof value.subtotalCents === "number" &&
+    typeof value.discountCents === "number" &&
+    typeof value.finalCents === "number" &&
+    (typeof value.message === "string" || value.message === null)
+  );
+}
 
 type ChallengeCtaProps = {
   cta: string;
@@ -1006,8 +1029,8 @@ export default function ChallengeCta({
         return;
       }
 
-      if (!data?.valid) {
-        const message = data?.message || "Invalid promo code.";
+      if (!isPromoValidateSuccess(data)) {
+        const message = data?.error || data?.message || "Invalid promo code.";
 
         setAppliedPromo(null);
 
