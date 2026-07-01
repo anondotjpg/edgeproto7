@@ -21,19 +21,19 @@ const MAIN_NAV_LINKS = [
     label: "Accounts",
     href: "/accounts",
     Icon: MdAccountBalanceWallet,
-    mobileIconClassName: "h-[26px] w-[26px]",
+    mobileIconClassName: "h-[25px] w-[25px]",
   },
   {
     label: "Portfolio",
     href: "/portfolio",
     Icon: IoStatsChart,
-    mobileIconClassName: "h-[24px] w-[24px]",
+    mobileIconClassName: "h-[27px] w-[27px]",
   },
   {
     label: "Payouts",
     href: "/payouts",
     Icon: SiCashapp,
-    mobileIconClassName: "h-[23px] w-[23px]",
+    mobileIconClassName: "h-[21px] w-[21px]",
   },
 ] as const;
 
@@ -42,7 +42,7 @@ const SECONDARY_NAV_LINKS = [
     label: "Deposits",
     href: "/deposits",
     Icon: BiSolidPurchaseTag,
-    mobileIconClassName: "h-[25px] w-[25px]",
+    mobileIconClassName: "h-[24px] w-[24px]",
   },
 ] as const;
 
@@ -174,7 +174,7 @@ export default function AppSidebar() {
                     isActive ? "text-zinc-100" : "text-zinc-500",
                   ].join(" ")}
                 >
-                  <span className="flex h-7 w-7 items-center justify-center">
+                  <span className="flex h-8 w-8 items-center justify-center">
                     <Icon
                       aria-hidden="true"
                       className={`${item.mobileIconClassName} block shrink-0`}

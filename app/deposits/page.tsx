@@ -92,7 +92,7 @@ function getDepositRowTintClassName(index: number) {
 }
 
 function getMobileDepositRowTintClassName(index: number) {
-  return index % 2 === 0 ? "bg-zinc-950/80" : "bg-zinc-900/30";
+  return getDepositRowTintClassName(index);
 }
 
 function isOpenStatus(status: DepositInvoiceStatus) {
@@ -355,7 +355,6 @@ function TableHeader({
   );
 }
 
-
 function StatusText({ status }: { status: DepositInvoiceStatus }) {
   return (
     <div
@@ -470,7 +469,9 @@ function DepositDetails({
 }) {
   const transactionHash = getInvoiceTransactionHash(invoice);
   const relayStatusLabel =
-    invoice.provider === "relay" ? formatRelayStatus(invoice.relay_status) : null;
+    invoice.provider === "relay"
+      ? formatRelayStatus(invoice.relay_status)
+      : null;
 
   return (
     <motion.div

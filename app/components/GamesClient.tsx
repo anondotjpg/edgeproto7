@@ -469,7 +469,8 @@ function buildBetData({
     polymarketEventId: marketMeta?.event_id ?? game.polymarket?.event_id ?? null,
     polymarketEventSlug:
       marketMeta?.event_slug ?? game.polymarket?.event_slug ?? null,
-    polymarketMarketId: marketMeta?.market_id ?? game.polymarket?.market_id ?? null,
+    polymarketMarketId:
+      marketMeta?.market_id ?? game.polymarket?.market_id ?? null,
     polymarketConditionId:
       marketMeta?.condition_id ?? game.polymarket?.condition_id ?? null,
     polymarketMarketSlug:
@@ -852,10 +853,12 @@ function GameCard({
   game,
   selectedBet,
   onSelectBet,
+  shouldAutoScrollOnMoreBetsOpen = false,
 }: {
   game: Game;
   selectedBet: BetSlipDataWithTeamAlias | null;
   onSelectBet: (data: BetSlipDataWithTeamAlias) => void;
+  shouldAutoScrollOnMoreBetsOpen?: boolean;
 }) {
   const bookmaker = game.bookmakers[0];
   const h2h = getMarket(bookmaker, "h2h");
@@ -874,6 +877,29 @@ function GameCard({
   const hasSpread = Boolean(spread && awaySpread && homeSpread);
   const hasTotal = Boolean(total && overTotal && underTotal);
   const hasMoreBets = hasSpread || hasTotal;
+
+  useEffect(() => {
+    if (!moreBetsOpen || !shouldAutoScrollOnMoreBetsOpen) return;
+    if (typeof window === "undefined") return;
+
+    const isMobileLayout = window.matchMedia("(max-width: 1279px)").matches;
+    if (!isMobileLayout) return;
+
+    const scrollToBottom = () => {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: "smooth",
+      });
+    };
+
+    const firstScroll = window.setTimeout(scrollToBottom, 90);
+    const secondScroll = window.setTimeout(scrollToBottom, 280);
+
+    return () => {
+      window.clearTimeout(firstScroll);
+      window.clearTimeout(secondScroll);
+    };
+  }, [moreBetsOpen, shouldAutoScrollOnMoreBetsOpen]);
 
   return (
     <>
@@ -1256,7 +1282,9 @@ export default function GamesClient({
                 </div>
               ) : visibleGames.length === 0 ? (
                 <div className="flex items-center justify-between gap-3 text-[13px] text-zinc-400">
-                  <span>No non-live {selectedLeagueMeta.label} markets right now</span>
+                  <span>
+                    No non-live {selectedLeagueMeta.label} markets right now
+                  </span>
                   <span className="xl:hidden">{renderHideLiveToggle()}</span>
                 </div>
               ) : (
@@ -1269,22 +1297,31 @@ export default function GamesClient({
                       />
 
                       <div className="grid gap-2.5 md:gap-3">
-                        {group.games.map((game, index) => (
-                          <div
-                            key={game.id}
-                            className={
-                              index > 0
-                                ? "xl:border-t xl:border-zinc-900/80 xl:pt-3"
-                                : ""
-                            }
-                          >
-                            <GameCard
-                              game={game}
-                              selectedBet={selectedBet}
-                              onSelectBet={setSelectedBet}
-                            />
-                          </div>
-                        ))}
+                        {group.games.map((game, index) => {
+                          const isLastVisibleGame =
+                            groupIndex === groupedGames.length - 1 &&
+                            index === group.games.length - 1;
+
+                          return (
+                            <div
+                              key={game.id}
+                              className={
+                                index > 0
+                                  ? "xl:border-t xl:border-zinc-900/80 xl:pt-3"
+                                  : ""
+                              }
+                            >
+                              <GameCard
+                                game={game}
+                                selectedBet={selectedBet}
+                                onSelectBet={setSelectedBet}
+                                shouldAutoScrollOnMoreBetsOpen={
+                                  isLastVisibleGame
+                                }
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
