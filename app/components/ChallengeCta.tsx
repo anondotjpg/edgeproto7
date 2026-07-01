@@ -76,6 +76,7 @@ type DepositInvoice = {
   subtotal_amount_cents?: number | null;
   discount_amount_cents?: number | null;
   final_amount_cents?: number | null;
+  account_quantity?: number | null;
 };
 
 type CreateDepositResponse = {
@@ -145,6 +146,8 @@ const PLAN_FEE_CENTS: Partial<Record<PlanKey, number>> = {
   "2000": 8900,
   "1000": 4900,
 };
+
+const MAX_ACCOUNT_QUANTITY = 5;
 
 const PAYMENT_METHODS: {
   chain: DepositChain;
@@ -253,6 +256,25 @@ function formatCents(cents: number) {
   });
 }
 
+function clampAccountQuantity(value: number) {
+  if (!Number.isFinite(value)) return 1;
+
+  return Math.min(MAX_ACCOUNT_QUANTITY, Math.max(1, Math.round(value)));
+}
+
+function getAccountQuantityLabel(quantity: number) {
+  return quantity === 1 ? "1 account" : `${quantity} accounts`;
+}
+
+function getInvoiceAccountQuantity(
+  invoice: DepositInvoice | null | undefined,
+  fallbackQuantity = 1,
+) {
+  return clampAccountQuantity(
+    Number(invoice?.account_quantity ?? fallbackQuantity),
+  );
+}
+
 function normalizePromoInput(value: string) {
   return value.toUpperCase().replace(/\s+/g, "");
 }
@@ -339,17 +361,29 @@ function getDiscountedFeeLabel({
   feeLabel,
   appliedPromo,
   invoice,
+  accountQuantity,
+  planKey,
 }: {
   feeLabel: string;
   appliedPromo: PromoPreview | null;
   invoice?: DepositInvoice | null;
+  accountQuantity: number;
+  planKey: PlanKey;
 }) {
+  const safeQuantity = clampAccountQuantity(accountQuantity);
+
   if (typeof invoice?.final_amount_cents === "number") {
     return formatCents(invoice.final_amount_cents);
   }
 
   if (typeof appliedPromo?.finalCents === "number") {
-    return formatCents(appliedPromo.finalCents);
+    return formatCents(appliedPromo.finalCents * safeQuantity);
+  }
+
+  const planFeeCents = PLAN_FEE_CENTS[planKey];
+
+  if (typeof planFeeCents === "number") {
+    return formatCents(planFeeCents * safeQuantity);
   }
 
   return feeLabel;
@@ -562,10 +596,70 @@ function PaymentBadge({
   );
 }
 
+function QuantitySelector({
+  quantity,
+  disabled,
+  onChange,
+}: {
+  quantity: number;
+  disabled: boolean;
+  onChange: (quantity: number) => void;
+}) {
+  const safeQuantity = clampAccountQuantity(quantity);
+
+  function adjustQuantity(delta: number) {
+    onChange(clampAccountQuantity(safeQuantity + delta));
+  }
+
+  return (
+    <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/30 p-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <div className="text-[13px] font-semibold leading-none text-zinc-100">
+            Quantity
+          </div>
+
+          <div className="mt-1 text-[12px] leading-4 text-zinc-500">
+            Buy up to {MAX_ACCOUNT_QUANTITY} accounts at once.
+          </div>
+        </div>
+
+        <div className="flex shrink-0 items-center rounded-2xl bg-zinc-950 p-1">
+          <button
+            type="button"
+            onClick={() => adjustQuantity(-1)}
+            disabled={disabled || safeQuantity <= 1}
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-xl text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
+            aria-label="Decrease account quantity"
+          >
+            −
+          </button>
+
+          <div className="grid h-8 min-w-10 place-items-center px-2 text-[15px] font-semibold tabular-nums text-zinc-100">
+            {safeQuantity}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => adjustQuantity(1)}
+            disabled={disabled || safeQuantity >= MAX_ACCOUNT_QUANTITY}
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-xl text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
+            aria-label="Increase account quantity"
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CheckoutContent({
   accountTitle,
   feeLabel,
   planKey,
+  accountQuantity,
+  onAccountQuantityChange,
   step,
   setStep,
   invoice,
@@ -584,6 +678,8 @@ function CheckoutContent({
   accountTitle: string;
   feeLabel: string;
   planKey: PlanKey;
+  accountQuantity: number;
+  onAccountQuantityChange: (quantity: number) => void;
   step: DepositStep;
   setStep: (step: DepositStep) => void;
   invoice: DepositInvoice | null;
@@ -604,6 +700,8 @@ function CheckoutContent({
     feeLabel,
     appliedPromo,
     invoice,
+    accountQuantity,
+    planKey,
   });
   const isPromoApplied =
     Boolean(appliedPromo?.code) && appliedPromo?.code === cleanPromoCode;
@@ -633,6 +731,12 @@ function CheckoutContent({
                   Pay with crypto
                 </h3>
               </div>
+
+              <QuantitySelector
+                quantity={accountQuantity}
+                disabled={Boolean(creatingChain)}
+                onChange={onAccountQuantityChange}
+              />
 
               <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/30 p-3">
                 <div className="flex h-10 items-center gap-2">
@@ -665,14 +769,14 @@ function CheckoutContent({
                     <div className="flex items-center justify-between text-[12px]">
                       <span className="text-zinc-500">Discount</span>
                       <span className="font-semibold text-zinc-100">
-                        -{formatCents(appliedPromo.discountCents)}
+                        -{formatCents(appliedPromo.discountCents * accountQuantity)}
                       </span>
                     </div>
 
                     <div className="mt-1 flex items-center justify-between text-[12px]">
                       <span className="text-zinc-500">New total</span>
                       <span className="font-semibold text-zinc-100">
-                        {formatCents(appliedPromo.finalCents)}
+                        {formatCents(appliedPromo.finalCents * accountQuantity)}
                       </span>
                     </div>
                   </div>
@@ -686,8 +790,12 @@ function CheckoutContent({
                   className="mt-3"
                 >
                   {creatingChain
-                    ? "Creating account..."
-                    : "Create free account"}
+                    ? accountQuantity === 1
+                      ? "Creating account..."
+                      : "Creating accounts..."
+                    : accountQuantity === 1
+                      ? "Create free account"
+                      : `Create ${accountQuantity} free accounts`}
                 </OffsetButton>
               ) : (
                 <div className="mt-3 grid gap-2.5">
@@ -740,7 +848,9 @@ function CheckoutContent({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="text-[18px] font-semibold leading-none tracking-tight text-zinc-50">
-                    {isPromoInvoice ? "Account ready" : `Send ${invoice.asset}`}
+                    {isPromoInvoice
+                      ? getAccountQuantityLabel(getInvoiceAccountQuantity(invoice, accountQuantity)) + " ready"
+                      : `Send ${invoice.asset}`}
                   </h3>
 
                   <p className="mt-1 text-[13px] leading-5 text-zinc-500">
@@ -800,6 +910,12 @@ function CheckoutContent({
                         {invoice.asset}
                       </p>
                     </div>
+
+                    {getInvoiceAccountQuantity(invoice, accountQuantity) > 1 ? (
+                      <p className="mt-2 text-[12px] font-medium text-zinc-500">
+                        Covers {getAccountQuantityLabel(getInvoiceAccountQuantity(invoice, accountQuantity))}
+                      </p>
+                    ) : null}
                   </div>
 
                   <InfoCard
@@ -867,7 +983,9 @@ function CheckoutContent({
                   <OffsetButton
                     onClick={() => openAccount(invoice.credited_account_id!)}
                   >
-                    Open account
+{getInvoiceAccountQuantity(invoice, accountQuantity) > 1
+                      ? "Open first account"
+                      : "Open account"}
                   </OffsetButton>
                 </div>
               ) : null}
@@ -910,6 +1028,7 @@ export default function ChallengeCta({
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<PromoPreview | null>(null);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [accountQuantity, setAccountQuantity] = useState(1);
 
   const accountTitle = getAccountTitle(planKey);
   const feeLabel = getPlanFeeLabel(planKey);
@@ -917,6 +1036,8 @@ export default function ChallengeCta({
     feeLabel,
     appliedPromo,
     invoice,
+    accountQuantity,
+    planKey,
   });
 
   const privyUserId = user?.id ?? null;
@@ -951,6 +1072,7 @@ export default function ChallengeCta({
     setPromoCode("");
     setAppliedPromo(null);
     setIsApplyingPromo(false);
+    setAccountQuantity(1);
   }
 
   function openCheckout() {
@@ -987,6 +1109,10 @@ export default function ChallengeCta({
 
     setPromoCode(nextValue);
     setAppliedPromo(null);
+  }
+
+  function handleAccountQuantityChange(quantity: number) {
+    setAccountQuantity(clampAccountQuantity(quantity));
   }
 
   async function applyPromoCode() {
@@ -1075,6 +1201,7 @@ export default function ChallengeCta({
           planKey,
           chain,
           promoCode: cleanPromoCode || null,
+          accountQuantity,
           privyUserId,
           email,
           walletAddress,
@@ -1232,6 +1359,8 @@ export default function ChallengeCta({
       accountTitle={accountTitle}
       feeLabel={feeLabel}
       planKey={planKey}
+      accountQuantity={accountQuantity}
+      onAccountQuantityChange={handleAccountQuantityChange}
       step={step}
       setStep={setStep}
       invoice={invoice}
@@ -1286,8 +1415,8 @@ export default function ChallengeCta({
             <DrawerHeader className="sr-only">
               <DrawerTitle>{displayFeeLabel}</DrawerTitle>
               <DrawerDescription>
-                Choose a payment method and send a crypto deposit to start a
-                challenge account.
+                Choose a payment method and send a crypto deposit to start your
+                challenge account purchase.
               </DrawerDescription>
             </DrawerHeader>
 

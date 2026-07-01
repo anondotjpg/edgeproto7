@@ -17,6 +17,7 @@ type CreateDepositBody = {
   planKey?: PlanKey;
   chain?: DepositChain;
   promoCode?: string | null;
+  accountQuantity?: number;
   privyUserId?: string;
   email?: string | null;
   walletAddress?: string | null;
@@ -25,6 +26,7 @@ type CreateDepositBody = {
 const SOL_ETH_INVOICE_EXPIRY_MS = 10 * 60 * 1000;
 const BTC_INVOICE_EXPIRY_MS = 60 * 60 * 1000;
 const MAX_OPEN_RELAY_DEPOSITS = 2;
+const MAX_ACCOUNT_QUANTITY = 5;
 
 const RELAY_QUOTE_AMOUNT_MULTIPLIER = Number(
   process.env.RELAY_QUOTE_AMOUNT_MULTIPLIER ?? "0.01",
@@ -67,7 +69,8 @@ const INVOICE_SELECT = `
   promo_code,
   subtotal_amount_cents,
   discount_amount_cents,
-  final_amount_cents
+  final_amount_cents,
+  account_quantity
 `;
 
 class OpenDepositLimitError extends Error {
@@ -118,6 +121,52 @@ function openDepositLimitResponse(extra?: {
     },
     { status: 409 },
   );
+}
+
+function parseAccountQuantity(value: unknown) {
+  if (typeof value === "undefined" || value === null) return 1;
+
+  const quantity = Number(value);
+
+  if (!Number.isInteger(quantity)) return null;
+  if (quantity < 1 || quantity > MAX_ACCOUNT_QUANTITY) return null;
+
+  return quantity;
+}
+
+function accountQuantityErrorResponse() {
+  return NextResponse.json(
+    {
+      code: "INVALID_ACCOUNT_QUANTITY",
+      error: `Choose between 1 and ${MAX_ACCOUNT_QUANTITY} accounts.`,
+      toastTitle: "Invalid quantity",
+      toastDescription: `You can buy between 1 and ${MAX_ACCOUNT_QUANTITY} accounts at once.`,
+      maxAccountQuantity: MAX_ACCOUNT_QUANTITY,
+    },
+    { status: 400 },
+  );
+}
+
+function multiplyPromoForQuantity({
+  promo,
+  accountQuantity,
+}: {
+  promo: {
+    code: string | null;
+    promoCodeId: string | null;
+    subtotalCents: number;
+    discountCents: number;
+    finalCents: number;
+  };
+  accountQuantity: number;
+}) {
+  return {
+    code: promo.code,
+    promoCodeId: promo.promoCodeId,
+    subtotalCents: promo.subtotalCents * accountQuantity,
+    discountCents: promo.discountCents * accountQuantity,
+    finalCents: promo.finalCents * accountQuantity,
+  };
 }
 
 function getAccountRuleAmounts(planSize: number) {
@@ -272,12 +321,14 @@ async function createFreePromoInvoice({
   planKey,
   planSize,
   chain,
+  accountQuantity,
   promo,
 }: {
   userId: string;
   planKey: PlanKey;
   planSize: number;
   chain: DepositChain;
+  accountQuantity: number;
   promo: {
     code: string | null;
     promoCodeId: string | null;
@@ -297,6 +348,7 @@ async function createFreePromoInvoice({
     .insert({
       user_id: userId,
       plan_key: planKey,
+      account_quantity: accountQuantity,
 
       provider: "promo",
       chain,
@@ -380,28 +432,29 @@ async function createFreePromoInvoice({
     }
   }
 
-  const { data: account, error: accountError } = await supabaseAdmin
-    .from("challenge_accounts")
-    .insert({
-      user_id: userId,
-      plan_key: planKey,
-      plan_size: planSize,
-      one_time_fee: 0,
-      status: "active",
-      starting_balance: planSize,
-      current_balance: planSize,
-      reserved_risk: 0,
-      profit_target_percent: PROFIT_TARGET_PERCENT,
-      daily_drawdown_percent: DAILY_LOSS_PERCENT,
-      total_drawdown_percent: TOTAL_LOSS_PERCENT,
-      max_risk_amount: maxRiskAmount,
-      daily_loss_limit_amount: dailyLossLimitAmount,
-      total_loss_limit_amount: totalLossLimitAmount,
-    })
-    .select("id")
-    .single();
+  const accountsToInsert = Array.from({ length: accountQuantity }, () => ({
+    user_id: userId,
+    plan_key: planKey,
+    plan_size: planSize,
+    one_time_fee: 0,
+    status: "active",
+    starting_balance: planSize,
+    current_balance: planSize,
+    reserved_risk: 0,
+    profit_target_percent: PROFIT_TARGET_PERCENT,
+    daily_drawdown_percent: DAILY_LOSS_PERCENT,
+    total_drawdown_percent: TOTAL_LOSS_PERCENT,
+    max_risk_amount: maxRiskAmount,
+    daily_loss_limit_amount: dailyLossLimitAmount,
+    total_loss_limit_amount: totalLossLimitAmount,
+  }));
 
-  if (accountError) {
+  const { data: accounts, error: accountError } = await supabaseAdmin
+    .from("challenge_accounts")
+    .insert(accountsToInsert)
+    .select("id");
+
+  if (accountError || !accounts?.length) {
     await supabaseAdmin
       .from("crypto_deposit_invoices")
       .update({
@@ -416,15 +469,19 @@ async function createFreePromoInvoice({
       .eq("invoice_id", invoiceDraft.id)
       .eq("status", "redeemed");
 
-    throw accountError;
+    if (accountError) throw accountError;
+
+    throw new Error("Unable to create challenge accounts.");
   }
+
+  const firstAccountId = accounts[0].id as string;
 
   const { data: invoice, error: invoiceError } = await supabaseAdmin
     .from("crypto_deposit_invoices")
     .update({
       status: "paid",
       paid_at: new Date().toISOString(),
-      credited_account_id: account.id,
+      credited_account_id: firstAccountId,
       updated_at: new Date().toISOString(),
     })
     .eq("id", invoiceDraft.id)
@@ -480,6 +537,12 @@ export async function POST(req: Request) {
       );
     }
 
+    const accountQuantity = parseAccountQuantity(body.accountQuantity);
+
+    if (!accountQuantity) {
+      return accountQuantityErrorResponse();
+    }
+
     const userId = await upsertUser({
       privyUserId,
       email: body.email,
@@ -494,12 +557,28 @@ export async function POST(req: Request) {
 
     if (!promo.valid) {
       return NextResponse.json(
-        { error: promo.message ?? "Invalid promo code." },
+        {
+          code: "PROMO_INVALID",
+          error: promo.message ?? "Invalid promo code.",
+          toastTitle: "Promo code not applied",
+          toastDescription: promo.message ?? "Invalid promo code.",
+        },
         { status: 400 },
       );
     }
 
-    const finalCents = promo.finalCents;
+    const purchasePromo = multiplyPromoForQuantity({
+      promo: {
+        code: promo.code,
+        promoCodeId: promo.promoCodeId,
+        subtotalCents: promo.subtotalCents,
+        discountCents: promo.discountCents,
+        finalCents: promo.finalCents,
+      },
+      accountQuantity,
+    });
+
+    const finalCents = purchasePromo.finalCents;
     const finalFeeAmount = centsToDollars(finalCents);
 
     if (finalCents === 0) {
@@ -508,22 +587,17 @@ export async function POST(req: Request) {
         planKey,
         planSize,
         chain,
-        promo: {
-          code: promo.code,
-          promoCodeId: promo.promoCodeId,
-          subtotalCents: promo.subtotalCents,
-          discountCents: promo.discountCents,
-          finalCents: promo.finalCents,
-        },
+        accountQuantity,
+        promo: purchasePromo,
       });
 
       return NextResponse.json({
         invoice,
         promo: {
-          code: promo.code,
-          subtotalCents: promo.subtotalCents,
-          discountCents: promo.discountCents,
-          finalCents: promo.finalCents,
+          code: purchasePromo.code,
+          subtotalCents: purchasePromo.subtotalCents,
+          discountCents: purchasePromo.discountCents,
+          finalCents: purchasePromo.finalCents,
         },
       });
     }
@@ -566,6 +640,7 @@ export async function POST(req: Request) {
       .insert({
         user_id: userId,
         plan_key: planKey,
+        account_quantity: accountQuantity,
 
         provider: "relay",
         chain,
@@ -609,11 +684,11 @@ export async function POST(req: Request) {
 
         one_time_fee: finalFeeAmount,
 
-        promo_code_id: promo.promoCodeId,
-        promo_code: promo.code,
-        subtotal_amount_cents: promo.subtotalCents,
-        discount_amount_cents: promo.discountCents,
-        final_amount_cents: promo.finalCents,
+        promo_code_id: purchasePromo.promoCodeId,
+        promo_code: purchasePromo.code,
+        subtotal_amount_cents: purchasePromo.subtotalCents,
+        discount_amount_cents: purchasePromo.discountCents,
+        final_amount_cents: purchasePromo.finalCents,
       })
       .select(INVOICE_SELECT)
       .single();
@@ -626,18 +701,18 @@ export async function POST(req: Request) {
       throw invoiceError;
     }
 
-    if (promo.promoCodeId && promo.discountCents > 0) {
+    if (purchasePromo.promoCodeId && purchasePromo.discountCents > 0) {
       const { error: redemptionError } = await supabaseAdmin
         .from("promo_redemptions")
         .insert({
-          promo_code_id: promo.promoCodeId,
+          promo_code_id: purchasePromo.promoCodeId,
           user_id: userId,
           invoice_id: invoice.id,
           status: "reserved",
           plan_key: planKey,
-          subtotal_cents: promo.subtotalCents,
-          discount_cents: promo.discountCents,
-          final_cents: promo.finalCents,
+          subtotal_cents: purchasePromo.subtotalCents,
+          discount_cents: purchasePromo.discountCents,
+          final_cents: purchasePromo.finalCents,
         });
 
       if (redemptionError) {
@@ -656,10 +731,10 @@ export async function POST(req: Request) {
     return NextResponse.json({
       invoice,
       promo: {
-        code: promo.code,
-        subtotalCents: promo.subtotalCents,
-        discountCents: promo.discountCents,
-        finalCents: promo.finalCents,
+        code: purchasePromo.code,
+        subtotalCents: purchasePromo.subtotalCents,
+        discountCents: purchasePromo.discountCents,
+        finalCents: purchasePromo.finalCents,
       },
     });
   } catch (error) {
