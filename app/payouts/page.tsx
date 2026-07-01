@@ -53,7 +53,7 @@ function PageLayout({ children }: { children: ReactNode }) {
       <main className="mx-auto w-full max-w-7xl px-4 pb-8 pt-20 sm:px-6 md:py-15 md:pb-24">
         <div className="mb-2 sm:mb-3">
           <div className="flex h-[36px] max-w-full items-start overflow-hidden sm:h-[42px] lg:h-[44px]">
-            <h1 className="truncate text-[29px] font-semibold leading-[1.08] tracking-tight text-zinc-100 sm:text-[34px] lg:text-[36px]">
+            <h1 className="truncate text-[29px] font-semibold leading-[1.08] tracking-tight text-zinc-100 sm:text-[34px] lg:text-[36px] overflow-visible">
               Payouts
             </h1>
           </div>
@@ -78,6 +78,17 @@ function FundedAccountsTableHeader() {
           {label}
         </div>
       ))}
+    </div>
+  );
+}
+
+function FundedAccountsTableHeaderSkeleton() {
+  return (
+    <div className="hidden border-b border-zinc-900 bg-black/20 px-4 py-2.5 sm:px-5 lg:grid lg:grid-cols-[1fr_140px_140px_120px] lg:items-center lg:gap-3">
+      <SkeletonBlock className="h-3 w-20" />
+      <SkeletonBlock className="h-3 w-16" />
+      <SkeletonBlock className="h-3 w-20" />
+      <SkeletonBlock className="ml-auto h-3 w-12" />
     </div>
   );
 }
@@ -170,7 +181,7 @@ function PayoutsSkeleton() {
       <PayoutSummarySkeleton />
 
       <section className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80">
-        <FundedAccountsTableHeader />
+        <FundedAccountsTableHeaderSkeleton />
 
         {[1, 2, 3].map((row, index) => (
           <div
@@ -186,23 +197,17 @@ function PayoutsSkeleton() {
 
             <div className="mt-4 grid grid-cols-3 gap-3 lg:mt-0 lg:contents">
               <div>
-                <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 lg:hidden">
-                  Equity
-                </div>
+                <SkeletonBlock className="h-3 w-14 lg:hidden" />
                 <SkeletonBlock className="mt-2 h-4 w-20 lg:mt-0" />
               </div>
 
               <div>
-                <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 lg:hidden">
-                  Available
-                </div>
+                <SkeletonBlock className="h-3 w-20 lg:hidden" />
                 <SkeletonBlock className="mt-2 h-4 w-20 lg:mt-0" />
               </div>
 
               <div className="text-right">
-                <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600 lg:hidden">
-                  P/L
-                </div>
+                <SkeletonBlock className="ml-auto h-3 w-10 lg:hidden" />
                 <SkeletonBlock className="ml-auto mt-2 h-4 w-20 lg:mt-0" />
               </div>
             </div>
