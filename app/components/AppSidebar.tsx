@@ -8,8 +8,9 @@ import { GoHomeFill } from "react-icons/go";
 import { MdAccountBalanceWallet } from "react-icons/md";
 import { IoStatsChart } from "react-icons/io5";
 import { SiCashapp } from "react-icons/si";
+import { BiSolidPurchaseTag } from "react-icons/bi";
 
-const NAV_LINKS = [
+const MAIN_NAV_LINKS = [
   {
     label: "Dash",
     href: "/",
@@ -36,15 +37,52 @@ const NAV_LINKS = [
   },
 ] as const;
 
+const SECONDARY_NAV_LINKS = [
+  {
+    label: "Deposits",
+    href: "/deposits",
+    Icon: BiSolidPurchaseTag,
+    mobileIconClassName: "h-[25px] w-[25px]",
+  },
+] as const;
+
+const MOBILE_NAV_LINKS = [...MAIN_NAV_LINKS, ...SECONDARY_NAV_LINKS] as const;
+
 function isActivePath(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function DesktopNavLink({
+  label,
+  href,
+}: {
+  label: string;
+  href: string;
+}) {
+  const pathname = usePathname();
+  const isActive = isActivePath(pathname, href);
+
+  return (
+    <Link
+      href={href}
+      className={[
+        "group flex h-[42px] w-full items-center rounded-md outline-none transition-colors",
+        "focus:outline-none focus-visible:outline-none",
+        isActive ? "text-zinc-100" : "text-zinc-500 hover:text-zinc-200",
+      ].join(" ")}
+    >
+      <span className="text-[30px] font-semibold leading-none tracking-tight">
+        {label}
+      </span>
+    </Link>
+  );
+}
+
 export default function AppSidebar() {
   const pathname = usePathname();
 
-  const activeIndex = NAV_LINKS.findIndex((item) =>
+  const activeIndex = MOBILE_NAV_LINKS.findIndex((item) =>
     isActivePath(pathname, item.href),
   );
 
@@ -66,36 +104,32 @@ export default function AppSidebar() {
           </div>
 
           <nav className="mt-10 flex flex-col gap-1">
-            {NAV_LINKS.map((item) => {
-              const isActive = isActivePath(pathname, item.href);
+            {MAIN_NAV_LINKS.map((item) => (
+              <DesktopNavLink
+                key={item.label}
+                label={item.label}
+                href={item.href}
+              />
+            ))}
 
-              return (
-                <Link
+            <div className="mt-3 border-t border-zinc-800 pt-3">
+              {SECONDARY_NAV_LINKS.map((item) => (
+                <DesktopNavLink
                   key={item.label}
+                  label={item.label}
                   href={item.href}
-                  className={[
-                    "group flex h-[42px] w-full items-center rounded-md outline-none transition-colors",
-                    "focus:outline-none focus-visible:outline-none",
-                    isActive
-                      ? "text-zinc-100"
-                      : "text-zinc-500 hover:text-zinc-200",
-                  ].join(" ")}
-                >
-                  <span className="text-[30px] font-semibold leading-none tracking-tight">
-                    {item.label}
-                  </span>
-                </Link>
-              );
-            })}
+                />
+              ))}
+            </div>
           </nav>
         </div>
       </aside>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 mask-t-from-[75%] border-t border-zinc-800 bg-[#09090b]/95 backdrop-blur md:hidden">
-        <div className="relative mx-[10%] h-20">
+        <div className="relative mx-[7%] h-20">
           {activeIndex >= 0 ? (
             <motion.div
-              className="pointer-events-none absolute inset-y-0 left-0 z-0 flex w-1/4 items-center justify-center"
+              className="pointer-events-none absolute inset-y-0 left-0 z-0 flex w-1/5 items-center justify-center"
               initial={false}
               animate={{ x: `${activeIndex * 100}%` }}
               transition={{
@@ -105,12 +139,12 @@ export default function AppSidebar() {
                 mass: 0.75,
               }}
             >
-              <div className="invisible h-[58px] w-[76px] rounded-[20px] bg-zinc-900" />
+              <div className="invisible h-[58px] w-[64px] rounded-[20px] bg-zinc-900" />
             </motion.div>
           ) : null}
 
-          <div className="relative z-10 grid h-full grid-cols-4">
-            {NAV_LINKS.map((item) => {
+          <div className="relative z-10 grid h-full grid-cols-5">
+            {MOBILE_NAV_LINKS.map((item) => {
               const isActive = isActivePath(pathname, item.href);
               const Icon = item.Icon;
 
