@@ -96,7 +96,6 @@ type CreateDepositResponse = {
   maxOpenDeposits?: number;
 };
 
-
 type PromoValidateSuccessResponse = PromoPreview & {
   error?: string;
   toastTitle?: string;
@@ -113,8 +112,7 @@ type PromoValidateErrorResponse = {
 };
 
 type PromoValidateResponse =
-  | PromoValidateSuccessResponse
-  | PromoValidateErrorResponse;
+  PromoValidateSuccessResponse | PromoValidateErrorResponse;
 
 function isPromoValidateSuccess(
   value: PromoValidateResponse | null,
@@ -148,6 +146,13 @@ const PLAN_FEE_CENTS: Partial<Record<PlanKey, number>> = {
 };
 
 const MAX_ACCOUNT_QUANTITY = 5;
+
+const CHECKOUT_LAYOUT_TRANSITION = {
+  type: "spring",
+  stiffness: 420,
+  damping: 38,
+  mass: 0.75,
+} as const;
 
 const PAYMENT_METHODS: {
   chain: DepositChain;
@@ -441,7 +446,6 @@ function getPaymentSubtitle({
   return "Send the quoted amount.";
 }
 
-
 function StatusPill({ status }: { status: DepositInvoiceStatus }) {
   return (
     <div className="rounded-full bg-zinc-900 px-3 py-1 text-[12px] font-semibold capitalize text-zinc-300">
@@ -709,22 +713,31 @@ function CheckoutContent({
   const isPromoInvoice = invoice?.provider === "promo";
 
   return (
-    <>
+    <motion.div
+      layout="size"
+      transition={CHECKOUT_LAYOUT_TRANSITION}
+      className="overflow-hidden"
+    >
       <AccountHero
         accountTitle={accountTitle}
         feeLabel={displayFeeLabel}
         planKey={planKey}
       />
 
-      <div className="mt-4 h-[356px] overflow-y-auto overflow-x-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        layout="size"
+        transition={CHECKOUT_LAYOUT_TRANSITION}
+        className="mt-4 max-h-[calc(100dvh-176px)] overflow-y-auto overflow-x-hidden [-ms-overflow-style:none] [scrollbar-width:none] md:max-h-[560px] [&::-webkit-scrollbar]:hidden"
+      >
+        <AnimatePresence mode="popLayout" initial={false}>
           {step === "method" ? (
             <motion.div
               key="method"
+              layout="position"
               initial={{ opacity: 0, x: 18 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -18 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             >
               <div>
                 <h3 className="text-[18px] font-semibold leading-none tracking-tight text-zinc-50">
@@ -769,7 +782,10 @@ function CheckoutContent({
                     <div className="flex items-center justify-between text-[12px]">
                       <span className="text-zinc-500">Discount</span>
                       <span className="font-semibold text-zinc-100">
-                        -{formatCents(appliedPromo.discountCents * accountQuantity)}
+                        -
+                        {formatCents(
+                          appliedPromo.discountCents * accountQuantity,
+                        )}
                       </span>
                     </div>
 
@@ -840,16 +856,19 @@ function CheckoutContent({
           {step === "payment" && invoice ? (
             <motion.div
               key="payment"
+              layout="position"
               initial={{ opacity: 0, x: 18 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -18 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="text-[18px] font-semibold leading-none tracking-tight text-zinc-50">
                     {isPromoInvoice
-                      ? getAccountQuantityLabel(getInvoiceAccountQuantity(invoice, accountQuantity)) + " ready"
+                      ? getAccountQuantityLabel(
+                          getInvoiceAccountQuantity(invoice, accountQuantity),
+                        ) + " ready"
                       : `Send ${invoice.asset}`}
                   </h3>
 
@@ -913,7 +932,10 @@ function CheckoutContent({
 
                     {getInvoiceAccountQuantity(invoice, accountQuantity) > 1 ? (
                       <p className="mt-2 text-[12px] font-medium text-zinc-500">
-                        Covers {getAccountQuantityLabel(getInvoiceAccountQuantity(invoice, accountQuantity))}
+                        Covers{" "}
+                        {getAccountQuantityLabel(
+                          getInvoiceAccountQuantity(invoice, accountQuantity),
+                        )}
                       </p>
                     ) : null}
                   </div>
@@ -983,7 +1005,7 @@ function CheckoutContent({
                   <OffsetButton
                     onClick={() => openAccount(invoice.credited_account_id!)}
                   >
-{getInvoiceAccountQuantity(invoice, accountQuantity) > 1
+                    {getInvoiceAccountQuantity(invoice, accountQuantity) > 1
                       ? "Open first account"
                       : "Open account"}
                   </OffsetButton>
@@ -1002,8 +1024,8 @@ function CheckoutContent({
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </div>
-    </>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -1140,8 +1162,9 @@ export default function ChallengeCta({
         }),
       });
 
-      const data =
-        ((await readJsonResponse(response)) as PromoValidateResponse | null);
+      const data = (await readJsonResponse(
+        response,
+      )) as PromoValidateResponse | null;
 
       if (!response.ok) {
         const message = data?.error || data?.message || "Invalid promo code.";
@@ -1208,8 +1231,9 @@ export default function ChallengeCta({
         }),
       });
 
-      const data =
-        ((await readJsonResponse(response)) as CreateDepositResponse | null);
+      const data = (await readJsonResponse(
+        response,
+      )) as CreateDepositResponse | null;
 
       if (!response.ok) {
         const message =
@@ -1420,13 +1444,21 @@ export default function ChallengeCta({
               </DrawerDescription>
             </DrawerHeader>
 
-            <div className="mx-auto w-full max-w-[520px] overflow-hidden bg-zinc-950 px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-2">
+            <motion.div
+              layout="size"
+              transition={CHECKOUT_LAYOUT_TRANSITION}
+              className="mx-auto w-full max-w-[520px] overflow-hidden bg-zinc-950 px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-2"
+            >
               <div className="mx-auto mb-4 h-1.5 w-12 shrink-0 rounded-full bg-zinc-800" />
 
-              <div className="max-h-[calc(100dvh-56px)] overflow-y-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <motion.div
+                layout="size"
+                transition={CHECKOUT_LAYOUT_TRANSITION}
+                className="max-h-[calc(100dvh-56px)] overflow-y-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
                 {checkoutContent}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </DrawerContent>
         </Drawer>
       ) : open ? (
@@ -1438,9 +1470,13 @@ export default function ChallengeCta({
             onClick={closeCheckout}
           />
 
-          <div className="relative w-full max-w-[520px] overflow-hidden rounded-[28px] border border-zinc-800 bg-zinc-950 p-5 text-white shadow-2xl">
+          <motion.div
+            layout="size"
+            transition={CHECKOUT_LAYOUT_TRANSITION}
+            className="relative w-full max-w-[520px] overflow-hidden rounded-[28px] border border-zinc-800 bg-zinc-950 p-5 text-white shadow-2xl"
+          >
             {checkoutContent}
-          </div>
+          </motion.div>
         </div>
       ) : null}
     </>
