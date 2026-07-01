@@ -22,7 +22,8 @@ type CreateDepositBody = {
   walletAddress?: string | null;
 };
 
-const INVOICE_EXPIRY_MS = 10 * 60 * 3000;
+const SOL_ETH_INVOICE_EXPIRY_MS = 10 * 60 * 1000;
+const BTC_INVOICE_EXPIRY_MS = 60 * 60 * 1000;
 const MAX_OPEN_RELAY_DEPOSITS = 2;
 
 const RELAY_QUOTE_AMOUNT_MULTIPLIER = Number(
@@ -79,6 +80,14 @@ class OpenDepositLimitError extends Error {
     this.name = "OpenDepositLimitError";
     this.openDepositCount = openDepositCount;
   }
+}
+
+function getInvoiceExpiryMs(chain: DepositChain) {
+  if (chain === "bitcoin") {
+    return BTC_INVOICE_EXPIRY_MS;
+  }
+
+  return SOL_ETH_INVOICE_EXPIRY_MS;
 }
 
 function isOpenDepositLimitDbError(error: unknown) {
@@ -549,7 +558,7 @@ export async function POST(req: Request) {
     const { dailyLossLimitAmount, totalLossLimitAmount, maxRiskAmount } =
       getAccountRuleAmounts(planSize);
 
-    const expiresAt = new Date(Date.now() + INVOICE_EXPIRY_MS);
+    const expiresAt = new Date(Date.now() + getInvoiceExpiryMs(chain));
     const origin = CHAIN_CONFIG[chain];
 
     const { data: invoice, error: invoiceError } = await supabaseAdmin
