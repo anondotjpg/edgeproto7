@@ -921,11 +921,11 @@ function CheckoutContent({
                     </p>
 
                     <div className="mt-1.5 flex flex-wrap items-end gap-x-2 gap-y-1 pr-10">
-                      <p className="break-all text-[24px] font-semibold leading-none tracking-tight text-zinc-50">
+                      <p className="break-all text-[20px] font-semibold leading-none tracking-tight text-zinc-50">
                         {invoice.expected_amount_display}
                       </p>
 
-                      <p className="pb-0.5 text-[12px] font-bold leading-none text-zinc-400">
+                      <p className="text-[12px] font-bold leading-none text-zinc-400">
                         {invoice.asset}
                       </p>
                     </div>
