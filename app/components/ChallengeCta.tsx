@@ -665,7 +665,7 @@ function CheckoutContent({
   accountQuantity,
   onAccountQuantityChange,
   step,
-  setStep,
+  onStartDifferentDeposit,
   invoice,
   copied,
   countdown,
@@ -685,7 +685,7 @@ function CheckoutContent({
   accountQuantity: number;
   onAccountQuantityChange: (quantity: number) => void;
   step: DepositStep;
-  setStep: (step: DepositStep) => void;
+  onStartDifferentDeposit: () => void;
   invoice: DepositInvoice | null;
   copied: string | null;
   countdown: string;
@@ -1015,7 +1015,7 @@ function CheckoutContent({
               {invoice.status !== "paid" ? (
                 <button
                   type="button"
-                  onClick={() => setStep("method")}
+                  onClick={onStartDifferentDeposit}
                   className="mt-3 w-full cursor-pointer text-center text-[12px] font-medium text-zinc-500 hover:text-zinc-300"
                 >
                   Start a different deposit
@@ -1131,10 +1131,25 @@ export default function ChallengeCta({
 
     setPromoCode(nextValue);
     setAppliedPromo(null);
+
+    if (step === "method") {
+      setInvoice(null);
+    }
   }
 
   function handleAccountQuantityChange(quantity: number) {
     setAccountQuantity(clampAccountQuantity(quantity));
+
+    if (step === "method") {
+      setInvoice(null);
+    }
+  }
+
+  function startDifferentDeposit() {
+    setInvoice(null);
+    setCopied(null);
+    setCreatingChain(null);
+    setStep("method");
   }
 
   async function applyPromoCode() {
@@ -1386,7 +1401,7 @@ export default function ChallengeCta({
       accountQuantity={accountQuantity}
       onAccountQuantityChange={handleAccountQuantityChange}
       step={step}
-      setStep={setStep}
+      onStartDifferentDeposit={startDifferentDeposit}
       invoice={invoice}
       copied={copied}
       countdown={countdown}
