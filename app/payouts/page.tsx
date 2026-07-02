@@ -53,7 +53,7 @@ function PageLayout({ children }: { children: ReactNode }) {
       <main className="mx-auto w-full max-w-7xl px-4 pb-8 pt-20 sm:px-6 md:py-15 md:pb-24">
         <div className="mb-2 sm:mb-3">
           <div className="flex h-[36px] max-w-full items-start overflow-hidden sm:h-[42px] lg:h-[44px]">
-            <h1 className="truncate text-[29px] font-semibold leading-[1.08] tracking-tight text-zinc-100 sm:text-[34px] lg:text-[36px] overflow-visible">
+            <h1 className="overflow-visible truncate text-[29px] font-semibold leading-[1.08] tracking-tight text-zinc-100 sm:text-[34px] lg:text-[36px]">
               Payouts
             </h1>
           </div>
@@ -111,13 +111,13 @@ function EmptyFundedAccountsRow() {
     <div className="border-b border-zinc-900/80 px-3 py-3 last:border-b-0 sm:px-5">
       <EmptyState
         title="No funded accounts yet"
-        description="Pass a challenge to unlock funded payouts."
+        description="Pass a challenge to unlock funded payouts. Then info will show here."
         action={
           <Link
             href="/accounts"
             className="inline-flex rounded-xl bg-black/30 px-4 py-2 text-sm font-medium text-zinc-300 ring-1 ring-zinc-800 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
           >
-            Start a challenge
+            Start challenge
           </Link>
         }
       />
