@@ -1,6 +1,7 @@
 import type React from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { IoWarningOutline } from "react-icons/io5";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
 import AccountPositionsTable from "./AccountPositionsTable";
@@ -438,8 +439,12 @@ function RuleRoomCard({
             {title}
           </div>
 
-          <div className="mt-2 min-h-[28px] text-[22px] font-semibold leading-tight tracking-tight text-red-200 sm:min-h-[34px] sm:text-[28px]">
-            Failed
+          <div className="mt-2 flex min-h-[28px] items-center justify-center gap-1.5 text-[22px] font-semibold leading-tight tracking-tight text-red-200 sm:min-h-[34px] sm:gap-2 sm:text-[28px]">
+            <IoWarningOutline
+              aria-hidden="true"
+              className="h-5 w-5 shrink-0 text-red-300/80 sm:h-6 sm:w-6"
+            />
+            <span>Failed</span>
           </div>
 
           <div className="mt-1 text-[11px] leading-tight text-red-300/50 sm:text-[13px]">
