@@ -395,6 +395,10 @@ function getAccountDisplayName(account: OwnedAccount) {
   return getPlanLabel(account);
 }
 
+function accountIsSelectable(account: OwnedAccount) {
+  return ["active", "active_dev", "funded"].includes(account.status);
+}
+
 function isFundedAccount(account: OwnedAccount) {
   return account.status === "funded";
 }
@@ -768,6 +772,10 @@ const AccountSelectSection = memo(function AccountSelectSection({
   const [canScrollBack, setCanScrollBack] = useState(false);
   const [canScrollForward, setCanScrollForward] = useState(false);
 
+  const selectableAccounts = useMemo(() => {
+    return accounts.filter((account) => accountIsSelectable(account));
+  }, [accounts]);
+
   function getAccountScrollMetrics(row: HTMLDivElement) {
     const firstCard = row.querySelector<HTMLElement>("[data-account-card]");
     const cardWidth =
@@ -843,7 +851,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
       row.removeEventListener("scroll", updateAccountScrollState);
       window.removeEventListener("resize", updateAccountScrollState);
     };
-  }, [ready, authenticated, isLoadingAccounts, accounts.length]);
+  }, [ready, authenticated, isLoadingAccounts, selectableAccounts.length]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(updateAccountScrollState);
@@ -851,21 +859,21 @@ const AccountSelectSection = memo(function AccountSelectSection({
     return () => {
       window.cancelAnimationFrame(frame);
     };
-  }, [ready, authenticated, isLoadingAccounts, accounts.length]);
+  }, [ready, authenticated, isLoadingAccounts, selectableAccounts.length]);
 
   const showAccountScrollHint =
     ready &&
     authenticated &&
     !isLoadingAccounts &&
     mobileLayout &&
-    accounts.length > 3;
+    selectableAccounts.length > 3;
 
   const showAccountControls =
     ready &&
     authenticated &&
     !isLoadingAccounts &&
     !mobileLayout &&
-    accounts.length > 3;
+    selectableAccounts.length > 3;
 
   const reserveAccountControlSpace = authenticated;
 
@@ -930,13 +938,10 @@ const AccountSelectSection = memo(function AccountSelectSection({
             <span className="inline underline cursor-pointer">Sign in</span>
             &nbsp;to select an account
           </button>
-        ) : accounts.length ? (
+        ) : selectableAccounts.length ? (
           <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
-            {accounts.map((account) => {
+            {selectableAccounts.map((account) => {
               const selected = selectedAccountIds.includes(account.id);
-              const active = ["active", "active_dev", "funded"].includes(
-                account.status,
-              );
               const maxRiskAmount = getMaxRiskAmount(account);
 
               return (
@@ -945,13 +950,10 @@ const AccountSelectSection = memo(function AccountSelectSection({
                   data-account-card=""
                   type="button"
                   style={ACCOUNT_CARD_STYLE}
-                  onClick={() => {
-                    if (active) onToggleAccount(account.id);
-                  }}
-                  disabled={!active}
+                  onClick={() => onToggleAccount(account.id)}
                   className={[
                     ACCOUNT_CARD_CLASS,
-                    "cursor-pointer disabled:cursor-not-allowed disabled:opacity-50",
+                    "cursor-pointer",
                     selected
                       ? "border-zinc-400 bg-zinc-900"
                       : "border-zinc-800 bg-black/30 hover:border-zinc-700",
@@ -998,7 +1000,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
             href="/accounts"
             className="flex h-[80px] w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 p-3.5 text-left text-base text-zinc-300"
           >
-            No accounts.&nbsp;<span className="inline underline">Start a challenge</span>
+            No active accounts.&nbsp;<span className="inline underline">Start a challenge</span>
           </Link>
         )}
       </div>
@@ -1526,11 +1528,15 @@ export function BetSlipPanel({
     betRef.current = bet;
   }, [bet]);
 
+  const selectableAccounts = useMemo(() => {
+    return accounts.filter((account) => accountIsSelectable(account));
+  }, [accounts]);
+
   const selectedAccounts = useMemo(() => {
-    return accounts.filter((account) =>
+    return selectableAccounts.filter((account) =>
       selectedAccountIds.includes(account.id),
     );
-  }, [accounts, selectedAccountIds]);
+  }, [selectableAccounts, selectedAccountIds]);
 
   const maxBetAmount = useMemo(() => {
     if (!selectedAccounts.length) return 0;
@@ -1566,9 +1572,7 @@ export function BetSlipPanel({
     if (!stake || Number.isNaN(stake)) return null;
 
     for (const account of selectedAccounts) {
-      const active = ["active", "active_dev", "funded"].includes(account.status);
-
-      if (!active) {
+      if (!accountIsSelectable(account)) {
         return `${getAccountDisplayName(account)} account is not active.`;
       }
 
@@ -1630,17 +1634,22 @@ export function BetSlipPanel({
         }
 
         if (!cancelled) {
-          const loadedAccounts = data.accounts ?? [];
-          setAccounts(loadedAccounts);
-
-          const activeAccounts = loadedAccounts.filter(
-            (account: OwnedAccount) =>
-              ["active", "active_dev", "funded"].includes(account.status),
+          const loadedAccounts = (data.accounts ?? []) as OwnedAccount[];
+          const selectableLoadedAccounts = loadedAccounts.filter((account) =>
+            accountIsSelectable(account),
           );
 
-          if (activeAccounts.length === 1) {
-            setSelectedAccountIds([activeAccounts[0].id]);
-          }
+          setAccounts(selectableLoadedAccounts);
+
+          setSelectedAccountIds((current) => {
+            if (selectableLoadedAccounts.length === 1) {
+              return [selectableLoadedAccounts[0].id];
+            }
+
+            return current.filter((accountId) =>
+              selectableLoadedAccounts.some((account) => account.id === accountId),
+            );
+          });
         }
       } catch (err) {
         console.error(err);
@@ -1859,7 +1868,7 @@ export function BetSlipPanel({
       ready={ready}
       authenticated={authenticated}
       login={login}
-      accounts={accounts}
+      accounts={selectableAccounts}
       selectedAccountIds={selectedAccountIds}
       isLoadingAccounts={isLoadingAccounts}
       isPlacing={isPlacing}
