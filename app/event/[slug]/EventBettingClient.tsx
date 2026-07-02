@@ -202,18 +202,18 @@ function getGameIsLive(game: Game): boolean {
 
 function getDesktopLogoClassName(sportKey: string) {
   if (sportKey === "mlb") {
-    return "h-12 w-12 object-contain md:h-14 md:w-14";
+    return "h-[38px] w-[38px] object-contain md:h-[45px] md:w-[45px]";
   }
 
-  return "h-12 w-12 rounded-md object-contain md:h-14 md:w-14";
+  return "h-[38px] w-[38px] rounded-md object-contain md:h-[45px] md:w-[45px]";
 }
 
 function getDesktopLogoFallbackClassName(sportKey: string) {
   if (sportKey === "mlb") {
-    return "h-12 w-12 bg-zinc-950 md:h-14 md:w-14";
+    return "h-[38px] w-[38px] bg-zinc-950 md:h-[45px] md:w-[45px]";
   }
 
-  return "h-12 w-12 rounded-md border border-zinc-800 bg-zinc-950 md:h-14 md:w-14";
+  return "h-[38px] w-[38px] rounded-md border border-zinc-800 bg-zinc-950 md:h-[45px] md:w-[45px]";
 }
 
 function getMobileLogoClassName(sportKey: string) {
@@ -729,7 +729,7 @@ function DesktopTeamCell({
   sportKey: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 py-1.5 md:gap-4">
+    <div className="flex min-w-0 items-center gap-2.5 py-1 md:gap-3">
       {info?.logo ? (
         <img
           src={info.logo}
@@ -741,13 +741,13 @@ function DesktopTeamCell({
       )}
 
       <div className="flex min-w-0 flex-col justify-center">
-        <div className="truncate text-[20px] font-semibold leading-tight tracking-tight text-zinc-50 md:text-[22px] xl:text-[24px]">
+        <div className="truncate text-[16px] font-semibold leading-tight tracking-tight text-zinc-50 md:text-[18px] xl:text-[19px]">
           {info?.name || team}
         </div>
 
         <div
           className={[
-            "mt-0.5 h-5 truncate text-[13px] font-medium leading-5 text-zinc-400 md:text-[14px]",
+            "mt-0.5 h-4 truncate text-[11px] font-medium leading-4 text-zinc-400 md:text-[11px]",
             info?.record ? "" : "invisible",
           ].join(" ")}
         >
@@ -1166,7 +1166,7 @@ export default function EventBettingClient({
   }, [firstBet]);
 
   return (
-    <div className="mt-5 grid gap-5 md:mt-8 md:gap-6 xl:grid-cols-[minmax(0,1016px)_420px] xl:items-start xl:justify-center">
+    <div className="mt-5 grid gap-5 md:mt-8 md:gap-6 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start xl:justify-center">
       <main className="min-w-0">
         <section className="space-y-3 md:space-y-4">
           <EventHeader game={game} />

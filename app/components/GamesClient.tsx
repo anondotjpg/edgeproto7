@@ -337,14 +337,14 @@ function formatMarketVolume(value: number | null | undefined) {
 
 function getLogoClassName(sportKey: string) {
   return sportKey === "mlb"
-    ? "h-[30px] w-[30px] rounded-sm object-contain xl:h-7 xl:w-7"
-    : "h-[30px] w-[30px] rounded-sm object-contain xl:h-7 xl:w-7";
+    ? "h-[30px] w-[30px] rounded-sm object-contain lg:h-7 lg:w-7"
+    : "h-[30px] w-[30px] rounded-sm object-contain lg:h-7 lg:w-7";
 }
 
 function getLogoFallbackClassName(sportKey: string) {
   return sportKey === "mlb"
-    ? "h-[30px] w-[30px] rounded-sm bg-zinc-950 xl:h-7 xl:w-7"
-    : "h-[30px] w-[30px] rounded-sm bg-zinc-950 xl:h-7 xl:w-7";
+    ? "h-[30px] w-[30px] rounded-sm bg-zinc-950 lg:h-7 lg:w-7"
+    : "h-[30px] w-[30px] rounded-sm bg-zinc-950 lg:h-7 lg:w-7";
 }
 
 function getGameIsLive(game: Game): boolean {
@@ -499,7 +499,7 @@ function TeamRow({
   const displayName = getTeamDisplayName(team, info);
 
   return (
-    <div className="flex h-[42px] items-center gap-2 px-0 py-0.5 xl:h-[46px] xl:gap-2.5 xl:px-2 xl:py-1">
+    <div className="flex h-[42px] items-center gap-2 px-0 py-0.5 lg:h-[46px] lg:gap-2.5 lg:px-2 lg:py-1">
       {info?.logo ? (
         <img
           src={info.logo}
@@ -511,12 +511,12 @@ function TeamRow({
       )}
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <div className="truncate text-[15px] font-semibold leading-tight text-zinc-100 xl:text-[15px]">
+        <div className="truncate text-[15px] font-semibold leading-tight text-zinc-100 lg:text-[15px]">
           {displayName}
         </div>
 
         {info?.record ? (
-          <div className="shrink-0 text-[14px] font-medium leading-tight text-zinc-500 xl:text-[15px]">
+          <div className="shrink-0 text-[14px] font-medium leading-tight text-zinc-500 lg:text-[15px]">
             {info.record}
           </div>
         ) : null}
@@ -789,17 +789,17 @@ function DateMarketHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-end justify-between gap-3 xl:grid xl:grid-cols-[minmax(0,1fr)_124px_124px_124px] xl:items-end xl:gap-2">
+    <div className="flex items-end justify-between gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_124px_124px_124px] lg:items-end lg:gap-2">
       <div className="text-[20px] font-semibold leading-none tracking-tight text-zinc-100">
         {date}
       </div>
 
-      {action ? <div className="shrink-0 xl:hidden">{action}</div> : null}
+      {action ? <div className="shrink-0 lg:hidden">{action}</div> : null}
 
       {["Moneyline", "Spread", "Total"].map((label) => (
         <div
           key={label}
-          className="hidden items-center justify-center pb-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 xl:flex"
+          className="hidden items-center justify-center pb-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 lg:flex"
         >
           {label}
         </div>
@@ -813,11 +813,11 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
   const isLive = getGameIsLive(game);
 
   return (
-    <div className="mb-2 flex min-w-0 items-center justify-between gap-2.5 xl:mb-3 xl:gap-3">
-      <div className="flex min-w-0 items-center gap-2 xl:gap-2.5">
+    <div className="mb-2 flex min-w-0 items-center justify-between gap-2.5 lg:mb-3 lg:gap-3">
+      <div className="flex min-w-0 items-center gap-2 lg:gap-2.5">
         <div
           className={[
-            "inline-flex h-6 shrink-0 items-center text-[14px] font-medium leading-none xl:h-7 xl:text-[14px]",
+            "inline-flex h-6 shrink-0 items-center text-[14px] font-medium leading-none lg:h-7 lg:text-[14px]",
             isLive ? "gap-1.5 text-zinc-100" : "text-zinc-300",
           ].join(" ")}
         >
@@ -832,7 +832,7 @@ function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) 
         </div>
 
         {marketVolume ? (
-          <div className="hidden min-w-0 truncate text-[12px] font-medium leading-none text-zinc-500 sm:text-[13px] md:block xl:text-[14px]">
+          <div className="hidden min-w-0 truncate text-[12px] font-medium leading-none text-zinc-500 sm:text-[13px] md:block lg:text-[14px]">
             {marketVolume}
           </div>
         ) : null}
@@ -901,7 +901,7 @@ function GameCard({
 
   return (
     <>
-      <article className="relative overflow-hidden xl:hidden">
+      <article className="relative overflow-hidden lg:hidden">
         <GameCardHeader game={game} eventHref={eventHref} />
 
         <div>
@@ -1021,7 +1021,7 @@ function GameCard({
         ) : null}
       </article>
 
-      <article className="relative hidden xl:block">
+      <article className="relative hidden lg:block">
         <GameCardHeader game={game} eventHref={eventHref} />
 
         <div className="grid grid-cols-[minmax(0,1fr)_124px_124px_124px] gap-2">
@@ -1268,7 +1268,7 @@ export default function GamesClient({
                   </p>
                 </div>
 
-                <div className="hidden w-[112px] items-end justify-end xl:flex">
+                <div className="hidden w-[112px] items-end justify-end lg:flex">
                   {league?.error ? (
                     <div className="rounded-full border border-red-900/60 bg-red-950/60 px-3 py-1 text-[11px] font-medium text-red-400">
                       {league.error}
@@ -1288,12 +1288,12 @@ export default function GamesClient({
                   <span>
                     No non-live {selectedLeagueMeta.label} markets right now
                   </span>
-                  <span className="xl:hidden">{renderHideLiveToggle()}</span>
+                  <span className="lg:hidden">{renderHideLiveToggle()}</span>
                 </div>
               ) : (
                 <div className="grid gap-7">
                   {groupedGames.map((group, groupIndex) => (
-                    <div key={group.key} className="grid gap-3 xl:gap-2">
+                    <div key={group.key} className="grid gap-3 lg:gap-2">
                       <DateMarketHeader
                         date={group.date}
                         action={groupIndex === 0 ? renderHideLiveToggle() : null}
@@ -1310,7 +1310,7 @@ export default function GamesClient({
                               key={game.id}
                               className={
                                 index > 0
-                                  ? "xl:border-t xl:border-zinc-900/80 xl:pt-3"
+                                  ? "lg:border-t lg:border-zinc-900/80 lg:pt-3"
                                   : ""
                               }
                             >
