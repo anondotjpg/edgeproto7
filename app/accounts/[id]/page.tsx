@@ -422,7 +422,7 @@ function RuleRoomCard({
 }) {
   if (isAccountFailed) {
     return (
-      <div className="relative flex min-h-[154px] items-center justify-center overflow-hidden rounded-[22px] border border-red-950/25 bg-zinc-950/80 px-3 py-4 ring-1 ring-red-950/45 shadow-[inset_0_0_36px_rgba(239,68,68,0.14),inset_0_1px_0_rgba(248,113,113,0.08)] sm:min-h-[166px] sm:rounded-[26px] sm:px-5">
+      <div className="relative flex min-h-[154px] items-center justify-center overflow-hidden rounded-[22px] bg-zinc-950/80 px-3 py-4 shadow-[inset_0_0_36px_rgba(239,68,68,0.14),inset_0_1px_0_rgba(248,113,113,0.08)] sm:min-h-[166px] sm:rounded-[26px] sm:px-5">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(239,68,68,0.18),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(127,29,29,0.14),transparent_62%)]"
