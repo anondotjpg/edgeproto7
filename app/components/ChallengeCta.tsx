@@ -925,7 +925,7 @@ function CheckoutContent({
                         {invoice.expected_amount_display}
                       </p>
 
-                      <p className="text-[12px] font-bold leading-none text-zinc-400">
+                      <p className="self-end pb-[1px] text-[12px] font-bold leading-none text-zinc-400">
                         {invoice.asset}
                       </p>
                     </div>

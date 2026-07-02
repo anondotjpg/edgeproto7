@@ -186,7 +186,7 @@ function PositionSkeletonRow({ index }: { index: number }) {
         </div>
 
         <div className="mt-3 flex justify-end pl-[58px]">
-          <div className="grid w-full max-w-[250px] grid-cols-3 gap-2.5 text-right">
+          <div className="grid w-full max-w-[274px] grid-cols-[minmax(0,0.75fr)_minmax(0,0.75fr)_minmax(96px,1.15fr)] gap-2.5 text-right">
             <div>
               <SkeletonBlock className="ml-auto h-3.5 w-14" />
               <SkeletonBlock className="ml-auto mt-2 h-6 w-16" />
@@ -197,7 +197,7 @@ function PositionSkeletonRow({ index }: { index: number }) {
             </div>
             <div>
               <SkeletonBlock className="ml-auto h-3.5 w-14" />
-              <SkeletonBlock className="ml-auto mt-2 h-6 w-20" />
+              <SkeletonBlock className="ml-auto mt-2 h-6 w-[92px]" />
             </div>
           </div>
         </div>

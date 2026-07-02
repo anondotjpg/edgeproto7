@@ -139,7 +139,9 @@ function TeamLogo({ bet }: { bet: BetRow }) {
     );
   }
 
-  return <div className="h-11 w-11 shrink-0 rounded-lg bg-zinc-900 lg:h-9 lg:w-9" />;
+  return (
+    <div className="h-11 w-11 shrink-0 rounded-lg bg-zinc-900 lg:h-9 lg:w-9" />
+  );
 }
 
 function TeamCell({ bet }: { bet: BetRow }) {
@@ -196,7 +198,7 @@ function MobileValueGrid({
 }) {
   return (
     <div className="mt-3 flex justify-end pl-[58px]">
-      <div className="grid w-full max-w-[250px] grid-cols-3 gap-2.5 text-right">
+      <div className="grid w-full max-w-[274px] grid-cols-[minmax(0,0.75fr)_minmax(0,0.75fr)_minmax(96px,1.15fr)] gap-2.5 text-right">
         <div>
           <div className="h-3.5 truncate text-[11px] font-medium uppercase leading-[14px] tracking-[0.14em] text-zinc-600">
             Status
@@ -221,7 +223,7 @@ function MobileValueGrid({
           </div>
           <div
             className={[
-              "mt-2 h-6 truncate text-[15px] font-semibold leading-6",
+              "mt-2 h-6 whitespace-nowrap text-[15px] font-semibold leading-6",
               resultTone === "positive"
                 ? "text-green-500"
                 : resultTone === "negative"
