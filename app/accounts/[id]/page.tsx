@@ -422,17 +422,27 @@ function RuleRoomCard({
 }) {
   if (isAccountFailed) {
     return (
-      <div className="flex min-h-[154px] items-center justify-center rounded-[22px] bg-zinc-950/80 px-3 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:rounded-[26px] sm:px-5">
-        <div className="text-center">
-          <div className="text-[14px] font-medium leading-tight text-zinc-500 sm:text-[17px]">
+      <div className="relative flex min-h-[154px] items-center justify-center overflow-hidden rounded-[22px] border border-red-950/25 bg-zinc-950/80 px-3 py-4 ring-1 ring-red-950/45 shadow-[inset_0_0_36px_rgba(239,68,68,0.14),inset_0_1px_0_rgba(248,113,113,0.08)] sm:min-h-[166px] sm:rounded-[26px] sm:px-5">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(239,68,68,0.18),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(127,29,29,0.14),transparent_62%)]"
+        />
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-px rounded-[21px] shadow-[inset_0_0_24px_rgba(248,113,113,0.10)] sm:rounded-[25px]"
+        />
+
+        <div className="relative text-center">
+          <div className="text-[14px] font-medium leading-tight text-red-300/60 sm:text-[17px]">
             {title}
           </div>
 
-          <div className="mt-2 min-h-[28px] text-[22px] font-semibold leading-tight tracking-tight text-zinc-100 sm:min-h-[34px] sm:text-[28px]">
+          <div className="mt-2 min-h-[28px] text-[22px] font-semibold leading-tight tracking-tight text-red-200 sm:min-h-[34px] sm:text-[28px]">
             Failed
           </div>
 
-          <div className="mt-1 text-[11px] leading-tight text-zinc-500 sm:text-[13px]">
+          <div className="mt-1 text-[11px] leading-tight text-red-300/50 sm:text-[13px]">
             Loss limit breached
           </div>
         </div>
