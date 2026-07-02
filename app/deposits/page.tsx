@@ -77,12 +77,19 @@ const DEPOSIT_TABS: { label: string; value: DepositView }[] = [
   { label: "Past", value: "past" },
 ];
 
-function getDesktopDepositGridClassName(showTimeLeft: boolean) {
+function getDesktopDepositGridClassName(
+  showTimeLeft: boolean,
+  showAction = true,
+) {
   if (showTimeLeft) {
     return "min-w-[940px] grid-cols-[minmax(220px,1.15fr)_112px_112px_74px_112px_112px_168px]";
   }
 
-  return "min-w-[820px] grid-cols-[minmax(220px,1.15fr)_112px_112px_74px_112px_168px]";
+  if (showAction) {
+    return "min-w-[820px] grid-cols-[minmax(220px,1.15fr)_112px_112px_74px_112px_168px]";
+  }
+
+  return "min-w-[700px] grid-cols-[minmax(220px,1.15fr)_112px_112px_74px_112px]";
 }
 
 function getDepositRowTintClassName(index: number) {
@@ -335,15 +342,17 @@ function DepositsSegmentedControl({
 function TableHeader({
   labels,
   showTimeLeft = false,
+  showAction = true,
 }: {
   labels: string[];
   showTimeLeft?: boolean;
+  showAction?: boolean;
 }) {
   return (
     <div
       className={[
         "hidden border-b border-zinc-900 bg-black/20 px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600 xl:grid",
-        getDesktopDepositGridClassName(showTimeLeft),
+        getDesktopDepositGridClassName(showTimeLeft, showAction),
       ].join(" ")}
     >
       {labels.map((label, index) => (
@@ -475,11 +484,10 @@ function DepositDetails({
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ type: "spring", stiffness: 360, damping: 34, mass: 0.8 }}
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
       className={[
         "overflow-hidden",
         rowTintClassName,
@@ -565,6 +573,7 @@ function MobileDepositCard({
   expanded,
   copied,
   canceling,
+  expandable,
   onCopy,
   onToggleExpand,
   onCancel,
@@ -575,6 +584,7 @@ function MobileDepositCard({
   expanded: boolean;
   copied: string | null;
   canceling: boolean;
+  expandable: boolean;
   onCopy: (label: string, value: string) => void;
   onToggleExpand: () => void;
   onCancel: () => void;
@@ -613,7 +623,14 @@ function MobileDepositCard({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)_auto] items-start gap-2.5 text-left">
+      <div
+        className={[
+          "mt-3 grid items-start gap-2.5 text-left",
+          expandable
+            ? "grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)_auto]"
+            : "grid-cols-2",
+        ].join(" ")}
+      >
         <div className="min-w-0">
           <div className="h-3.5 truncate text-[11px] font-medium uppercase leading-[14px] tracking-[0.14em] text-zinc-600">
             Method
@@ -637,78 +654,89 @@ function MobileDepositCard({
           </div>
         </div>
 
-        <div className="flex min-w-[96px] shrink-0 items-center justify-end gap-3 pt-[21px]">
-          {canCancel ? (
+        {expandable ? (
+          <div className="flex min-w-[96px] shrink-0 items-center justify-end gap-3 pt-[21px]">
+            {canCancel ? (
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={canceling}
+                className="inline-flex h-7 w-[44px] cursor-pointer items-center justify-center bg-transparent px-0 text-[11px] font-semibold leading-none text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                {canceling ? <InlineSpinner /> : "Cancel"}
+              </button>
+            ) : null}
+
             <button
               type="button"
-              onClick={onCancel}
-              disabled={canceling}
-              className="inline-flex h-7 w-[44px] cursor-pointer items-center justify-center bg-transparent px-0 text-[11px] font-semibold leading-none text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+              onClick={onToggleExpand}
+              className="h-7 w-12 shrink-0 cursor-pointer rounded-lg border border-zinc-800 bg-black/30 px-0 text-[11px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
             >
-              {canceling ? <InlineSpinner /> : "Cancel"}
+              {expanded ? "Hide" : "View"}
             </button>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={onToggleExpand}
-            className="h-7 w-12 shrink-0 cursor-pointer rounded-lg border border-zinc-800 bg-black/30 px-0 text-[11px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
-          >
-            {expanded ? "Hide" : "View"}
-          </button>
-        </div>
+          </div>
+        ) : null}
       </div>
 
-      {expanded ? (
-        <div className="mt-3">
-          <div className="grid gap-3">
-            {invoice.provider === "relay" ? (
+      <AnimatePresence initial={false}>
+        {expandable && expanded ? (
+          <motion.div
+            key={`mobile-details-${invoice.id}`}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="grid gap-3 pt-3">
+              {invoice.provider === "relay" ? (
+                <DetailCard
+                  label="Deposit address"
+                  value={invoice.deposit_address || "—"}
+                  copyLabel={`mobile-deposit-${invoice.id}`}
+                  copied={copied}
+                  onCopy={onCopy}
+                />
+              ) : null}
+
               <DetailCard
-                label="Deposit address"
-                value={invoice.deposit_address || "—"}
-                copyLabel={`mobile-deposit-${invoice.id}`}
+                label="Send amount"
+                value={
+                  invoice.provider === "promo"
+                    ? "Promo covered full fee"
+                    : `${invoice.expected_amount_display} ${invoice.asset}`
+                }
+                copyLabel={
+                  invoice.provider === "promo"
+                    ? undefined
+                    : `mobile-amount-${invoice.id}`
+                }
                 copied={copied}
                 onCopy={onCopy}
               />
-            ) : null}
 
-            <DetailCard
-              label="Send amount"
-              value={
-                invoice.provider === "promo"
-                  ? "Promo covered full fee"
-                  : `${invoice.expected_amount_display} ${invoice.asset}`
-              }
-              copyLabel={
-                invoice.provider === "promo"
-                  ? undefined
-                  : `mobile-amount-${invoice.id}`
-              }
-              copied={copied}
-              onCopy={onCopy}
-            />
+              {invoice.received_destination_amount_display ? (
+                <DetailCard
+                  label="Received"
+                  value={`${invoice.received_destination_amount_display} USDC`}
+                  copied={copied}
+                  onCopy={onCopy}
+                />
+              ) : null}
 
-            {invoice.received_destination_amount_display ? (
-              <DetailCard
-                label="Received"
-                value={`${invoice.received_destination_amount_display} USDC`}
-                copied={copied}
-                onCopy={onCopy}
-              />
-            ) : null}
-
-            {getInvoiceTransactionHash(invoice) ? (
-              <DetailCard
-                label="Transaction"
-                value={getInvoiceTransactionHash(invoice) ?? "—"}
-                copyLabel={`mobile-tx-${invoice.id}`}
-                copied={copied}
-                onCopy={onCopy}
-              />
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+              {getInvoiceTransactionHash(invoice) ? (
+                <DetailCard
+                  label="Transaction"
+                  value={getInvoiceTransactionHash(invoice) ?? "—"}
+                  copyLabel={`mobile-tx-${invoice.id}`}
+                  copied={copied}
+                  onCopy={onCopy}
+                />
+              ) : null}
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
@@ -737,6 +765,7 @@ function DepositRow({
   const canCancel = invoice.status === "pending";
   const quantity = getDepositQuantity(invoice);
   const showTimeLeft = isOpenStatus(invoice.status);
+  const expandable = showTimeLeft;
 
   return (
     <>
@@ -744,9 +773,10 @@ function DepositRow({
         invoice={invoice}
         index={index}
         nowMs={nowMs}
-        expanded={expanded}
+        expanded={expandable && expanded}
         copied={copied}
         canceling={canceling}
+        expandable={expandable}
         onCopy={onCopy}
         onToggleExpand={onToggleExpand}
         onCancel={onCancel}
@@ -756,7 +786,7 @@ function DepositRow({
         <div
           className={[
             "grid items-center px-5 py-3.5 text-sm transition-colors hover:bg-zinc-900/55",
-            getDesktopDepositGridClassName(showTimeLeft),
+            getDesktopDepositGridClassName(showTimeLeft, expandable),
             getDepositRowTintClassName(index),
           ].join(" ")}
         >
@@ -780,30 +810,32 @@ function DepositRow({
             </div>
           ) : null}
 
-          <div className="flex items-center justify-end gap-3 pl-6">
-            {canCancel ? (
+          {expandable ? (
+            <div className="flex items-center justify-end gap-3 pl-6">
+              {canCancel ? (
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  disabled={canceling}
+                  className="inline-flex h-9 w-[50px] cursor-pointer items-center justify-center bg-transparent px-0 text-[12px] font-semibold text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  {canceling ? <InlineSpinner /> : "Cancel"}
+                </button>
+              ) : null}
+
               <button
                 type="button"
-                onClick={onCancel}
-                disabled={canceling}
-                className="inline-flex h-9 w-[50px] cursor-pointer items-center justify-center bg-transparent px-0 text-[12px] font-semibold text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+                onClick={onToggleExpand}
+                className="h-9 w-[54px] cursor-pointer rounded-xl border border-zinc-800 bg-black/30 px-0 text-[12px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
               >
-                {canceling ? <InlineSpinner /> : "Cancel"}
+                {expanded ? "Hide" : "View"}
               </button>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={onToggleExpand}
-              className="h-9 w-[54px] cursor-pointer rounded-xl border border-zinc-800 bg-black/30 px-0 text-[12px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
-            >
-              {expanded ? "Hide" : "View"}
-            </button>
-          </div>
+            </div>
+          ) : null}
         </div>
 
         <AnimatePresence initial={false}>
-          {expanded ? (
+          {expandable && expanded ? (
             <DepositDetails
               key={`details-${invoice.id}`}
               invoice={invoice}
@@ -840,7 +872,7 @@ function EmptyOpenDepositsRow() {
 
 function EmptyTableRow({ message }: { message: string }) {
   return (
-    <div className="border-b border-zinc-900/80 px-4 py-8 text-sm text-zinc-500 last:border-b-0 sm:px-5 xl:min-w-[820px]">
+    <div className="border-b border-zinc-900/80 px-4 py-8 text-sm text-zinc-500 last:border-b-0 sm:px-5 xl:min-w-[700px]">
       {message}
     </div>
   );
@@ -981,9 +1013,10 @@ function DepositsTable({
                   "Time left",
                   "Action",
                 ]
-              : ["Deposit", "Method", "Status", "Qty", "Total", "Action"]
+              : ["Deposit", "Method", "Status", "Qty", "Total"]
           }
           showTimeLeft={showingOpen}
+          showAction={showingOpen}
         />
 
         {deposits.length ? (
@@ -993,7 +1026,7 @@ function DepositsTable({
               invoice={invoice}
               index={index}
               nowMs={nowMs}
-              expanded={expandedDepositId === invoice.id}
+              expanded={showingOpen && expandedDepositId === invoice.id}
               copied={copied}
               canceling={cancelingId === invoice.id}
               onCopy={onCopy}
