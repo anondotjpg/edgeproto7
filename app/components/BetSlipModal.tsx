@@ -94,6 +94,44 @@ type BetSlipModalProps = BetSlipData & {
   triggerContentClassName?: string;
 };
 
+const TOTAL_BET_LOGO_SRC = "/over.png";
+
+function isTotalBetMarket(market?: string | null) {
+  const normalizedMarket = String(market ?? "").toLowerCase();
+
+  return normalizedMarket === "totals" || normalizedMarket === "total";
+}
+
+function getBetDisplayTeamLogo({
+  market,
+  teamLogo,
+}: {
+  market?: string | null;
+  teamLogo?: string | null;
+}) {
+  if (isTotalBetMarket(market)) {
+    return TOTAL_BET_LOGO_SRC;
+  }
+
+  return teamLogo ?? null;
+}
+
+function getBetDisplayTeamLogoAlt({
+  market,
+  teamLogoAlt,
+  team,
+}: {
+  market?: string | null;
+  teamLogoAlt?: string | null;
+  team: string;
+}) {
+  if (isTotalBetMarket(market)) {
+    return "Over/under";
+  }
+
+  return teamLogoAlt ?? team;
+}
+
 function getTeamDisplayName(team: string, teamAlias?: string | null) {
   const cleanAlias = teamAlias?.trim();
 
@@ -1798,8 +1836,15 @@ export function BetSlipPanel({
           polymarketOutcomeIndex: currentBet.polymarketOutcomeIndex,
           polymarketTokenId: currentBet.polymarketTokenId,
 
-          teamLogo: currentBet.teamLogo ?? null,
-          teamLogoAlt: currentBet.teamLogoAlt ?? currentBet.team,
+          teamLogo: getBetDisplayTeamLogo({
+            market: currentBet.market,
+            teamLogo: currentBet.teamLogo,
+          }),
+          teamLogoAlt: getBetDisplayTeamLogoAlt({
+            market: currentBet.market,
+            teamLogoAlt: currentBet.teamLogoAlt,
+            team: currentBet.team,
+          }),
         }),
       });
 
@@ -1863,8 +1908,15 @@ export function BetSlipPanel({
       matchupAlias={bet.matchupAlias}
       odds={bet.odds}
       impliedPercent={bet.impliedPercent}
-      teamLogo={bet.teamLogo}
-      teamLogoAlt={bet.teamLogoAlt}
+      teamLogo={getBetDisplayTeamLogo({
+        market: bet.market,
+        teamLogo: bet.teamLogo,
+      })}
+      teamLogoAlt={getBetDisplayTeamLogoAlt({
+        market: bet.market,
+        teamLogoAlt: bet.teamLogoAlt,
+        team: bet.team,
+      })}
       ready={ready}
       authenticated={authenticated}
       login={login}
