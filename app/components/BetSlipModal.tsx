@@ -1822,6 +1822,12 @@ export function BetSlipPanel({
           accountIds: selectedAccountIds,
           gameId: currentBet.gameId,
           league: currentBet.league,
+          matchup: getMatchupDisplayName({
+            matchup: currentBet.matchup,
+            matchupAlias: currentBet.matchupAlias,
+            team: currentBet.team,
+            teamAlias: currentBet.teamAlias,
+          }),
           market: currentBet.market,
           selection: currentBet.team,
           odds: numericOdds,

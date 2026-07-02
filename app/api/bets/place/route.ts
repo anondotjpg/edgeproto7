@@ -21,6 +21,7 @@ type PlaceBetBody = {
   accountIds?: string[];
   gameId?: string;
   league?: string;
+  matchup?: string | null;
   market?: string;
   selection?: string;
   odds?: number;
@@ -404,6 +405,7 @@ export async function POST(req: Request) {
     const accountIds = body.accountIds ?? [];
     const gameId = cleanText(body.gameId);
     const requestLeague = cleanText(body.league);
+    const requestMatchup = cleanText(body.matchup);
     const requestMarket = cleanText(body.market) ?? "h2h";
     const stake = Number(body.stake);
 
@@ -589,6 +591,10 @@ export async function POST(req: Request) {
     const finalTeamLogoAlt = totalMarketLogo
       ? `${game.sport_key.toUpperCase()} Total`
       : serverBet.teamLogoAlt ?? requestTeamLogoAlt;
+    const finalLeague =
+      requestMarket === "totals" && requestMatchup
+        ? requestMatchup
+        : game.sport_key;
 
     const placedBetIds: string[] = [];
 
@@ -599,7 +605,7 @@ export async function POST(req: Request) {
           p_user_id: dbUser.id,
           p_account_id: cleanAccountId,
           p_game_id: game.id,
-          p_league: game.sport_key,
+          p_league: finalLeague,
           p_market: requestMarket,
           p_selection: serverBet.selection,
           p_odds: serverBet.odds,
