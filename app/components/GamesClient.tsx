@@ -634,22 +634,94 @@ function DesktopMarketCell({
     selectedBet?.gameId === betData.gameId &&
     selectedBet.market === betData.market &&
     selectedBet.polymarketTokenId === betData.polymarketTokenId;
+  const centered = market.key === "h2h";
+  const label = getOutcomeButtonLabel({ market, outcome, team, teamInfo });
+  const { shellStyle, faceStyle } = getTeamColorStyles({
+    color: betData.teamColor,
+    selected,
+    isLive,
+  });
 
   return (
-    <button
-      type="button"
-      onClick={() => onSelect(betData)}
-      className="block w-full cursor-pointer"
-    >
-      <MarketFace
-        selected={selected}
-        isLive={isLive}
-        teamColor={betData.teamColor}
-        label={getOutcomeButtonLabel({ market, outcome, team, teamInfo })}
-        odds={betData.odds}
-        centered={market.key === "h2h"}
-      />
-    </button>
+    <div className="relative">
+      <div
+        className={[
+          "rounded-lg xl:hidden",
+          isLive ? "bg-zinc-800" : selected ? "bg-zinc-600" : "bg-zinc-800",
+        ].join(" ")}
+        style={{
+          paddingBottom: "2px",
+          ...shellStyle,
+        }}
+      >
+        <div className="group relative">
+          <BetSlipModal
+            {...betData}
+            teamColor={betData.teamColor}
+            triggerClassName={[
+              "peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
+              isLive
+                ? "bg-zinc-900"
+                : selected
+                  ? "bg-zinc-700"
+                  : "bg-zinc-900",
+            ].join(" ")}
+            triggerContentClassName="sr-only"
+          />
+
+          <div
+            className={[
+              "pointer-events-none absolute inset-0 flex translate-y-[-2px] items-center rounded-lg px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-1px] peer-active:translate-y-0 group-hover:translate-y-[-1px] group-active:translate-y-0",
+              centered ? "justify-center gap-1.5" : "justify-between gap-1",
+              isLive
+                ? "bg-zinc-900"
+                : selected
+                  ? "bg-zinc-700"
+                  : "bg-zinc-900",
+            ].join(" ")}
+            style={faceStyle}
+          >
+            {isLive ? (
+              <span className="flex w-full justify-center">
+                <FaLock className="h-3.5 w-3.5 text-zinc-500" />
+              </span>
+            ) : (
+              <>
+                <span
+                  className={[
+                    "font-bold leading-none text-zinc-300",
+                    centered
+                      ? "text-[11px] tracking-[0.06em]"
+                      : "min-w-0 truncate text-[11px] tracking-[0.06em]",
+                  ].join(" ")}
+                >
+                  {label}
+                </span>
+
+                <span className="shrink-0 text-[13px] font-bold leading-none tracking-tight text-zinc-100">
+                  {betData.odds}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onSelect(betData)}
+        className="hidden w-full cursor-pointer xl:block"
+      >
+        <MarketFace
+          selected={selected}
+          isLive={isLive}
+          teamColor={betData.teamColor}
+          label={label}
+          odds={betData.odds}
+          centered={centered}
+        />
+      </button>
+    </div>
   );
 }
 
