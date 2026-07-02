@@ -789,7 +789,7 @@ function DateMarketHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-end justify-between gap-3 xl:grid xl:grid-cols-[minmax(0,1fr)_112px_112px_112px] xl:items-end xl:gap-2">
+    <div className="flex items-end justify-between gap-3 xl:grid xl:grid-cols-[minmax(0,1fr)_124px_124px_124px] xl:items-end xl:gap-2">
       <div className="text-[20px] font-semibold leading-none tracking-tight text-zinc-100">
         {date}
       </div>
@@ -1024,7 +1024,7 @@ function GameCard({
       <article className="relative hidden xl:block">
         <GameCardHeader game={game} eventHref={eventHref} />
 
-        <div className="grid grid-cols-[minmax(0,1fr)_112px_112px_112px] gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_124px_124px_124px] gap-2">
           <div>
             <TeamRow
               team={game.away_team}
@@ -1252,7 +1252,7 @@ export default function GamesClient({
           <LeagueTabs leagues={leagues} selectedLeague={selectedLeague} />
         </header>
 
-        <div className="mt-4 grid gap-6 md:mt-[26px] xl:grid-cols-[minmax(0,1120px)_420px] xl:items-start xl:justify-center">
+        <div className="mt-4 grid gap-6 md:mt-[26px] xl:grid-cols-[minmax(0,1156px)_420px] xl:items-start xl:justify-center">
           <main className="min-w-0">
             <section className="space-y-4">
               <div className="grid grid-cols-[112px_minmax(0,1fr)_112px] items-end gap-3">

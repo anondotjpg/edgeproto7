@@ -937,13 +937,13 @@ function DesktopMarketsBoard({
 }) {
   return (
     <div className="hidden min-w-0 rounded-[28px] border border-zinc-800 bg-zinc-950 p-4 md:block md:p-5">
-      <div className="grid grid-cols-[minmax(0,1fr)_112px_112px_112px] items-end gap-2 px-1 pb-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_124px_124px_124px] items-end gap-2 px-1 pb-2">
         <div />
 
         {["Moneyline", "Spread", "Total"].map((label) => (
           <div
             key={label}
-            className="text-center text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500"
+            className="flex items-center justify-center pb-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500"
           >
             {label}
           </div>
@@ -951,7 +951,7 @@ function DesktopMarketsBoard({
       </div>
 
       <div className="grid gap-2">
-        <div className="grid grid-cols-[minmax(0,1fr)_112px_112px_112px] items-center gap-2 border-t border-zinc-900/80 pt-3">
+        <div className="grid grid-cols-[minmax(0,1fr)_124px_124px_124px] items-center gap-2 border-t border-zinc-900/80 pt-3">
           <DesktopTeamCell
             team={game.away_team}
             info={game.away_team_info}
@@ -1009,7 +1009,7 @@ function DesktopMarketsBoard({
           />
         </div>
 
-        <div className="grid grid-cols-[minmax(0,1fr)_112px_112px_112px] items-center gap-2 border-t border-zinc-900/80 pt-3">
+        <div className="grid grid-cols-[minmax(0,1fr)_124px_124px_124px] items-center gap-2 border-t border-zinc-900/80 pt-3">
           <DesktopTeamCell
             team={game.home_team}
             info={game.home_team_info}
@@ -1166,7 +1166,7 @@ export default function EventBettingClient({
   }, [firstBet]);
 
   return (
-    <div className="mt-5 grid gap-5 md:mt-8 md:gap-6 xl:grid-cols-[minmax(0,980px)_420px] xl:items-start xl:justify-center">
+    <div className="mt-5 grid gap-5 md:mt-8 md:gap-6 xl:grid-cols-[minmax(0,1016px)_420px] xl:items-start xl:justify-center">
       <main className="min-w-0">
         <section className="space-y-3 md:space-y-4">
           <EventHeader game={game} />
