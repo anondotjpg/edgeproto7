@@ -923,7 +923,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
     >
       <div className="flex h-[18px] items-center justify-between gap-3">
         <div className="text-sm font-medium leading-[18px] text-zinc-300">
-          Select Account(s)
+          Select account(s)
         </div>
 
         {showAccountScrollHint ? (
