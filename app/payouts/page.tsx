@@ -114,7 +114,7 @@ function EmptyFundedAccountsRow() {
   return (
     <div className="rounded-2xl border-b border-zinc-900/80 px-3 py-3 last:border-b-0 sm:px-5 lg:rounded-t-none">
       <EmptyState
-        title="No funded accounts yet"
+        title="No active funded accounts"
         description="Pass a challenge to unlock funded payouts. Then info will show here."
         action={
           <Link
