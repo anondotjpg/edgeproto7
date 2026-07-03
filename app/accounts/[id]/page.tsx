@@ -1165,16 +1165,16 @@ export default async function AccountPage({ params }: AccountPageProps) {
               shouldDisplayFundedData ? "" : "lg:grid-cols-2",
             ].join(" ")}
           >
-            <div className="flex min-h-[142px] min-w-0 flex-col overflow-visible lg:min-h-[166px]">
+            <div className="flex min-h-[164px] min-w-0 flex-col overflow-visible sm:min-h-[166px] lg:min-h-[166px]">
               <div className="flex min-w-0 items-start justify-between gap-3">
-                <h1 className="min-w-0 truncate text-[17px] font-semibold leading-tight tracking-tight text-zinc-400 sm:text-[24px] sm:text-zinc-200 lg:text-[26px]">
+                <h1 className="min-w-0 truncate text-[15px] font-semibold leading-tight tracking-tight text-zinc-500 sm:text-[24px] sm:text-zinc-200 lg:text-[26px]">
                   {pageTitle}
                 </h1>
 
                 {hasRealizedPnlChange ? (
                   <div
                     className={[
-                      "shrink-0 pt-0.5 text-right text-[13px] font-semibold leading-none sm:pt-1 sm:text-[14px]",
+                      "hidden shrink-0 pt-0.5 text-right text-[13px] font-semibold leading-none sm:block sm:pt-1 sm:text-[14px]",
                       pnlColor(realizedPnl),
                     ].join(" ")}
                   >
@@ -1183,14 +1183,14 @@ export default async function AccountPage({ params }: AccountPageProps) {
                 ) : null}
               </div>
 
-              <div className="flex flex-1 flex-col items-center justify-center pt-3 text-center sm:items-start sm:justify-start sm:pt-5 sm:text-left">
+              <div className="flex flex-1 flex-col items-center justify-center pt-6 pb-3 text-center sm:items-start sm:justify-start sm:pt-5 sm:pb-0 sm:text-left">
                 <MoneyAmount
                   value={ruleEquity}
-                  className="max-w-full text-[46px] font-semibold leading-none tracking-[-0.055em] text-zinc-50 sm:text-[44px] lg:text-[46px]"
+                  className="max-w-full text-[54px] font-semibold leading-none tracking-[-0.06em] text-zinc-50 sm:text-[44px] lg:text-[46px]"
                   decimalsClassName="ml-0.5 text-[0.58em] font-medium tracking-[-0.035em] text-zinc-500"
                 />
 
-                <div className="mt-2 truncate text-[13px] font-medium leading-tight text-zinc-500 sm:mt-2">
+                <div className="mt-3 truncate text-[13px] font-medium leading-tight text-zinc-500 sm:mt-2">
                   {formatMoney(currentBalance)} avail.
                 </div>
               </div>
@@ -1199,10 +1199,10 @@ export default async function AccountPage({ params }: AccountPageProps) {
             {!shouldDisplayFundedData ? (
               <div
                 className={[
-                  "relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] bg-zinc-950/80 px-4 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:px-5 lg:ring-0",
+                  "relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] bg-zinc-950/80 px-4 py-4 sm:min-h-[166px] sm:px-5",
                   isAccountFailed
                     ? "shadow-[inset_0_0_36px_rgba(239,68,68,0.14),inset_0_1px_0_rgba(248,113,113,0.08)] sm:shadow-none"
-                    : "",
+                    : "ring-1 ring-zinc-900 lg:ring-0",
                 ].join(" ")}
               >
                 {isAccountFailed ? (
