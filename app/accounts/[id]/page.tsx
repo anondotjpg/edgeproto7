@@ -1294,7 +1294,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
                 className={[
                   "relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] bg-zinc-950/80 px-4 py-4 sm:min-h-[166px] sm:px-5",
                   isAccountFailed
-                    ? "shadow-[inset_0_0_36px_rgba(239,68,68,0.07),inset_0_1px_0_rgba(248,113,113,0.04)] sm:shadow-none sm:ring-1 sm:ring-zinc-900"
+                    ? "shadow-[inset_0_0_36px_rgba(239,68,68,0.07),inset_0_1px_0_rgba(248,113,113,0.04)] sm:shadow-none"
                     : "shadow-[inset_0_0_36px_rgba(161,161,170,0.04),inset_0_1px_0_rgba(244,244,245,0.02)] sm:shadow-none",
                 ].join(" ")}
               >
