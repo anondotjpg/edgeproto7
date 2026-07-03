@@ -106,21 +106,48 @@ function LossRuleBarsSkeleton() {
   );
 }
 
+function MobileTwoLineRuleTitle({
+  title,
+  className,
+}: {
+  title: string;
+  className: string;
+}) {
+  const [firstWord, ...remainingWords] = title.split(" ");
+  const restTitle = remainingWords.join(" ");
+
+  return (
+    <div className={className}>
+      <span className="block sm:inline">{firstWord}</span>
+      {restTitle ? (
+        <>
+          <span className="hidden sm:inline"> </span>
+          <span className="block sm:inline">{restTitle}</span>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function RuleSkeleton({ label }: { label: string }) {
   return (
-    <div className="flex min-h-[154px] flex-col rounded-[22px] bg-zinc-950/80 px-3 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:rounded-[26px] sm:px-5">
+    <div className="flex min-h-[118px] flex-col rounded-[22px] bg-zinc-950/80 px-3 py-3 ring-1 ring-zinc-900 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
       <div className="flex items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <div className="text-[14px] font-medium leading-tight text-zinc-500 sm:text-[17px]">
-            {label}
-          </div>
+          <MobileTwoLineRuleTitle
+            title={label}
+            className="text-[14px] font-medium leading-tight text-zinc-500 sm:text-[17px]"
+          />
 
-          <SkeletonBlock className="mt-2 h-[28px] w-24 sm:h-[34px] sm:w-40" />
-          <SkeletonBlock className="mt-1 h-3.5 w-24 sm:h-4 sm:w-32" />
+          <SkeletonBlock className="mt-2 hidden h-[34px] w-40 sm:block" />
+        </div>
+
+        <div className="min-w-0 max-w-[60%] shrink-0 pt-0.5 text-right sm:hidden">
+          <SkeletonBlock className="ml-auto h-5 w-24" />
         </div>
       </div>
 
-      <div className="mt-auto pt-2">
+      <div className="mt-auto pt-3 sm:pt-2">
         <LossRuleBarsSkeleton />
       </div>
     </div>

@@ -504,6 +504,29 @@ function LossRuleProgressBar({ value }: { value: number }) {
   );
 }
 
+function MobileTwoLineRuleTitle({
+  title,
+  className,
+}: {
+  title: string;
+  className: string;
+}) {
+  const [firstWord, ...remainingWords] = title.split(" ");
+  const restTitle = remainingWords.join(" ");
+
+  return (
+    <div className={className}>
+      <span className="block sm:inline">{firstWord}</span>
+      {restTitle ? (
+        <>
+          <span className="hidden sm:inline"> </span>
+          <span className="block sm:inline">{restTitle}</span>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function MetricCard({
   label,
   value,
@@ -561,9 +584,10 @@ function RuleRoomCard({
         />
 
         <div className="relative text-center">
-          <div className="text-[14px] font-medium leading-tight text-red-300/60 sm:text-[17px]">
-            {title}
-          </div>
+          <MobileTwoLineRuleTitle
+            title={title}
+            className="text-[14px] font-medium leading-tight text-red-300/60 sm:text-[17px]"
+          />
 
           <div className="mt-2 flex min-h-[28px] items-center justify-center gap-1.5 text-[22px] font-semibold leading-tight tracking-tight text-red-200 sm:min-h-[34px] sm:gap-2 sm:text-[28px]">
             <IoWarningOutline
@@ -592,24 +616,35 @@ function RuleRoomCard({
   const healthLabel = getHealthLabel(room, limit);
 
   return (
-    <div className="flex min-h-[154px] flex-col rounded-[22px] bg-zinc-950/80 px-3 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:rounded-[26px] sm:px-5">
+    <div className="flex min-h-[118px] flex-col rounded-[22px] bg-zinc-950/80 px-3 py-3 ring-1 ring-zinc-900 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
       <div className="flex items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <div className="text-[14px] font-medium leading-tight text-zinc-500 sm:text-[17px]">
-            {title}
-          </div>
+          <MobileTwoLineRuleTitle
+            title={title}
+            className="text-[14px] font-medium leading-tight text-zinc-500 sm:text-[17px]"
+          />
 
-          <div className="mt-2 min-h-[28px] truncate text-[20px] font-semibold leading-tight tracking-tight text-zinc-100 sm:min-h-[34px] sm:text-[28px]">
+          <div className="mt-2 hidden min-h-[34px] truncate text-[28px] font-semibold leading-tight tracking-tight text-zinc-100 sm:block">
             {breached ? "Failed" : formatMoney(safeRoom)}
           </div>
 
-          <div className="mt-1 truncate text-[11px] leading-tight text-zinc-500 sm:text-[13px]">
+          <div className="mt-1 hidden truncate text-[13px] leading-tight text-zinc-500 sm:block">
+            {breached ? "limit breached" : "before fail"}
+          </div>
+        </div>
+
+        <div className="min-w-0 max-w-[60%] shrink-0 pt-0.5 text-right sm:hidden">
+          <div className="truncate text-[17px] font-semibold leading-tight tracking-tight text-zinc-100">
+            {breached ? "Failed" : formatMoney(safeRoom)}
+          </div>
+
+          <div className="mt-0.5 truncate text-[11px] leading-tight text-zinc-500">
             {breached ? "limit breached" : "before fail"}
           </div>
         </div>
       </div>
 
-      <div className="mt-auto pt-2">
+      <div className="mt-auto pt-3 sm:pt-2">
         <LossRuleProgressBar value={usedPercent} />
       </div>
     </div>
