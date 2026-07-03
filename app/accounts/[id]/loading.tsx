@@ -10,13 +10,10 @@ function TopSummarySkeleton() {
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center pt-3 pb-2 text-center sm:items-start sm:justify-start sm:pt-5 sm:pb-0 sm:text-left">
-        <div className="flex max-w-full items-end justify-center sm:justify-start">
-          <div className="flex min-w-0 items-end">
-            <SkeletonBlock className="h-[43px] w-48 max-w-[calc(100vw-120px)] rounded-lg sm:h-11 sm:w-56 lg:h-12" />
-            <SkeletonBlock className="ml-1 mb-1 h-6 w-12 rounded-lg bg-zinc-900/75 sm:h-6 sm:w-16" />
-          </div>
+        <div className="flex max-w-full items-end justify-center gap-3 sm:justify-start">
+          <SkeletonBlock className="h-[43px] w-[236px] max-w-[calc(100vw-96px)] rounded-lg sm:h-11 sm:w-64 lg:h-12 lg:w-72" />
 
-          <SkeletonBlock className="ml-3 mb-1 hidden h-3.5 w-24 shrink-0 sm:block lg:h-4" />
+          <SkeletonBlock className="mb-1 hidden h-3.5 w-24 shrink-0 self-end rounded-md sm:block lg:h-4" />
         </div>
 
         <SkeletonBlock className="mt-2 h-4 w-36 sm:mt-3" />
