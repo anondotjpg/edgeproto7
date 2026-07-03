@@ -64,7 +64,17 @@ function GoalBarsSkeleton() {
 
 function GoalSkeleton() {
   return (
-    <div className="relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] bg-zinc-950/80 px-4 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:px-5 lg:ring-0">
+    <div className="relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] bg-zinc-950/80 px-4 py-4 shadow-[inset_0_0_36px_rgba(161,161,170,0.08),inset_0_1px_0_rgba(244,244,245,0.04)] ring-1 ring-zinc-900 sm:min-h-[166px] sm:px-5 lg:ring-0">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(161,161,170,0.12),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(39,39,42,0.28),transparent_62%)]"
+      />
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-px rounded-[25px] shadow-[inset_0_0_24px_rgba(212,212,216,0.06)]"
+      />
+
       <div className="relative flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="text-[17px] font-medium leading-tight text-zinc-500">
@@ -131,8 +141,18 @@ function MobileTwoLineRuleTitle({
 
 function RuleSkeleton({ label }: { label: string }) {
   return (
-    <div className="flex min-h-[118px] flex-col rounded-[22px] bg-zinc-950/80 px-3 py-3 ring-1 ring-zinc-900 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
-      <div className="flex items-start justify-between gap-3 sm:gap-4">
+    <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] bg-zinc-950/80 px-3 py-3 shadow-[inset_0_0_36px_rgba(161,161,170,0.08),inset_0_1px_0_rgba(244,244,245,0.04)] ring-1 ring-zinc-900 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(161,161,170,0.12),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(39,39,42,0.28),transparent_62%)]"
+      />
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-px rounded-[21px] shadow-[inset_0_0_24px_rgba(212,212,216,0.06)] sm:rounded-[25px]"
+      />
+
+      <div className="relative flex items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <MobileTwoLineRuleTitle
             title={label}
@@ -147,7 +167,7 @@ function RuleSkeleton({ label }: { label: string }) {
         </div>
       </div>
 
-      <div className="mt-auto pt-3 sm:pt-2">
+      <div className="relative mt-auto pt-3 sm:pt-2">
         <LossRuleBarsSkeleton />
       </div>
     </div>
