@@ -41,6 +41,40 @@ function formatMoney(value: number | null | undefined) {
   })}`;
 }
 
+function getMoneyDisplayParts(value: number | null | undefined) {
+  const safeValue = Number(value ?? 0);
+  const sign = safeValue < 0 ? "-" : "";
+  const formatted = Math.abs(safeValue).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const [whole = "0", decimals = "00"] = formatted.split(".");
+
+  return {
+    whole: `${sign}$${whole}`,
+    decimals: `.${decimals}`,
+  };
+}
+
+function MoneyAmount({
+  value,
+  className = "",
+  decimalsClassName = "",
+}: {
+  value: number | null | undefined;
+  className?: string;
+  decimalsClassName?: string;
+}) {
+  const { whole, decimals } = getMoneyDisplayParts(value);
+
+  return (
+    <span className={`inline-flex items-baseline ${className}`}>
+      <span>{whole}</span>
+      <span className={decimalsClassName}>{decimals}</span>
+    </span>
+  );
+}
+
 function formatMoneyInteger(value: number | null | undefined) {
   const safeValue = Number(value ?? 0);
 
@@ -1131,36 +1165,32 @@ export default async function AccountPage({ params }: AccountPageProps) {
               shouldDisplayFundedData ? "" : "lg:grid-cols-2",
             ].join(" ")}
           >
-            <div className="flex min-h-[142px] min-w-0 flex-col justify-between overflow-visible lg:min-h-[166px]">
-              <div className="min-w-0">
-                <div className="flex h-[36px] max-w-full items-start overflow-hidden sm:h-[42px] lg:h-[44px]">
-                  <h1 className="truncate text-[29px] font-semibold leading-[1.08] tracking-tight text-zinc-100 sm:text-[34px] lg:text-[36px]">
-                    {pageTitle}
-                  </h1>
-                </div>
+            <div className="flex min-h-[142px] min-w-0 flex-col overflow-visible lg:min-h-[166px]">
+              <div className="flex min-w-0 items-start justify-between gap-3">
+                <h1 className="min-w-0 truncate text-[17px] font-semibold leading-tight tracking-tight text-zinc-400 sm:text-[24px] sm:text-zinc-200 lg:text-[26px]">
+                  {pageTitle}
+                </h1>
 
-                <div className="mt-3 text-[12px] font-medium leading-none text-zinc-500">
-                  Rule equity
-                </div>
-
-                <div className="mt-2 flex min-w-0 items-end gap-3">
-                  <div className="min-w-0 truncate pb-1 text-[36px] font-semibold leading-[1.04] tracking-tight text-zinc-100 sm:text-[42px] lg:text-[44px]">
-                    {formatMoney(ruleEquity)}
+                {hasRealizedPnlChange ? (
+                  <div
+                    className={[
+                      "shrink-0 pt-0.5 text-right text-[13px] font-semibold leading-none sm:pt-1 sm:text-[14px]",
+                      pnlColor(realizedPnl),
+                    ].join(" ")}
+                  >
+                    {formatSignedMoney(realizedPnl)}
                   </div>
+                ) : null}
+              </div>
 
-                  {hasRealizedPnlChange ? (
-                    <div
-                      className={[
-                        "mb-2 shrink-0 text-[15px] font-semibold leading-none sm:mb-2.5",
-                        pnlColor(realizedPnl),
-                      ].join(" ")}
-                    >
-                      {formatSignedMoney(realizedPnl)}
-                    </div>
-                  ) : null}
-                </div>
+              <div className="flex flex-1 flex-col items-center justify-center pt-3 text-center sm:items-start sm:justify-start sm:pt-5 sm:text-left">
+                <MoneyAmount
+                  value={ruleEquity}
+                  className="max-w-full text-[46px] font-semibold leading-none tracking-[-0.055em] text-zinc-50 sm:text-[44px] lg:text-[46px]"
+                  decimalsClassName="ml-0.5 text-[0.58em] font-medium tracking-[-0.035em] text-zinc-500"
+                />
 
-                <div className="mt-1 truncate text-[13px] font-medium leading-tight text-zinc-500">
+                <div className="mt-2 truncate text-[13px] font-medium leading-tight text-zinc-500 sm:mt-2">
                   {formatMoney(currentBalance)} avail.
                 </div>
               </div>

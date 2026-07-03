@@ -4,22 +4,19 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
 
 function TopSummarySkeleton() {
   return (
-    <div className="flex min-h-[142px] min-w-0 flex-col justify-between overflow-visible lg:min-h-[166px]">
-      <div className="min-w-0">
-        <div className="flex h-[36px] max-w-full items-start overflow-hidden sm:h-[42px] lg:h-[44px]">
-          <SkeletonBlock className="h-8 w-52 max-w-full sm:h-9 sm:w-64" />
+    <div className="flex min-h-[142px] min-w-0 flex-col overflow-visible lg:min-h-[166px]">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <SkeletonBlock className="h-5 w-36 max-w-[60%] sm:h-7 sm:w-52 lg:h-7" />
+        <SkeletonBlock className="mt-0.5 h-3 w-20 shrink-0 sm:mt-1 sm:h-3.5 sm:w-24" />
+      </div>
+
+      <div className="flex flex-1 flex-col items-center justify-center pt-3 text-center sm:items-start sm:justify-start sm:pt-5 sm:text-left">
+        <div className="flex max-w-full items-end justify-center sm:justify-start">
+          <SkeletonBlock className="h-12 w-44 max-w-[calc(100vw-136px)] rounded-lg sm:h-11 sm:w-56 lg:h-12" />
+          <SkeletonBlock className="ml-1 mb-1 h-7 w-14 rounded-lg bg-zinc-900/75 sm:h-6 sm:w-16" />
         </div>
 
-        <div className="mt-3 text-[12px] font-medium leading-none text-zinc-500">
-          Rule equity
-        </div>
-
-        <div className="mt-2 flex min-w-0 items-end gap-3">
-          <SkeletonBlock className="h-10 w-56 max-w-full sm:h-11 sm:w-64" />
-          <SkeletonBlock className="mb-2 h-3 w-24 shrink-0" />
-        </div>
-
-        <SkeletonBlock className="mt-2 h-4 w-36" />
+        <SkeletonBlock className="mt-3 h-4 w-36" />
       </div>
     </div>
   );
@@ -64,8 +61,8 @@ function GoalBarsSkeleton() {
 
 function GoalSkeleton() {
   return (
-    <div className="flex min-h-[132px] flex-col rounded-[26px] bg-zinc-950/80 px-4 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:px-5 lg:ring-0">
-      <div className="flex items-start justify-between gap-4">
+    <div className="relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] bg-zinc-950/80 px-4 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:px-5 lg:ring-0">
+      <div className="relative flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="text-[17px] font-medium leading-tight text-zinc-500">
             Goal
@@ -81,7 +78,7 @@ function GoalSkeleton() {
         </div>
       </div>
 
-      <div className="mt-auto pt-2">
+      <div className="relative mt-auto pt-2">
         <GoalBarsSkeleton />
       </div>
     </div>
