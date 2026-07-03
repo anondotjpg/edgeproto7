@@ -73,7 +73,7 @@ function FundedAccountsTableHeader() {
   const labels = ["Account", "Equity", "Available", "P/L", ""];
 
   return (
-    <div className="hidden border-b border-zinc-900 bg-black/20 px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_140px_140px_120px_44px] lg:items-center lg:gap-3">
+    <div className="hidden rounded-t-2xl border-b border-zinc-900 bg-black/20 px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-600 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_140px_140px_120px_44px] lg:items-center lg:gap-3">
       {labels.map((label, index) => (
         <div
           key={label || "action"}
@@ -112,7 +112,7 @@ function EmptyState({
 
 function EmptyFundedAccountsRow() {
   return (
-    <div className="border-b border-zinc-900/80 px-3 py-3 last:border-b-0 sm:px-5">
+    <div className="rounded-2xl border-b border-zinc-900/80 px-3 py-3 last:border-b-0 sm:px-5 lg:rounded-t-none">
       <EmptyState
         title="No funded accounts yet"
         description="Pass a challenge to unlock funded payouts. Then info will show here."
@@ -253,15 +253,16 @@ function PayoutsSkeleton() {
     <PageLayout>
       <PayoutSummarySkeleton />
 
-      <section className="relative isolate overflow-visible rounded-2xl bg-zinc-900 p-px">
-        <div className="relative overflow-visible rounded-[15px] bg-zinc-950/80">
+      <section className="relative isolate overflow-visible rounded-2xl bg-zinc-950/80 shadow-sm">
+        <div className="pointer-events-none absolute inset-0 z-40 rounded-2xl border border-zinc-900" />
+        <div className="relative overflow-visible rounded-2xl">
           <FundedAccountsTableHeader />
 
           {[1, 2, 3].map((row, index) => (
             <div
               key={row}
               className={[
-                "border-b border-zinc-900/80 px-4 py-4 last:border-b-0 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_140px_140px_120px_44px] lg:items-center lg:gap-3",
+                "border-b border-zinc-900/80 px-4 py-4 first:rounded-t-2xl last:rounded-b-2xl last:border-b-0 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_140px_140px_120px_44px] lg:items-center lg:gap-3 lg:first:rounded-t-none",
                 getStaggeredTableRowBg(index),
               ].join(" ")}
             >
@@ -442,8 +443,9 @@ export default function PayoutsPage() {
     <PageLayout>
       <PayoutSummary totalFundedPnl={totalFundedPnl} />
 
-      <section className="relative isolate overflow-visible rounded-2xl bg-zinc-900 p-px">
-        <div className="relative overflow-visible rounded-[15px] bg-zinc-950/80">
+      <section className="relative isolate overflow-visible rounded-2xl bg-zinc-950/80 shadow-sm">
+        <div className="pointer-events-none absolute inset-0 z-40 rounded-2xl border border-zinc-900" />
+        <div className="relative overflow-visible rounded-2xl">
           <FundedAccountsTableHeader />
 
           <div>
@@ -463,7 +465,7 @@ export default function PayoutsPage() {
                   <div
                     key={account.id}
                     className={[
-                      "relative overflow-visible border-b border-zinc-900/80 px-4 py-4 last:border-b-0 hover:z-40 hover:bg-zinc-900/40 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_140px_140px_120px_44px] lg:items-center lg:gap-3",
+                      "relative overflow-visible border-b border-zinc-900/80 px-4 py-4 first:rounded-t-2xl last:rounded-b-2xl last:border-b-0 hover:z-50 hover:bg-zinc-900/40 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_140px_140px_120px_44px] lg:items-center lg:gap-3 lg:first:rounded-t-none",
                       getStaggeredTableRowBg(index),
                     ].join(" ")}
                   >
