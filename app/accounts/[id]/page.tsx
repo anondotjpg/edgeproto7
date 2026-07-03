@@ -662,15 +662,15 @@ function RuleRoomCard({
   const healthLabel = getHealthLabel(room, limit);
 
   return (
-    <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] bg-zinc-950/80 px-3 py-3 shadow-[inset_0_0_36px_rgba(161,161,170,0.04),inset_0_1px_0_rgba(244,244,245,0.02)] sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
+    <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] bg-zinc-950/80 px-3 py-3 shadow-[inset_0_0_36px_rgba(161,161,170,0.04),inset_0_1px_0_rgba(244,244,245,0.02)] sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4 sm:shadow-none sm:ring-1 sm:ring-zinc-900">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(161,161,170,0.06),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(39,39,42,0.14),transparent_62%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(161,161,170,0.06),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(39,39,42,0.14),transparent_62%)] sm:hidden"
       />
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-px rounded-[21px] shadow-[inset_0_0_24px_rgba(212,212,216,0.03)] sm:rounded-[25px]"
+        className="pointer-events-none absolute inset-px rounded-[21px] shadow-[inset_0_0_24px_rgba(212,212,216,0.03)] sm:hidden sm:rounded-[25px]"
       />
 
       <div className="relative flex items-start justify-between gap-3 sm:gap-4">
