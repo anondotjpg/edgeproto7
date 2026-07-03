@@ -5,15 +5,18 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
 function TopSummarySkeleton() {
   return (
     <div className="flex min-h-[164px] min-w-0 flex-col overflow-visible sm:min-h-[166px] lg:min-h-[166px]">
-      <div className="flex min-w-0 items-start justify-between gap-3">
+      <div className="flex min-w-0 items-start">
         <SkeletonBlock className="h-4 w-32 max-w-[60%] sm:h-7 sm:w-52 lg:h-7" />
-        <SkeletonBlock className="mt-0.5 hidden h-3 w-20 shrink-0 sm:mt-1 sm:block sm:h-3.5 sm:w-24" />
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center pt-6 pb-3 text-center sm:items-start sm:justify-start sm:pt-5 sm:pb-0 sm:text-left">
         <div className="flex max-w-full items-end justify-center sm:justify-start">
-          <SkeletonBlock className="h-14 w-52 max-w-[calc(100vw-120px)] rounded-lg sm:h-11 sm:w-56 lg:h-12" />
-          <SkeletonBlock className="ml-1 mb-1 h-8 w-14 rounded-lg bg-zinc-900/75 sm:h-6 sm:w-16" />
+          <div className="flex min-w-0 items-end">
+            <SkeletonBlock className="h-14 w-52 max-w-[calc(100vw-120px)] rounded-lg sm:h-11 sm:w-56 lg:h-12" />
+            <SkeletonBlock className="ml-1 mb-1 h-8 w-14 rounded-lg bg-zinc-900/75 sm:h-6 sm:w-16" />
+          </div>
+
+          <SkeletonBlock className="ml-3 mb-1 hidden h-3.5 w-24 shrink-0 sm:block lg:h-4" />
         </div>
 
         <SkeletonBlock className="mt-4 h-4 w-36 sm:mt-3" />

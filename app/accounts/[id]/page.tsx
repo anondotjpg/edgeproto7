@@ -1166,29 +1166,31 @@ export default async function AccountPage({ params }: AccountPageProps) {
             ].join(" ")}
           >
             <div className="flex min-h-[164px] min-w-0 flex-col overflow-visible sm:min-h-[166px] lg:min-h-[166px]">
-              <div className="flex min-w-0 items-start justify-between gap-3">
+              <div className="flex min-w-0 items-start">
                 <h1 className="min-w-0 truncate text-[15px] font-semibold leading-tight tracking-tight text-zinc-500 sm:text-[24px] sm:text-zinc-200 lg:text-[26px]">
                   {pageTitle}
                 </h1>
-
-                {hasRealizedPnlChange ? (
-                  <div
-                    className={[
-                      "hidden shrink-0 pt-0.5 text-right text-[13px] font-semibold leading-none sm:block sm:pt-1 sm:text-[14px]",
-                      pnlColor(realizedPnl),
-                    ].join(" ")}
-                  >
-                    {formatSignedMoney(realizedPnl)}
-                  </div>
-                ) : null}
               </div>
 
               <div className="flex flex-1 flex-col items-center justify-center pt-6 pb-3 text-center sm:items-start sm:justify-start sm:pt-5 sm:pb-0 sm:text-left">
-                <MoneyAmount
-                  value={ruleEquity}
-                  className="max-w-full text-[54px] font-semibold leading-none tracking-[-0.06em] text-zinc-50 sm:text-[44px] lg:text-[46px]"
-                  decimalsClassName="ml-0.5 text-[0.58em] font-medium tracking-[-0.035em] text-zinc-500"
-                />
+                <div className="flex max-w-full items-end justify-center gap-3 sm:justify-start">
+                  <MoneyAmount
+                    value={ruleEquity}
+                    className="max-w-full text-[54px] font-semibold leading-none tracking-[-0.06em] text-zinc-50 sm:text-[44px] lg:text-[46px]"
+                    decimalsClassName="ml-0.5 text-[0.58em] font-medium tracking-[-0.035em] text-zinc-500"
+                  />
+
+                  {hasRealizedPnlChange ? (
+                    <div
+                      className={[
+                        "mb-1 hidden shrink-0 text-right text-[14px] font-semibold leading-none sm:block lg:text-[15px]",
+                        pnlColor(realizedPnl),
+                      ].join(" ")}
+                    >
+                      {formatSignedMoney(realizedPnl)}
+                    </div>
+                  ) : null}
+                </div>
 
                 <div className="mt-3 truncate text-[13px] font-medium leading-tight text-zinc-500 sm:mt-2">
                   {formatMoney(currentBalance)} avail.
