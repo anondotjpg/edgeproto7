@@ -623,9 +623,10 @@ function RuleRoomCard({
 
         <div className="relative flex items-start justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
-            <div className="truncate text-[14px] font-medium leading-tight text-red-300/60 sm:text-[17px]">
-              {title}
-            </div>
+            <MobileTwoLineRuleTitle
+              title={title}
+              className="text-[14px] font-medium leading-tight text-red-300/60 sm:text-[17px]"
+            />
           </div>
 
           <div className="min-w-0 max-w-[60%] shrink-0 pt-0.5 text-right sm:max-w-none">
