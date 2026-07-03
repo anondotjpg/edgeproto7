@@ -662,7 +662,7 @@ function RuleRoomCard({
   const healthLabel = getHealthLabel(room, limit);
 
   return (
-    <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] bg-zinc-950/80 px-3 py-3 shadow-[inset_0_0_36px_rgba(161,161,170,0.08),inset_0_1px_0_rgba(244,244,245,0.04)] ring-1 ring-zinc-900 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
+    <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] bg-zinc-950/80 px-3 py-3 shadow-[inset_0_0_36px_rgba(161,161,170,0.08),inset_0_1px_0_rgba(244,244,245,0.04)] sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(161,161,170,0.12),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(39,39,42,0.28),transparent_62%)]"
@@ -1295,7 +1295,7 @@ export default async function AccountPage({ params }: AccountPageProps) {
                   "relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] bg-zinc-950/80 px-4 py-4 sm:min-h-[166px] sm:px-5",
                   isAccountFailed
                     ? "shadow-[inset_0_0_36px_rgba(239,68,68,0.14),inset_0_1px_0_rgba(248,113,113,0.08)] sm:shadow-none"
-                    : "shadow-[inset_0_0_36px_rgba(161,161,170,0.08),inset_0_1px_0_rgba(244,244,245,0.04)] ring-1 ring-zinc-900 lg:ring-0",
+                    : "shadow-[inset_0_0_36px_rgba(161,161,170,0.08),inset_0_1px_0_rgba(244,244,245,0.04)] sm:shadow-none",
                 ].join(" ")}
               >
                 {isAccountFailed ? (
@@ -1314,12 +1314,12 @@ export default async function AccountPage({ params }: AccountPageProps) {
                   <>
                     <div
                       aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(161,161,170,0.12),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(39,39,42,0.28),transparent_62%)]"
+                      className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(161,161,170,0.12),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(39,39,42,0.28),transparent_62%)] sm:hidden"
                     />
 
                     <div
                       aria-hidden="true"
-                      className="pointer-events-none absolute inset-px rounded-[25px] shadow-[inset_0_0_24px_rgba(212,212,216,0.06)]"
+                      className="pointer-events-none absolute inset-px rounded-[25px] shadow-[inset_0_0_24px_rgba(212,212,216,0.06)] sm:hidden"
                     />
                   </>
                 )}
