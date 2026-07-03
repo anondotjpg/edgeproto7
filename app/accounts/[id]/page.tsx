@@ -228,14 +228,17 @@ function SegmentedProgressBars({
   value,
   barCount,
   tone,
+  failedFinal = false,
 }: {
   value: number;
   barCount: number;
   tone: SegmentedBarTone;
+  failedFinal?: boolean;
 }) {
   const progress = Math.min(Math.max(value, 0), 100);
   const step = 100 / barCount;
   const filledBarCount = Math.ceil((progress / 100) * barCount);
+  const hasFailedFinal = failedFinal && tone === "goal" && progress > 0;
 
   const getBarFill = (index: number) => {
     const barStart = index * step;
@@ -267,6 +270,15 @@ function SegmentedProgressBars({
     return `${Math.round(delayMs)}ms`;
   };
 
+  const failedBlinkDelay = (() => {
+    if (!hasFailedFinal) return undefined;
+
+    const lastFilledIndex = Math.max(filledBarCount - 1, 0);
+    const fillDelay = Number.parseInt(getFillDelay(lastFilledIndex), 10);
+
+    return `${fillDelay + 430}ms`;
+  })();
+
   return (
     <>
       <style>{`
@@ -279,10 +291,41 @@ function SegmentedProgressBars({
           }
         }
 
+        @keyframes segmented-progress-failed-blink {
+          0%, 13% {
+            background-color: var(--bar-base-color);
+            box-shadow: none;
+          }
+          14%, 27% {
+            background-color: var(--failed-bar-color);
+            box-shadow: 0 0 12px rgba(248, 113, 113, 0.36);
+          }
+          28%, 41% {
+            background-color: var(--bar-base-color);
+            box-shadow: none;
+          }
+          42%, 55% {
+            background-color: var(--failed-bar-color);
+            box-shadow: 0 0 12px rgba(248, 113, 113, 0.36);
+          }
+          56%, 69% {
+            background-color: var(--bar-base-color);
+            box-shadow: none;
+          }
+          70%, 100% {
+            background-color: var(--failed-bar-color);
+            box-shadow: 0 0 12px rgba(248, 113, 113, 0.36);
+          }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .segmented-progress-fill {
             animation: none !important;
             transform: scaleX(var(--target-scale)) !important;
+          }
+
+          .segmented-progress-failed-final {
+            background-color: var(--failed-bar-color) !important;
           }
         }
       `}</style>
@@ -295,6 +338,19 @@ function SegmentedProgressBars({
           {Array.from({ length: barCount }).map((_, index) => {
             const fill = getBarFill(index);
             const shouldAnimate = fill > 0;
+            const baseColor = getBarColor(index);
+            const animations = [
+              shouldAnimate
+                ? "segmented-progress-fill 340ms cubic-bezier(0.16, 1, 0.3, 1) forwards"
+                : null,
+              hasFailedFinal
+                ? "segmented-progress-failed-blink 1180ms ease-in-out forwards"
+                : null,
+            ].filter(Boolean);
+            const animationDelays = [
+              shouldAnimate ? getFillDelay(index) : null,
+              hasFailedFinal ? failedBlinkDelay : null,
+            ].filter(Boolean);
 
             return (
               <div
@@ -303,22 +359,29 @@ function SegmentedProgressBars({
               >
                 {fill > 0 ? (
                   <div
-                    className="segmented-progress-fill absolute inset-y-0 left-0 h-full origin-left rounded-full"
+                    className={[
+                      "segmented-progress-fill absolute inset-y-0 left-0 h-full origin-left rounded-full",
+                      hasFailedFinal ? "segmented-progress-failed-final" : "",
+                    ].join(" ")}
                     style={
                       {
                         "--target-scale": fill.toString(),
+                        "--bar-base-color": baseColor,
+                        "--failed-bar-color": "#ef4444",
                         width: "100%",
-                        backgroundColor: getBarColor(index),
+                        backgroundColor: baseColor,
                         transform: shouldAnimate
                           ? "scaleX(0)"
                           : `scaleX(${fill})`,
-                        animation: shouldAnimate
-                          ? "segmented-progress-fill 340ms cubic-bezier(0.16, 1, 0.3, 1) forwards"
+                        animation: animations.length
+                          ? animations.join(", ")
                           : undefined,
-                        animationDelay: shouldAnimate
-                          ? getFillDelay(index)
+                        animationDelay: animationDelays.length
+                          ? animationDelays.join(", ")
                           : undefined,
-                        willChange: shouldAnimate ? "transform" : undefined,
+                        willChange: shouldAnimate || hasFailedFinal
+                          ? "transform, background-color, box-shadow"
+                          : undefined,
                       } as React.CSSProperties
                     }
                   />
@@ -335,29 +398,58 @@ function SegmentedProgressBars({
 function ResponsiveProgressBars({
   value,
   tone,
+  failedFinal = false,
 }: {
   value: number;
   tone: SegmentedBarTone;
+  failedFinal?: boolean;
 }) {
   return (
     <>
       <div className="md:hidden">
-        <SegmentedProgressBars value={value} barCount={42} tone={tone} />
+        <SegmentedProgressBars
+          value={value}
+          barCount={42}
+          tone={tone}
+          failedFinal={failedFinal}
+        />
       </div>
 
       <div className="hidden md:block xl:hidden">
-        <SegmentedProgressBars value={value} barCount={53} tone={tone} />
+        <SegmentedProgressBars
+          value={value}
+          barCount={53}
+          tone={tone}
+          failedFinal={failedFinal}
+        />
       </div>
 
       <div className="hidden xl:block">
-        <SegmentedProgressBars value={value} barCount={63} tone={tone} />
+        <SegmentedProgressBars
+          value={value}
+          barCount={63}
+          tone={tone}
+          failedFinal={failedFinal}
+        />
       </div>
     </>
   );
 }
 
-function GoalProgressBar({ value }: { value: number }) {
-  return <ResponsiveProgressBars value={value} tone="goal" />;
+function GoalProgressBar({
+  value,
+  failedFinal = false,
+}: {
+  value: number;
+  failedFinal?: boolean;
+}) {
+  return (
+    <ResponsiveProgressBars
+      value={value}
+      tone="goal"
+      failedFinal={failedFinal}
+    />
+  );
 }
 
 function LossRuleProgressBar({ value }: { value: number }) {
@@ -1075,11 +1167,37 @@ export default async function AccountPage({ params }: AccountPageProps) {
             </div>
 
             {!shouldDisplayFundedData ? (
-              <div className="flex min-h-[132px] flex-col rounded-[26px] bg-zinc-950/80 px-4 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:px-5 lg:ring-0">
-                <div className="flex items-start justify-between gap-4">
+              <div
+                className={[
+                  "relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] bg-zinc-950/80 px-4 py-4 ring-1 ring-zinc-900 sm:min-h-[166px] sm:px-5 lg:ring-0",
+                  isAccountFailed
+                    ? "shadow-[inset_0_0_36px_rgba(239,68,68,0.14),inset_0_1px_0_rgba(248,113,113,0.08)] sm:shadow-none"
+                    : "",
+                ].join(" ")}
+              >
+                {isAccountFailed ? (
+                  <>
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(239,68,68,0.18),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(127,29,29,0.14),transparent_62%)] sm:hidden"
+                    />
+
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-px rounded-[25px] shadow-[inset_0_0_24px_rgba(248,113,113,0.10)] sm:hidden"
+                    />
+                  </>
+                ) : null}
+
+                <div className="relative flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <div className="text-[17px] font-medium leading-tight text-zinc-500">
-                      Goal
+                    <div
+                      className={[
+                        "text-[17px] font-medium leading-tight",
+                        isAccountFailed ? "text-red-300/70" : "text-zinc-500",
+                      ].join(" ")}
+                    >
+                      {isAccountFailed ? "Failed" : "Goal"}
                     </div>
 
                     <div className="mt-2 hidden min-h-[34px] truncate text-[28px] font-semibold leading-tight tracking-tight text-zinc-100 sm:block">
@@ -1102,8 +1220,11 @@ export default async function AccountPage({ params }: AccountPageProps) {
                   </div>
                 </div>
 
-                <div className="mt-auto pt-2">
-                  <GoalProgressBar value={goalProgress} />
+                <div className="relative mt-auto pt-2">
+                  <GoalProgressBar
+                    value={goalProgress}
+                    failedFinal={isAccountFailed && goalProgress > 0}
+                  />
                 </div>
               </div>
             ) : null}
