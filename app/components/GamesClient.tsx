@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FaChevronRight, FaLock } from "react-icons/fa";
 import LastUpdatedAgo from "./LastUpdatedAgo";
@@ -85,6 +85,8 @@ type GameWithLiveStatus = Game & {
 };
 
 const HIDE_LIVE_GAMES_STORAGE_KEY = "edge:hide-live-games";
+const useBrowserLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 function readStoredHideLiveGames() {
   if (typeof window === "undefined") return false;
@@ -1239,26 +1241,28 @@ export default function GamesClient({
   );
 
   const [hideLiveGames, setHideLiveGames] = useState(false);
+  const [hideLiveGamesLoaded, setHideLiveGamesLoaded] = useState(false);
 
-  useEffect(() => {
+  useBrowserLayoutEffect(() => {
     setHideLiveGames(readStoredHideLiveGames());
+    setHideLiveGamesLoaded(true);
   }, []);
 
   const visibleGames = useMemo(() => {
+    if (!hideLiveGamesLoaded) return [];
     if (!hideLiveGames) return allGames;
     return allGames.filter((game) => !getGameIsLive(game));
-  }, [allGames, hideLiveGames]);
+  }, [allGames, hideLiveGames, hideLiveGamesLoaded]);
 
-  const totalGames = visibleGames.length;
+  const totalGames = hideLiveGamesLoaded ? visibleGames.length : allGames.length;
 
-  const firstBet = useMemo(() => getFirstBetForLeague(league), [league]);
   const visibleFirstBet = useMemo(
     () => getFirstBetForGames(visibleGames),
     [visibleGames],
   );
 
   const [selectedBet, setSelectedBet] =
-    useState<BetSlipDataWithTeamAlias | null>(firstBet);
+    useState<BetSlipDataWithTeamAlias | null>(null);
 
   function toggleHideLiveGames() {
     setHideLiveGames((current) => {
@@ -1270,19 +1274,20 @@ export default function GamesClient({
 
   function renderHideLiveToggle() {
     const hasLiveGames = liveGameCount > 0;
+    const showToggle = hideLiveGamesLoaded && hasLiveGames;
 
     return (
       <span
         className={[
           "inline-flex",
-          hasLiveGames ? "" : "pointer-events-none invisible",
+          showToggle ? "" : "pointer-events-none invisible",
         ].join(" ")}
-        aria-hidden={!hasLiveGames}
+        aria-hidden={!showToggle}
       >
         <HideLiveToggle
           enabled={hideLiveGames}
           onToggle={toggleHideLiveGames}
-          disabled={!hasLiveGames}
+          disabled={!showToggle}
         />
       </span>
     );
@@ -1314,8 +1319,10 @@ export default function GamesClient({
   }, [visibleGames]);
 
   useEffect(() => {
+    if (!hideLiveGamesLoaded) return;
+
     setSelectedBet(visibleFirstBet);
-  }, [visibleFirstBet]);
+  }, [hideLiveGamesLoaded, visibleFirstBet]);
 
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white">
@@ -1336,7 +1343,9 @@ export default function GamesClient({
                   </h2>
 
                   <p className="mt-0.5 text-[12px] leading-none text-zinc-400">
-                    {totalGames} game{totalGames === 1 ? "" : "s"}
+                    {hideLiveGamesLoaded
+                      ? `${totalGames} game${totalGames === 1 ? "" : "s"}`
+                      : ""}
                   </p>
                 </div>
 
@@ -1351,7 +1360,9 @@ export default function GamesClient({
                 </div>
               </div>
 
-              {!league || league.games.length === 0 ? (
+              {!hideLiveGamesLoaded ? (
+                <div className="min-h-[180px]" aria-hidden="true" />
+              ) : !league || league.games.length === 0 ? (
                 <div className="text-[13px] text-zinc-400">
                   No active {selectedLeagueMeta.label} markets right now
                 </div>
