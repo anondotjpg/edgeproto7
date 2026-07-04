@@ -125,6 +125,44 @@ function getTeamInfoValue(teamInfo: unknown, key: string) {
   return getRecordText(asRecord(teamInfo), key);
 }
 
+function textMatches(left: string | null | undefined, right: string | null | undefined) {
+  const cleanLeft = left?.trim().toLowerCase();
+  const cleanRight = right?.trim().toLowerCase();
+
+  return Boolean(cleanLeft && cleanRight && cleanLeft === cleanRight);
+}
+
+function getTeamStoredNameForOutcome(game: EligibleGameRow, outcomeName: string) {
+  const teams = [
+    {
+      name: game.away_team,
+      info: game.away_team_info,
+    },
+    {
+      name: game.home_team,
+      info: game.home_team_info,
+    },
+  ];
+
+  for (const team of teams) {
+    const teamName = getTeamInfoValue(team.info, "name") ?? team.name;
+    const teamAlias = getTeamInfoValue(team.info, "alias");
+    const teamAbbreviation = getTeamInfoValue(team.info, "abbreviation");
+
+    const isMatchingTeam =
+      textMatches(outcomeName, team.name) ||
+      textMatches(outcomeName, teamName) ||
+      textMatches(outcomeName, teamAlias) ||
+      textMatches(outcomeName, teamAbbreviation);
+
+    if (isMatchingTeam) {
+      return teamAlias ?? teamAbbreviation ?? teamName;
+    }
+  }
+
+  return outcomeName;
+}
+
 function formatPoint(value: number | null | undefined) {
   if (value === null || value === undefined || !Number.isFinite(value)) {
     return "";
@@ -266,13 +304,14 @@ function getServerBetDetails({
       const polymarketOutcomeIndex =
         cleanInteger(outcome?.polymarketOutcomeIndex) ?? index;
       const teamLogoData = getTeamLogoForOutcome(game, outcomeName);
+      const storedOutcomeName = getTeamStoredNameForOutcome(game, outcomeName);
 
       return {
         selection: getSelectionLabel({
           marketKey: requestMarket,
           marketRecord,
           outcome,
-          outcomeName,
+          outcomeName: storedOutcomeName,
         }),
         odds,
         outcomeIndex: polymarketOutcomeIndex,
