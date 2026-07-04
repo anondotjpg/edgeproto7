@@ -1391,7 +1391,7 @@ export default function GamesClient({
                                 selectedBet={selectedBet}
                                 onSelectBet={setSelectedBet}
                                 shouldAutoScrollOnMoreBetsOpen={
-                                  isLastVisibleGame
+                                  isLastVisibleGame && totalGames >= 3
                                 }
                               />
                             </div>
