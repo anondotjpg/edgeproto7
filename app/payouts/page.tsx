@@ -6,7 +6,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { RiCheckboxCircleLine, RiHandCoinLine } from "react-icons/ri";
 import { toast } from "sonner";
 
-const MIN_PAYOUT_PNL = 2000;
+const MIN_PAYOUT_PNL = 2500;
 
 type Account = {
   id: string;

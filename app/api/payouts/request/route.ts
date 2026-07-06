@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { privyServer } from "@/lib/privy-server";
 
-const MIN_PAYOUT_PNL = 500;
+const MIN_PAYOUT_PNL = 2500;
 
 type PayoutRequestBody = {
   accountId?: string | null;
