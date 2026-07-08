@@ -14,7 +14,7 @@ export default function Providers({
         appearance: {
           theme: "dark",
         },
-        loginMethods: ["email", "wallet"],
+        loginMethods: ["email"],
         embeddedWallets: {
           ethereum: {
             createOnLogin: "users-without-wallets",
