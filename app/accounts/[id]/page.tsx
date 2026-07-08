@@ -8,6 +8,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { IoWarningOutline } from "react-icons/io5";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
 import AccountPositionsTable from "./AccountPositionsTable";
+import AccountPageSkeleton from "./AccountPageSkeleton";
 
 type BetRow = {
   id: string;
@@ -623,26 +624,6 @@ function PageState({
   );
 }
 
-function LoadingState() {
-  return (
-    <div className="min-h-screen bg-[#09090b] text-white">
-      <div className="mx-auto w-full max-w-7xl px-4 pt-20 pb-32 sm:px-6 md:py-15 md:pb-24">
-        <div className="grid items-stretch gap-3 lg:grid-cols-2">
-          <div className="min-h-[132px] rounded-[26px] bg-zinc-950/50 sm:min-h-[166px]" />
-          <div className="min-h-[132px] rounded-[26px] bg-zinc-950/50 sm:min-h-[166px]" />
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <div className="min-h-[118px] rounded-[22px] bg-zinc-950/50 sm:min-h-[166px]" />
-          <div className="min-h-[118px] rounded-[22px] bg-zinc-950/50 sm:min-h-[166px]" />
-        </div>
-
-        <div className="mt-10 min-h-[240px] rounded-2xl bg-zinc-950/50" />
-      </div>
-    </div>
-  );
-}
-
 export default function AccountPage() {
   const params = useParams<{ id?: string | string[] }>();
   const rawId = params?.id;
@@ -727,7 +708,7 @@ export default function AccountPage() {
   const dailySnapshot = data?.dailySnapshot ?? null;
 
   if (!ready || loading) {
-    return <LoadingState />;
+    return <AccountPageSkeleton />;
   }
 
   if (!authenticated) {

@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { privyServer } from "@/lib/privy-server";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
+
+export const dynamic = "force-dynamic";
 
 type CreateAccountBody = {
   planKey?: PlanKey;
-  privyUserId?: string;
   email?: string | null;
   walletAddress?: string | null;
 };
@@ -14,23 +17,57 @@ const DAILY_DRAWDOWN_PERCENT = 2;
 const TOTAL_DRAWDOWN_PERCENT = 5;
 const MAX_RISK_PER_TRADE_PERCENT = 5;
 
+async function getVerifiedPrivyUserId() {
+  const headerStore = await headers();
+  const authHeader = headerStore.get("authorization");
+  const accessToken = authHeader?.replace("Bearer ", "");
+
+  if (!accessToken) {
+    return {
+      privyUserId: null,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  const verifiedClaims = await privyServer
+    .utils()
+    .auth()
+    .verifyAuthToken(accessToken);
+
+  const privyUserId = verifiedClaims.user_id;
+
+  if (!privyUserId) {
+    return {
+      privyUserId: null,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  return {
+    privyUserId,
+    response: null,
+  };
+}
+
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as CreateAccountBody;
+    const { privyUserId, response } = await getVerifiedPrivyUserId();
 
-    const { planKey, privyUserId, email, walletAddress } = body;
+    if (response) {
+      return response;
+    }
+
+    if (!privyUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = (await req.json()) as CreateAccountBody;
+    const { planKey, email, walletAddress } = body;
 
     if (!planKey || !(planKey in PLAN_CONFIG)) {
       return NextResponse.json(
         { error: "Invalid plan selected." },
-        { status: 400 }
-      );
-    }
-
-    if (!privyUserId) {
-      return NextResponse.json(
-        { error: "Missing Privy user ID." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -144,7 +181,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       { error: "Unable to create account." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
