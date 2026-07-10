@@ -366,7 +366,7 @@ function formatGameStartCountdown(date: string, now: number) {
 function useCurrentTimestamp(enabled: boolean) {
   const [now, setNow] = useState<number | null>(null);
 
-  useEffect(() => {
+  useBrowserLayoutEffect(() => {
     if (!enabled) {
       setNow(null);
       return;
@@ -374,6 +374,8 @@ function useCurrentTimestamp(enabled: boolean) {
 
     const updateNow = () => setNow(Date.now());
 
+    // Run before the browser paints so countdown-eligible games never show
+    // their regular start time for a frame first.
     updateNow();
     const intervalId = window.setInterval(updateNow, 1000);
 
@@ -947,7 +949,12 @@ function DateMarketHeader({
 
   return (
     <div className="flex items-end justify-between gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_124px_124px_124px] lg:items-end lg:gap-2">
-      <div className="text-[20px] font-semibold leading-none tracking-tight text-zinc-100">
+      <div
+        className={[
+          "text-[20px] font-semibold leading-none tracking-tight text-zinc-100",
+          tracksUpcomingGames && now === null ? "invisible" : "",
+        ].join(" ")}
+      >
         {displayDate}
       </div>
 
@@ -975,6 +982,7 @@ function GameStartStatus({ game }: { game: Game }) {
     <div
       className={[
         "inline-flex h-6 shrink-0 items-center text-[14px] font-medium leading-none lg:h-7 lg:text-[14px]",
+        !isLive && now === null ? "invisible" : "",
         isLive
           ? "gap-1.5 text-zinc-100"
           : countdown
