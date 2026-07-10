@@ -85,6 +85,7 @@ type GameWithLiveStatus = Game & {
 };
 
 const HIDE_LIVE_GAMES_STORAGE_KEY = "edge:hide-live-games";
+const GAME_START_COUNTDOWN_WINDOW_MS = 3 * 60 * 60 * 1000;
 const useBrowserLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -308,6 +309,78 @@ function formatGameTime(date: string) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function getMillisecondsUntilGameStart(date: string, now: number) {
+  const startTimestamp = Date.parse(date);
+
+  if (!Number.isFinite(startTimestamp)) return null;
+
+  return startTimestamp - now;
+}
+
+function isGameInStartCountdownWindow(game: Game, now: number) {
+  if (getGameIsLive(game)) return false;
+
+  const millisecondsUntilStart = getMillisecondsUntilGameStart(
+    game.commence_time,
+    now,
+  );
+
+  return (
+    millisecondsUntilStart !== null &&
+    millisecondsUntilStart > 0 &&
+    millisecondsUntilStart < GAME_START_COUNTDOWN_WINDOW_MS
+  );
+}
+
+function formatGameStartCountdown(date: string, now: number) {
+  const millisecondsUntilStart = getMillisecondsUntilGameStart(date, now);
+
+  if (
+    millisecondsUntilStart === null ||
+    millisecondsUntilStart <= 0 ||
+    millisecondsUntilStart >= GAME_START_COUNTDOWN_WINDOW_MS
+  ) {
+    return null;
+  }
+
+  const totalSeconds = Math.max(1, Math.floor(millisecondsUntilStart / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${String(minutes).padStart(2, "0")}m ${String(
+      seconds,
+    ).padStart(2, "0")}s`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  }
+
+  return `${seconds}s`;
+}
+
+function useCurrentTimestamp(enabled: boolean) {
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!enabled) {
+      setNow(null);
+      return;
+    }
+
+    const updateNow = () => setNow(Date.now());
+
+    updateNow();
+    const intervalId = window.setInterval(updateNow, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [enabled]);
+
+  return now;
 }
 
 type PolymarketMarketVolume = NonNullable<Game["polymarket"]> & {
@@ -857,15 +930,25 @@ function HideLiveToggle({
 
 function DateMarketHeader({
   date,
+  games,
   action,
 }: {
   date: string;
+  games: Game[];
   action?: ReactNode;
 }) {
+  const tracksUpcomingGames = date === "Today";
+  const now = useCurrentTimestamp(tracksUpcomingGames);
+  const hasCountdown =
+    tracksUpcomingGames &&
+    now !== null &&
+    games.some((game) => isGameInStartCountdownWindow(game, now));
+  const displayDate = hasCountdown ? "Upcoming" : date;
+
   return (
     <div className="flex items-end justify-between gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_124px_124px_124px] lg:items-end lg:gap-2">
       <div className="text-[20px] font-semibold leading-none tracking-tight text-zinc-100">
-        {date}
+        {displayDate}
       </div>
 
       {action ? <div className="shrink-0 lg:hidden">{action}</div> : null}
@@ -882,28 +965,50 @@ function DateMarketHeader({
   );
 }
 
+function GameStartStatus({ game }: { game: Game }) {
+  const isLive = getGameIsLive(game);
+  const now = useCurrentTimestamp(!isLive);
+  const countdown =
+    now === null ? null : formatGameStartCountdown(game.commence_time, now);
+
+  return (
+    <div
+      className={[
+        "inline-flex h-6 shrink-0 items-center text-[14px] font-medium leading-none lg:h-7 lg:text-[14px]",
+        isLive
+          ? "gap-1.5 text-zinc-100"
+          : countdown
+            ? "font-semibold tabular-nums text-zinc-100"
+            : "text-zinc-300",
+      ].join(" ")}
+      title={isLive ? "Live now" : formatGameTime(game.commence_time)}
+      aria-label={
+        isLive
+          ? "Live now"
+          : countdown
+            ? `Starts in ${countdown}`
+            : `Starts at ${formatGameTime(game.commence_time)}`
+      }
+    >
+      {isLive ? (
+        <>
+          <span className="h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.55)]" />
+          <span>LIVE</span>
+        </>
+      ) : (
+        countdown ?? formatGameTime(game.commence_time)
+      )}
+    </div>
+  );
+}
+
 function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) {
   const marketVolume = formatMarketVolume(getMarketVolume(game));
-  const isLive = getGameIsLive(game);
 
   return (
     <div className="mb-2 flex min-w-0 items-center justify-between gap-2.5 lg:mb-3 lg:gap-3">
       <div className="flex min-w-0 items-center gap-2 lg:gap-2.5">
-        <div
-          className={[
-            "inline-flex h-6 shrink-0 items-center text-[14px] font-medium leading-none lg:h-7 lg:text-[14px]",
-            isLive ? "gap-1.5 text-zinc-100" : "text-zinc-300",
-          ].join(" ")}
-        >
-          {isLive ? (
-            <>
-              <span className="h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.55)]" />
-              <span>LIVE</span>
-            </>
-          ) : (
-            formatGameTime(game.commence_time)
-          )}
-        </div>
+        <GameStartStatus game={game} />
 
         {marketVolume ? (
           <div className="hidden min-w-0 truncate text-[12px] font-medium leading-none text-zinc-500 sm:text-[13px] md:block lg:text-[14px]">
@@ -1379,6 +1484,7 @@ export default function GamesClient({
                     <div key={group.key} className="grid gap-3 lg:gap-2">
                       <DateMarketHeader
                         date={group.date}
+                        games={group.games}
                         action={groupIndex === 0 ? renderHideLiveToggle() : null}
                       />
 
