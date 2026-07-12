@@ -36,6 +36,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: "#09090b",
   colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -70,7 +73,15 @@ export default function RootLayout({
           <style>{`
             html,
             body {
+              margin: 0;
+              padding: 0;
               background: #09090b;
+              scroll-behavior: auto;
+              overflow-anchor: none;
+            }
+
+            body {
+              min-height: 100%;
             }
 
             @media (max-width: 767px) {
@@ -93,16 +104,20 @@ export default function RootLayout({
                 transform: translateX(0) skewX(-20deg);
                 opacity: 0;
               }
+
               8% {
                 opacity: 0.42;
               }
+
               24% {
                 opacity: 0.42;
               }
+
               38% {
                 transform: translateX(520%) skewX(-20deg);
                 opacity: 0;
               }
+
               100% {
                 transform: translateX(520%) skewX(-20deg);
                 opacity: 0;
