@@ -31,7 +31,7 @@ export default function LeagueTabs({
               href={`/?league=${item.league}`}
               aria-current={isActive ? "page" : undefined}
               className={[
-                "relative inline-flex h-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border px-4 text-[12px] font-bold transition-colors",
+                "relative inline-flex h-10 shrink-0 items-center justify-center overflow-hidden rounded-[13px] border px-[18px] text-[13px] font-bold transition-colors",
                 isActive
                   ? "border-zinc-700/90 text-zinc-100"
                   : "border-zinc-800/80 text-zinc-500 hover:border-zinc-700/80 hover:bg-zinc-900/30 hover:text-zinc-300",
@@ -51,7 +51,7 @@ export default function LeagueTabs({
 
       <nav
         aria-label="Select league"
-        className="no-scrollbar relative z-20 hidden w-min items-center gap-4 overflow-x-auto rounded-lg lg:flex lg:gap-2"
+        className="no-scrollbar relative z-20 hidden w-min items-center gap-4 overflow-x-auto rounded-lg lg:flex lg:gap-2 lg:bg-zinc-900/70"
       >
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
@@ -62,7 +62,7 @@ export default function LeagueTabs({
               href={`/?league=${item.league}`}
               aria-current={isActive ? "page" : undefined}
               className={[
-                "relative shrink-0 text-[15px] font-medium transition-colors",
+                "relative shrink-0 text-[13px] font-medium transition-colors",
                 "sm:rounded-full sm:px-4 sm:py-2",
                 isActive
                   ? "text-white sm:text-zinc-100"
