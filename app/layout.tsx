@@ -5,6 +5,7 @@ import AppSidebar from "./components/AppSidebar";
 import TopRightAuth from "./components/TopRightAuth";
 import Providers from "./providers";
 import ResponsiveToaster from "./components/ResponsiveToaster";
+import ResetInitialScroll from "./components/ResetInitialScroll";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -63,6 +64,8 @@ export default function RootLayout({
       </head>
 
       <body className="relative min-h-screen overflow-x-hidden bg-[#09090b] font-sans text-white">
+        <ResetInitialScroll />
+
         <Providers>
           <style>{`
             html,
