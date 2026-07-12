@@ -51,7 +51,7 @@ export default function LeagueTabs({
 
       <nav
         aria-label="Select league"
-        className="no-scrollbar relative z-20 hidden w-min items-center gap-4 overflow-x-auto rounded-lg lg:flex lg:gap-2 lg:bg-zinc-900/70"
+        className="no-scrollbar relative z-20 hidden w-min items-center gap-4 overflow-x-auto rounded-lg lg:flex lg:gap-2"
       >
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
