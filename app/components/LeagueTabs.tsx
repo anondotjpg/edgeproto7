@@ -38,16 +38,7 @@ export default function LeagueTabs({
               ].join(" ")}
             >
               {isActive ? (
-                <motion.span
-                  layoutId="activeMobileLeague"
-                  transition={{
-                    type: "spring",
-                    stiffness: 420,
-                    damping: 34,
-                    mass: 0.8,
-                  }}
-                  className="absolute inset-0 bg-zinc-800/40"
-                />
+                <span className="absolute inset-0 bg-zinc-800/40" />
               ) : null}
 
               <span className="relative z-10 whitespace-nowrap">
@@ -60,7 +51,7 @@ export default function LeagueTabs({
 
       <nav
         aria-label="Select league"
-        className="no-scrollbar relative z-20 hidden w-min items-center gap-4 overflow-x-auto rounded-lg lg:flex lg:gap-2"
+        className="no-scrollbar relative z-20 hidden w-min items-center gap-4 overflow-x-auto rounded-lg lg:flex lg:gap-2 lg:bg-zinc-900/70"
       >
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
