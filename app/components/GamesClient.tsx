@@ -424,15 +424,14 @@ function getLogoFallbackClassName(sportKey: string) {
     : "h-[30px] w-[30px] rounded-sm bg-zinc-950 lg:h-7 lg:w-7";
 }
 
-function getGameIsLive(game: Game): boolean {
+function getGameIsLive(game: Game, now = Date.now()): boolean {
   const gameWithLiveStatus = game as GameWithLiveStatus;
 
-  if (typeof gameWithLiveStatus.isLive === "boolean") {
-    return gameWithLiveStatus.isLive;
-  }
-
-  if (typeof gameWithLiveStatus.is_live === "boolean") {
-    return gameWithLiveStatus.is_live;
+  if (
+    gameWithLiveStatus.isLive === true ||
+    gameWithLiveStatus.is_live === true
+  ) {
+    return true;
   }
 
   const startTimestamp = Date.parse(game.commence_time);
@@ -441,7 +440,9 @@ function getGameIsLive(game: Game): boolean {
     return false;
   }
 
-  return startTimestamp <= Date.now();
+  // Immediately treat the game as live when its countdown reaches zero,
+  // even if the next API refresh has not marked it live yet.
+  return startTimestamp <= now;
 }
 
 function formatPoint(value?: number) {
@@ -512,11 +513,13 @@ function buildBetData({
   market,
   outcome,
   teamInfo,
+  now,
 }: {
   game: Game;
   market: OddsMarket;
   outcome?: OddsOutcome;
   teamInfo?: TeamInfo;
+  now?: number | null;
 }): BetSlipDataWithTeamAlias {
   const odds = formatPrice(outcome?.price);
   const impliedPercent = formatImpliedPercent(outcome?.price);
@@ -540,7 +543,7 @@ function buildBetData({
     market: market.key,
     odds,
     impliedPercent,
-    isLive: getGameIsLive(game),
+    isLive: getGameIsLive(game, now ?? Date.now()),
     matchup: `${getMarketDisplayLabel(market)} • ${game.away_team} vs. ${game.home_team}`,
     matchupAlias: `${getMarketDisplayLabel(market)} • ${getMatchupDisplayName(game)}`,
     polymarketEventId: marketMeta?.event_id ?? game.polymarket?.event_id ?? null,
@@ -688,6 +691,7 @@ function DesktopMarketCell({
   teamInfo,
   selectedBet,
   onSelect,
+  now,
 }: {
   game: Game;
   market?: OddsMarket;
@@ -696,6 +700,7 @@ function DesktopMarketCell({
   teamInfo?: TeamInfo;
   selectedBet: BetSlipDataWithTeamAlias | null;
   onSelect: (data: BetSlipDataWithTeamAlias) => void;
+  now: number | null;
 }) {
   if (!market || !outcome) {
     return (
@@ -705,7 +710,7 @@ function DesktopMarketCell({
     );
   }
 
-  const betData = buildBetData({ game, market, outcome, teamInfo });
+  const betData = buildBetData({ game, market, outcome, teamInfo, now });
   const isLive = Boolean(betData.isLive);
   const selected =
     selectedBet?.gameId === betData.gameId &&
@@ -808,12 +813,14 @@ function MobileMarketModalButton({
   outcome,
   team,
   teamInfo,
+  now,
 }: {
   game: Game;
   market?: OddsMarket;
   outcome?: OddsOutcome;
   team?: string;
   teamInfo?: TeamInfo;
+  now: number | null;
 }) {
   if (!market || !outcome) {
     return (
@@ -825,7 +832,7 @@ function MobileMarketModalButton({
     );
   }
 
-  const betData = buildBetData({ game, market, outcome, teamInfo });
+  const betData = buildBetData({ game, market, outcome, teamInfo, now });
   const { shellStyle, faceStyle } = getTeamColorStyles({
     color: betData.teamColor,
     selected: false,
@@ -934,13 +941,14 @@ function DateMarketHeader({
   date,
   games,
   action,
+  now,
 }: {
   date: string;
   games: Game[];
   action?: ReactNode;
+  now: number | null;
 }) {
   const tracksUpcomingGames = date === "Today";
-  const now = useCurrentTimestamp(tracksUpcomingGames);
   const hasCountdown =
     tracksUpcomingGames &&
     now !== null &&
@@ -972,11 +980,18 @@ function DateMarketHeader({
   );
 }
 
-function GameStartStatus({ game }: { game: Game }) {
-  const isLive = getGameIsLive(game);
-  const now = useCurrentTimestamp(!isLive);
+function GameStartStatus({
+  game,
+  now,
+}: {
+  game: Game;
+  now: number | null;
+}) {
+  const isLive = now !== null && getGameIsLive(game, now);
   const countdown =
-    now === null ? null : formatGameStartCountdown(game.commence_time, now);
+    now === null || isLive
+      ? null
+      : formatGameStartCountdown(game.commence_time, now);
 
   return (
     <div
@@ -1010,13 +1025,21 @@ function GameStartStatus({ game }: { game: Game }) {
   );
 }
 
-function GameCardHeader({ game, eventHref }: { game: Game; eventHref: string }) {
+function GameCardHeader({
+  game,
+  eventHref,
+  now,
+}: {
+  game: Game;
+  eventHref: string;
+  now: number | null;
+}) {
   const marketVolume = formatMarketVolume(getMarketVolume(game));
 
   return (
     <div className="mb-2 flex min-w-0 items-center justify-between gap-2.5 lg:mb-3 lg:gap-3">
       <div className="flex min-w-0 items-center gap-2 lg:gap-2.5">
-        <GameStartStatus game={game} />
+        <GameStartStatus game={game} now={now} />
 
         {marketVolume ? (
           <div className="hidden min-w-0 truncate text-[12px] font-medium leading-none text-zinc-500 sm:text-[13px] md:block lg:text-[14px]">
@@ -1041,11 +1064,13 @@ function GameCard({
   selectedBet,
   onSelectBet,
   shouldAutoScrollOnMoreBetsOpen = false,
+  now,
 }: {
   game: Game;
   selectedBet: BetSlipDataWithTeamAlias | null;
   onSelectBet: (data: BetSlipDataWithTeamAlias) => void;
   shouldAutoScrollOnMoreBetsOpen?: boolean;
+  now: number | null;
 }) {
   const bookmaker = game.bookmakers[0];
   const h2h = getMarket(bookmaker, "h2h");
@@ -1089,7 +1114,7 @@ function GameCard({
   return (
     <>
       <article className="relative overflow-hidden lg:hidden">
-        <GameCardHeader game={game} eventHref={eventHref} />
+        <GameCardHeader game={game} eventHref={eventHref} now={now} />
 
         <div>
           <TeamRow
@@ -1112,6 +1137,7 @@ function GameCard({
             outcome={awayMoneyline}
             team={game.away_team}
             teamInfo={game.away_team_info}
+            now={now}
           />
 
           <MobileMarketModalButton
@@ -1120,6 +1146,7 @@ function GameCard({
             outcome={homeMoneyline}
             team={game.home_team}
             teamInfo={game.home_team_info}
+            now={now}
           />
         </div>
 
@@ -1166,6 +1193,7 @@ function GameCard({
                             outcome={awaySpread}
                             team={game.away_team}
                             teamInfo={game.away_team_info}
+                            now={now}
                           />
 
                           <MobileMarketModalButton
@@ -1174,6 +1202,7 @@ function GameCard({
                             outcome={homeSpread}
                             team={game.home_team}
                             teamInfo={game.home_team_info}
+                            now={now}
                           />
                         </div>
                       </div>
@@ -1190,12 +1219,14 @@ function GameCard({
                             game={game}
                             market={total}
                             outcome={overTotal}
+                            now={now}
                           />
 
                           <MobileMarketModalButton
                             game={game}
                             market={total}
                             outcome={underTotal}
+                            now={now}
                           />
                         </div>
                       </div>
@@ -1209,7 +1240,7 @@ function GameCard({
       </article>
 
       <article className="relative hidden lg:block">
-        <GameCardHeader game={game} eventHref={eventHref} />
+        <GameCardHeader game={game} eventHref={eventHref} now={now} />
 
         <div className="grid grid-cols-[minmax(0,1fr)_124px_124px_124px] gap-2">
           <div>
@@ -1235,6 +1266,7 @@ function GameCard({
               teamInfo={game.away_team_info}
               selectedBet={selectedBet}
               onSelect={onSelectBet}
+              now={now}
             />
 
             <DesktopMarketCell
@@ -1245,6 +1277,7 @@ function GameCard({
               teamInfo={game.home_team_info}
               selectedBet={selectedBet}
               onSelect={onSelectBet}
+              now={now}
             />
           </div>
 
@@ -1257,6 +1290,7 @@ function GameCard({
               teamInfo={game.away_team_info}
               selectedBet={selectedBet}
               onSelect={onSelectBet}
+              now={now}
             />
 
             <DesktopMarketCell
@@ -1267,6 +1301,7 @@ function GameCard({
               teamInfo={game.home_team_info}
               selectedBet={selectedBet}
               onSelect={onSelectBet}
+              now={now}
             />
           </div>
 
@@ -1277,6 +1312,7 @@ function GameCard({
               outcome={overTotal}
               selectedBet={selectedBet}
               onSelect={onSelectBet}
+              now={now}
             />
 
             <DesktopMarketCell
@@ -1285,6 +1321,7 @@ function GameCard({
               outcome={underTotal}
               selectedBet={selectedBet}
               onSelect={onSelectBet}
+              now={now}
             />
           </div>
         </div>
@@ -1293,7 +1330,7 @@ function GameCard({
   );
 }
 
-function getFirstBetForGames(games?: Game[]) {
+function getFirstBetForGames(games: Game[] | undefined, now?: number | null) {
   const firstGame = games?.[0];
   if (!firstGame) return null;
 
@@ -1311,6 +1348,7 @@ function getFirstBetForGames(games?: Game[]) {
       market: h2h,
       outcome: awayMoneyline,
       teamInfo: firstGame.away_team_info,
+      now,
     });
   }
 
@@ -1320,18 +1358,27 @@ function getFirstBetForGames(games?: Game[]) {
       market: spread,
       outcome: awaySpread,
       teamInfo: firstGame.away_team_info,
+      now,
     });
   }
 
   if (total && overTotal) {
-    return buildBetData({ game: firstGame, market: total, outcome: overTotal });
+    return buildBetData({
+      game: firstGame,
+      market: total,
+      outcome: overTotal,
+      now,
+    });
   }
 
   return null;
 }
 
-function getFirstBetForLeague(league?: LeagueBlock) {
-  return getFirstBetForGames(league?.games);
+function getFirstBetForLeague(
+  league: LeagueBlock | undefined,
+  now?: number | null,
+) {
+  return getFirstBetForGames(league?.games, now);
 }
 
 export default function GamesClient({
@@ -1348,9 +1395,13 @@ export default function GamesClient({
   selectedLeagueMeta: LeagueMeta;
 }) {
   const allGames = useMemo(() => league?.games ?? [], [league?.games]);
+  const now = useCurrentTimestamp(true);
   const liveGameCount = useMemo(
-    () => allGames.filter((game) => getGameIsLive(game)).length,
-    [allGames],
+    () =>
+      now === null
+        ? allGames.filter((game) => getGameIsLive(game)).length
+        : allGames.filter((game) => getGameIsLive(game, now)).length,
+    [allGames, now],
   );
 
   const [hideLiveGames, setHideLiveGames] = useState(false);
@@ -1364,14 +1415,17 @@ export default function GamesClient({
   const visibleGames = useMemo(() => {
     if (!hideLiveGamesLoaded) return [];
     if (!hideLiveGames) return allGames;
-    return allGames.filter((game) => !getGameIsLive(game));
-  }, [allGames, hideLiveGames, hideLiveGamesLoaded]);
+
+    return allGames.filter((game) =>
+      now === null ? !getGameIsLive(game) : !getGameIsLive(game, now),
+    );
+  }, [allGames, hideLiveGames, hideLiveGamesLoaded, now]);
 
   const totalGames = hideLiveGamesLoaded ? visibleGames.length : allGames.length;
 
   const visibleFirstBet = useMemo(
-    () => getFirstBetForGames(visibleGames),
-    [visibleGames],
+    () => getFirstBetForGames(visibleGames, now),
+    [visibleGames, now],
   );
 
   const [selectedBet, setSelectedBet] =
@@ -1434,8 +1488,32 @@ export default function GamesClient({
   useEffect(() => {
     if (!hideLiveGamesLoaded) return;
 
-    setSelectedBet(visibleFirstBet);
-  }, [hideLiveGamesLoaded, visibleFirstBet]);
+    setSelectedBet((current) => {
+      if (!current) return visibleFirstBet;
+
+      const selectedGame = visibleGames.find(
+        (game) => game.id === current.gameId,
+      );
+
+      if (!selectedGame) {
+        return visibleFirstBet;
+      }
+
+      const isLive =
+        now === null
+          ? getGameIsLive(selectedGame)
+          : getGameIsLive(selectedGame, now);
+
+      if (Boolean(current.isLive) === isLive) {
+        return current;
+      }
+
+      return {
+        ...current,
+        isLive,
+      };
+    });
+  }, [hideLiveGamesLoaded, now, visibleFirstBet, visibleGames]);
 
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white">
@@ -1494,6 +1572,7 @@ export default function GamesClient({
                         date={group.date}
                         games={group.games}
                         action={groupIndex === 0 ? renderHideLiveToggle() : null}
+                        now={now}
                       />
 
                       <div className="grid gap-2.5 md:gap-3">
@@ -1518,6 +1597,7 @@ export default function GamesClient({
                                 shouldAutoScrollOnMoreBetsOpen={
                                   isLastVisibleGame && totalGames >= 2
                                 }
+                                now={now}
                               />
                             </div>
                           );
