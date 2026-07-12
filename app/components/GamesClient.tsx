@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FaChevronRight, FaLock } from "react-icons/fa";
 import LastUpdatedAgo from "./LastUpdatedAgo";
@@ -546,7 +546,8 @@ function buildBetData({
     isLive: getGameIsLive(game, now ?? Date.now()),
     matchup: `${getMarketDisplayLabel(market)} • ${game.away_team} vs. ${game.home_team}`,
     matchupAlias: `${getMarketDisplayLabel(market)} • ${getMatchupDisplayName(game)}`,
-    polymarketEventId: marketMeta?.event_id ?? game.polymarket?.event_id ?? null,
+    polymarketEventId:
+      marketMeta?.event_id ?? game.polymarket?.event_id ?? null,
     polymarketEventSlug:
       marketMeta?.event_slug ?? game.polymarket?.event_slug ?? null,
     polymarketMarketId:
@@ -643,11 +644,7 @@ function MarketFace({
         className={[
           "flex h-[42px] w-full translate-y-[-2px] items-center overflow-hidden rounded-lg px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
           centered ? "justify-center gap-1.5" : "justify-between gap-1",
-          isLive
-            ? "bg-zinc-900"
-            : selected
-              ? "bg-zinc-700"
-              : "bg-zinc-900",
+          isLive ? "bg-zinc-900" : selected ? "bg-zinc-700" : "bg-zinc-900",
         ].join(" ")}
         style={faceStyle}
       >
@@ -742,11 +739,7 @@ function DesktopMarketCell({
             teamColor={betData.teamColor}
             triggerClassName={[
               "peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
-              isLive
-                ? "bg-zinc-900"
-                : selected
-                  ? "bg-zinc-700"
-                  : "bg-zinc-900",
+              isLive ? "bg-zinc-900" : selected ? "bg-zinc-700" : "bg-zinc-900",
             ].join(" ")}
             triggerContentClassName="sr-only"
           />
@@ -755,11 +748,7 @@ function DesktopMarketCell({
             className={[
               "pointer-events-none absolute inset-0 flex translate-y-[-2px] items-center rounded-lg px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-1px] peer-active:translate-y-0 group-hover:translate-y-[-1px] group-active:translate-y-0",
               centered ? "justify-center gap-1.5" : "justify-between gap-1",
-              isLive
-                ? "bg-zinc-900"
-                : selected
-                  ? "bg-zinc-700"
-                  : "bg-zinc-900",
+              isLive ? "bg-zinc-900" : selected ? "bg-zinc-700" : "bg-zinc-900",
             ].join(" ")}
             style={faceStyle}
           >
@@ -980,13 +969,7 @@ function DateMarketHeader({
   );
 }
 
-function GameStartStatus({
-  game,
-  now,
-}: {
-  game: Game;
-  now: number | null;
-}) {
+function GameStartStatus({ game, now }: { game: Game; now: number | null }) {
   const isLive = now !== null && getGameIsLive(game, now);
   const countdown =
     now === null || isLive
@@ -1019,7 +1002,7 @@ function GameStartStatus({
           <span>LIVE</span>
         </>
       ) : (
-        countdown ?? formatGameTime(game.commence_time)
+        (countdown ?? formatGameTime(game.commence_time))
       )}
     </div>
   );
@@ -1086,11 +1069,16 @@ function GameCard({
   const eventHref = `/event/${game.slug}`;
 
   const [moreBetsOpen, setMoreBetsOpen] = useState(false);
+  const moreBetsOpenedByUserRef = useRef(false);
   const hasSpread = Boolean(spread && awaySpread && homeSpread);
   const hasTotal = Boolean(total && overTotal && underTotal);
   const hasMoreBets = hasSpread || hasTotal;
 
   function scrollToBottomAfterMoreBetsRender() {
+    if (!moreBetsOpenedByUserRef.current) return;
+
+    moreBetsOpenedByUserRef.current = false;
+
     if (!moreBetsOpen || !shouldAutoScrollOnMoreBetsOpen) return;
     if (typeof window === "undefined") return;
 
@@ -1154,7 +1142,13 @@ function GameCard({
           <div className="mt-2.5">
             <button
               type="button"
-              onClick={() => setMoreBetsOpen((current) => !current)}
+              onClick={() => {
+                setMoreBetsOpen((current) => {
+                  const nextValue = !current;
+                  moreBetsOpenedByUserRef.current = nextValue;
+                  return nextValue;
+                });
+              }}
               className="mt-2 inline-flex items-center gap-1.5 text-[14px] font-medium text-zinc-300 transition-colors hover:text-zinc-500"
             >
               <span>More Bets</span>
@@ -1413,15 +1407,14 @@ export default function GamesClient({
   }, []);
 
   const visibleGames = useMemo(() => {
-    if (!hideLiveGamesLoaded) return [];
-    if (!hideLiveGames) return allGames;
+    if (!hideLiveGamesLoaded || !hideLiveGames) return allGames;
 
     return allGames.filter((game) =>
       now === null ? !getGameIsLive(game) : !getGameIsLive(game, now),
     );
   }, [allGames, hideLiveGames, hideLiveGamesLoaded, now]);
 
-  const totalGames = hideLiveGamesLoaded ? visibleGames.length : allGames.length;
+  const totalGames = visibleGames.length;
 
   const visibleFirstBet = useMemo(
     () => getFirstBetForGames(visibleGames, now),
@@ -1516,7 +1509,7 @@ export default function GamesClient({
   }, [hideLiveGamesLoaded, now, visibleFirstBet, visibleGames]);
 
   return (
-    <div className="relative min-h-screen bg-[#09090b] text-white">
+    <div className="relative min-h-screen bg-[#09090b] text-white [overflow-anchor:none]">
       <div className="relative mx-auto w-full max-w-[1660px] px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-6">
         <header className="pt-[56px] lg:pt-2 xl:pr-[420px]">
           <LeagueTabs leagues={leagues} selectedLeague={selectedLeague} />
@@ -1551,9 +1544,7 @@ export default function GamesClient({
                 </div>
               </div>
 
-              {!hideLiveGamesLoaded ? (
-                <div className="min-h-[180px]" aria-hidden="true" />
-              ) : !league || league.games.length === 0 ? (
+              {!league || league.games.length === 0 ? (
                 <div className="text-[13px] text-zinc-400">
                   No active {selectedLeagueMeta.label} markets right now
                 </div>
@@ -1571,7 +1562,9 @@ export default function GamesClient({
                       <DateMarketHeader
                         date={group.date}
                         games={group.games}
-                        action={groupIndex === 0 ? renderHideLiveToggle() : null}
+                        action={
+                          groupIndex === 0 ? renderHideLiveToggle() : null
+                        }
                         now={now}
                       />
 
