@@ -1518,14 +1518,14 @@ export default function GamesClient({
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white">
       <div className="relative mx-auto w-full max-w-[1660px] px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-6">
-        <header className="pt-2 xl:pr-[420px]">
+        <header className="pt-[56px] lg:pt-2 xl:pr-[420px]">
           <LeagueTabs leagues={leagues} selectedLeague={selectedLeague} />
         </header>
 
-        <div className="mt-4 grid gap-6 md:mt-[26px] xl:grid-cols-[minmax(0,1156px)_420px] xl:items-start xl:justify-center">
+        <div className="mt-5 grid gap-6 lg:mt-[26px] xl:grid-cols-[minmax(0,1156px)_420px] xl:items-start xl:justify-center">
           <main className="min-w-0">
-            <section className="space-y-4">
-              <div className="grid grid-cols-[112px_minmax(0,1fr)_112px] items-end gap-3">
+            <section className="lg:space-y-4">
+              <div className="hidden grid-cols-[112px_minmax(0,1fr)_112px] items-end gap-3 lg:grid">
                 <LastUpdatedAgo updatedAt={data.updatedAt} />
 
                 <div className="hidden min-w-0 text-center sm:block">

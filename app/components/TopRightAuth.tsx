@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import Avatar from "boring-avatars";
 import { useEffect, useRef, useState } from "react";
@@ -20,7 +21,7 @@ export default function TopRightAuth() {
     }
 
     function handleDesktopPointerDown(event: MouseEvent) {
-      if (window.innerWidth < 768) return;
+      if (window.innerWidth < 1024) return;
       if (!menuRef.current) return;
       if (!menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
@@ -43,11 +44,11 @@ export default function TopRightAuth() {
       closeTimer.current = null;
     }
 
-    if (window.innerWidth >= 768) setMenuOpen(true);
+    if (window.innerWidth >= 1024) setMenuOpen(true);
   };
 
   const scheduleClose = () => {
-    if (window.innerWidth < 768) return;
+    if (window.innerWidth < 1024) return;
     if (closeTimer.current) clearTimeout(closeTimer.current);
     closeTimer.current = setTimeout(() => setMenuOpen(false), 120);
   };
@@ -107,7 +108,7 @@ export default function TopRightAuth() {
               exit={{ opacity: 0, y: -5, scale: 0.98 }}
               transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
               style={{ transformOrigin: "top right" }}
-              className="absolute right-0 top-full z-[220] hidden pt-[10px] md:block"
+              className="absolute right-0 top-full z-[220] hidden pt-[10px] lg:block"
             >
               <div className="min-w-[168px] whitespace-nowrap rounded-2xl border border-zinc-800 bg-[#09090b]/95 p-1.5 shadow-2xl backdrop-blur-md">
                 <Link
@@ -157,15 +158,32 @@ export default function TopRightAuth() {
 
   return (
     <>
-      <div className="pointer-events-none absolute top-0 right-0 z-50 w-fit md:hidden">
-        <div className="w-fit px-4 py-5 sm:px-6 sm:py-6">
-          <div className="pointer-events-auto flex w-fit justify-end">
-            <div className="flex items-center gap-3">{cta}</div>
+      <div className="pointer-events-none absolute left-0 right-0 top-0 z-50 md:left-[240px] lg:hidden">
+        <div className="px-4 py-5 sm:px-6 sm:py-6">
+          <div className="flex items-center justify-between gap-3 md:justify-end">
+            <Link
+              href="/"
+              aria-label="Edge home"
+              className="pointer-events-auto flex h-9 shrink-0 items-center md:hidden"
+            >
+              <Image
+                src="/logo.png"
+                alt="Edge"
+                width={112}
+                height={36}
+                priority
+                className="h-9 w-auto object-contain"
+              />
+            </Link>
+
+            <div className="pointer-events-auto flex min-w-0 items-center justify-end gap-3">
+              {cta}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="pointer-events-none fixed top-4 right-6 z-50 hidden md:block">
+      <div className="pointer-events-none fixed top-4 right-6 z-50 hidden lg:block">
         <div className="pointer-events-auto flex items-center gap-3">{cta}</div>
       </div>
 
@@ -181,7 +199,7 @@ export default function TopRightAuth() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.14, ease: "easeOut" }}
-              className="fixed inset-0 z-[200] bg-transparent md:hidden"
+              className="fixed inset-0 z-[200] bg-transparent lg:hidden"
             />
 
             <motion.div
@@ -191,7 +209,7 @@ export default function TopRightAuth() {
               exit={{ opacity: 0, y: -5, scale: 0.98 }}
               transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
               style={{ transformOrigin: "top right" }}
-              className="fixed right-4 top-[72px] z-[210] min-w-[168px] whitespace-nowrap rounded-2xl border border-zinc-800 bg-[#09090b]/95 p-1.5 shadow-2xl backdrop-blur-md md:hidden"
+              className="fixed right-4 top-[72px] z-[210] min-w-[168px] whitespace-nowrap rounded-2xl border border-zinc-800 bg-[#09090b]/95 p-1.5 shadow-2xl backdrop-blur-md sm:right-6 lg:hidden"
             >
               <Link
                 href="/accounts"
