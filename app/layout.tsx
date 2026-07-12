@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import AppSidebar from "./components/AppSidebar";
 import TopRightAuth from "./components/TopRightAuth";
 import Providers from "./providers";
 import ResponsiveToaster from "./components/ResponsiveToaster";
-import ResetInitialScroll from "./components/ResetInitialScroll";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -41,6 +41,80 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const initialScrollScript = `
+(function () {
+  var root = document.documentElement;
+  var revealed = false;
+
+  function forceTop() {
+    try {
+      window.scrollTo(0, 0);
+
+      var scrollingElement =
+        document.scrollingElement || document.documentElement;
+
+      if (scrollingElement) {
+        scrollingElement.scrollTop = 0;
+        scrollingElement.scrollLeft = 0;
+      }
+
+      if (document.body) {
+        document.body.scrollTop = 0;
+        document.body.scrollLeft = 0;
+      }
+    } catch (_) {}
+  }
+
+  function reveal() {
+    if (revealed) return;
+    revealed = true;
+    forceTop();
+    root.classList.remove("initial-scroll-reset");
+  }
+
+  try {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    root.classList.add("initial-scroll-reset");
+    forceTop();
+
+    window.addEventListener(
+      "pageshow",
+      function () {
+        revealed = false;
+        root.classList.add("initial-scroll-reset");
+        forceTop();
+
+        window.requestAnimationFrame(function () {
+          forceTop();
+
+          window.requestAnimationFrame(function () {
+            forceTop();
+            reveal();
+          });
+        });
+      },
+      { passive: true }
+    );
+
+    window.requestAnimationFrame(function () {
+      forceTop();
+
+      window.requestAnimationFrame(function () {
+        forceTop();
+        reveal();
+      });
+    });
+
+    window.setTimeout(reveal, 250);
+  } catch (_) {
+    root.classList.remove("initial-scroll-reset");
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -49,9 +123,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
+      suppressHydrationWarning
+      className={`${inter.variable} ${geistMono.variable} initial-scroll-reset h-full bg-[#09090b] antialiased`}
     >
       <head>
+        <Script
+          id="initial-scroll-position"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: initialScrollScript }}
+        />
+
         <meta name="theme-color" content="#09090b" />
         <meta name="color-scheme" content="dark" />
 
@@ -67,38 +148,8 @@ export default function RootLayout({
       </head>
 
       <body className="relative min-h-screen overflow-x-hidden bg-[#09090b] font-sans text-white">
-        <ResetInitialScroll />
-
         <Providers>
           <style>{`
-            html,
-            body {
-              margin: 0;
-              padding: 0;
-              background: #09090b;
-              scroll-behavior: auto;
-              overflow-anchor: none;
-            }
-
-            body {
-              min-height: 100%;
-            }
-
-            @media (max-width: 767px) {
-              html,
-              body {
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-              }
-
-              html::-webkit-scrollbar,
-              body::-webkit-scrollbar {
-                display: none;
-                width: 0;
-                height: 0;
-              }
-            }
-
             @keyframes buttonShimmer {
               0% {
                 transform: translateX(0) skewX(-20deg);
