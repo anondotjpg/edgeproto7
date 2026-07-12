@@ -917,7 +917,7 @@ function HideLiveToggle({
       disabled={disabled}
       role="switch"
       aria-checked={enabled}
-      className="inline-flex h-[29px] shrink-0 items-center gap-[7px] text-[14.5px] font-medium leading-none text-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
+      className="inline-flex h-[29px] shrink-0 items-center gap-[7px] text-[14.5px] font-medium leading-none text-zinc-400 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
     >
       <span>Hide live</span>
 
