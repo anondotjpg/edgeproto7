@@ -62,7 +62,7 @@ export default function LeagueTabs({
               href={`/?league=${item.league}`}
               aria-current={isActive ? "page" : undefined}
               className={[
-                "relative shrink-0 text-[13px] font-medium transition-colors",
+                "relative shrink-0 text-[15px] font-medium transition-colors",
                 "sm:rounded-full sm:px-4 sm:py-2",
                 isActive
                   ? "text-white sm:text-zinc-100"
