@@ -1511,7 +1511,7 @@ export default function GamesClient({
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white [overflow-anchor:none]">
       <div className="relative mx-auto w-full max-w-[1660px] px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-6">
-        <header className="pt-[56px] lg:pt-2 xl:pr-[420px]">
+        <header className="pt-[60px] lg:pt-2 xl:pr-[420px]">
           <LeagueTabs leagues={leagues} selectedLeague={selectedLeague} />
         </header>
 
