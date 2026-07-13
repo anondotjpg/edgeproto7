@@ -931,11 +931,13 @@ function DateMarketHeader({
   games,
   action,
   now,
+  showMarketLabels,
 }: {
   date: string;
   games: Game[];
   action?: ReactNode;
   now: number | null;
+  showMarketLabels: boolean;
 }) {
   const tracksUpcomingGames = date === "Today";
   const hasCountdown =
@@ -957,14 +959,18 @@ function DateMarketHeader({
 
       {action ? <div className="shrink-0 lg:hidden">{action}</div> : null}
 
-      {["Moneyline", "Spread", "Total"].map((label) => (
-        <div
-          key={label}
-          className="hidden items-center justify-center pb-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 lg:flex"
-        >
-          {label}
-        </div>
-      ))}
+      {showMarketLabels
+        ? ["Moneyline", "Spread", "Total"].map((label) => (
+            <div
+              key={label}
+              className="hidden items-center justify-center pb-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 lg:flex"
+            >
+              {label}
+            </div>
+          ))
+        : [0, 1, 2].map((column) => (
+            <div key={column} className="hidden lg:block" aria-hidden="true" />
+          ))}
     </div>
   );
 }
@@ -1577,6 +1583,7 @@ export default function GamesClient({
                           groupIndex === 0 ? renderHideLiveToggle() : null
                         }
                         now={now}
+                        showMarketLabels={groupIndex === 0}
                       />
 
                       <div className="grid gap-2.5 md:gap-3">
