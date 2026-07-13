@@ -5,6 +5,7 @@ import { useLayoutEffect } from "react";
 const GATE_ATTRIBUTE = "data-edge-scroll-gate";
 const SESSION_KEY = "edge:safari-session-active";
 const REQUIRED_STABLE_MS = 700;
+const LOGO_ZOOM_DURATION_MS = 460;
 
 function forceDocumentToTop() {
   window.scrollTo({
@@ -68,8 +69,8 @@ export default function SafariScrollGate() {
     }
 
     /*
-     * Never run the gate on a normal reload or an in-session navigation.
-     * This preserves the exact layout and viewport behavior you already had.
+     * Normal reloads and in-session navigation skip the gate entirely.
+     * The logo animation only runs on a genuinely new Safari session.
      */
     const shouldRunGate =
       navigationType !== "reload" && !hasExistingSession;
@@ -82,6 +83,7 @@ export default function SafariScrollGate() {
     let cancelled = false;
     let animationFrameId = 0;
     let stableSince: number | null = null;
+    let zoomStarted = false;
 
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
@@ -90,8 +92,52 @@ export default function SafariScrollGate() {
     root.setAttribute(GATE_ATTRIBUTE, "locked");
     forceDocumentToTop();
 
-    const verify = (now: number) => {
+    const finish = () => {
       if (cancelled) return;
+
+      forceDocumentToTop();
+      root.removeAttribute(GATE_ATTRIBUTE);
+    };
+
+    const startLogoZoom = () => {
+      if (cancelled || zoomStarted) return;
+
+      zoomStarted = true;
+      forceDocumentToTop();
+      root.setAttribute(GATE_ATTRIBUTE, "zooming");
+
+      /*
+       * Keep forcing the document to zero throughout the zoom so Safari
+       * cannot restore a nonzero viewport behind the cover.
+       */
+      const keepAtTop = () => {
+        if (cancelled || !zoomStarted) return;
+
+        forceDocumentToTop();
+        animationFrameId = window.requestAnimationFrame(keepAtTop);
+      };
+
+      animationFrameId = window.requestAnimationFrame(keepAtTop);
+
+      window.setTimeout(() => {
+        if (cancelled) return;
+
+        zoomStarted = false;
+        window.cancelAnimationFrame(animationFrameId);
+
+        forceDocumentToTop();
+
+        window.requestAnimationFrame(() => {
+          if (cancelled) return;
+
+          forceDocumentToTop();
+          finish();
+        });
+      }, LOGO_ZOOM_DURATION_MS);
+    };
+
+    const verify = (now: number) => {
+      if (cancelled || zoomStarted) return;
 
       forceDocumentToTop();
 
@@ -103,15 +149,7 @@ export default function SafariScrollGate() {
         stableSince ??= now;
 
         if (now - stableSince >= REQUIRED_STABLE_MS) {
-          forceDocumentToTop();
-
-          animationFrameId = window.requestAnimationFrame(() => {
-            if (cancelled) return;
-
-            forceDocumentToTop();
-            root.removeAttribute(GATE_ATTRIBUTE);
-          });
-
+          startLogoZoom();
           return;
         }
       } else {
@@ -124,19 +162,29 @@ export default function SafariScrollGate() {
     animationFrameId = window.requestAnimationFrame(verify);
 
     const safetyTimer = window.setTimeout(() => {
-      if (cancelled) return;
+      if (cancelled || zoomStarted) return;
 
       forceDocumentToTop();
-      root.removeAttribute(GATE_ATTRIBUTE);
+      startLogoZoom();
     }, 2500);
 
     return () => {
       cancelled = true;
+      zoomStarted = false;
       window.cancelAnimationFrame(animationFrameId);
       window.clearTimeout(safetyTimer);
       root.removeAttribute(GATE_ATTRIBUTE);
     };
   }, []);
 
-  return <div id="edge-scroll-gate-cover" aria-hidden="true" />;
+  return (
+    <div id="edge-scroll-gate-cover" aria-hidden="true">
+      <img
+        id="edge-scroll-gate-logo"
+        src="/logo.png"
+        alt=""
+        draggable={false}
+      />
+    </div>
+  );
 }

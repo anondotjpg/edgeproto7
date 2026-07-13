@@ -36,23 +36,55 @@ body {
   inset: 0;
   z-index: 2147483647;
   display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   background: #09090b;
   pointer-events: none;
 }
 
+#edge-scroll-gate-logo {
+  display: block;
+  width: clamp(112px, 30vw, 150px);
+  height: auto;
+  max-width: none;
+  user-select: none;
+  transform: translateZ(0) scale(1);
+  transform-origin: center;
+  will-change: transform;
+}
+
 /*
- * Do not use position: fixed on body here. That was changing the mobile
+ * Do not use position: fixed on body here. That changes mobile Safari's
  * viewport geometry during an ordinary reload.
  */
 html[data-edge-scroll-gate="locked"],
-html[data-edge-scroll-gate="locked"] body {
+html[data-edge-scroll-gate="locked"] body,
+html[data-edge-scroll-gate="zooming"],
+html[data-edge-scroll-gate="zooming"] body {
   overflow: hidden !important;
   overscroll-behavior: none;
 }
 
-html[data-edge-scroll-gate="locked"] #edge-scroll-gate-cover {
-  display: block;
+html[data-edge-scroll-gate="locked"] #edge-scroll-gate-cover,
+html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-cover {
+  display: flex;
   pointer-events: auto;
+}
+
+html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-logo {
+  animation: edgeGateLogoZoom 460ms cubic-bezier(0.72, 0, 0.9, 0.45)
+    forwards;
+}
+
+@keyframes edgeGateLogoZoom {
+  0% {
+    transform: translateZ(0) scale(1);
+  }
+
+  100% {
+    transform: translateZ(0) scale(32);
+  }
 }
 
 @media (max-width: 767px) {
@@ -69,5 +101,11 @@ html[data-edge-scroll-gate="locked"] #edge-scroll-gate-cover {
     display: none;
     width: 0;
     height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-logo {
+    animation-duration: 160ms;
   }
 }
