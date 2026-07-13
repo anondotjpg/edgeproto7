@@ -94,6 +94,7 @@ const LEAGUES = [
   { label: "WNBA", tag: 100254, league: "wnba" },
   { label: "NBA", tag: 745, league: "nba" },
   { label: "NHL", tag: 899, league: "nhl" },
+  { label: "NFL", tag: 450, league: "nfl" },
 ] as const;
 
 type LeagueKey = (typeof LEAGUES)[number]["league"];

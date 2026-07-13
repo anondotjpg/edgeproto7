@@ -8,6 +8,7 @@ const LEAGUES = [
   { key: "nhl", label: "NHL" },
   { key: "mlb", label: "MLB" },
   { key: "wnba", label: "WNBA" },
+  { key: "nfl", label: "NFL" },
 ] as const;
 
 const POLYMARKET_TEAMS_URL =

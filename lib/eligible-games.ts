@@ -3,6 +3,7 @@ export const LEAGUES = [
   { key: "nhl", label: "NHL", tag: 899, teamLeague: "nhl" },
   { key: "mlb", label: "MLB", tag: 100381, teamLeague: "mlb" },
   { key: "wnba", label: "WNBA", tag: 100254, teamLeague: "wnba" },
+  { key: "nfl", label: "NFL", tag: 450, teamLeague: "nfl" },
 ] as const;
 
 const MIN_MARKET_VOLUME = 200;
