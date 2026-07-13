@@ -30,18 +30,3 @@ body {
 * {
   box-sizing: border-box;
 }
-
-/*
- * This class is present in the server HTML so Safari cannot paint the app at
- * a restored nonzero position. On ordinary reloads, the inline head script
- * removes it synchronously before the body is painted.
- */
-html.edge-boot-pending,
-html.edge-boot-pending body {
-  overflow: hidden;
-  background: #09090b;
-}
-
-html.edge-boot-pending body {
-  visibility: hidden;
-}

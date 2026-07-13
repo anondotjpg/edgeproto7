@@ -557,7 +557,7 @@ function OffsetButton({
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="h-12 w-full translate-y-[-2px] cursor-pointer rounded-2xl border border-zinc-800 bg-zinc-900 text-[15px] font-semibold text-zinc-100 transition-[transform,opacity] duration-100 hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-40"
+        className="h-12 w-full translate-y-[-2px] cursor-pointer rounded-2xl border border-zinc-800 bg-zinc-900 text-[15px] font-semibold text-zinc-100 transition-[transform,opacity] duration-100 hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed"
       >
         {children}
       </button>
