@@ -20,7 +20,7 @@ export default function LeagueTabs({
     <>
       <nav
         aria-label="Select league"
-        className="no-scrollbar relative z-30 flex w-full items-center gap-2.5 overflow-x-auto lg:hidden"
+        className="no-scrollbar relative z-30 flex w-full items-center gap-2 overflow-x-auto lg:hidden"
       >
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
@@ -31,16 +31,12 @@ export default function LeagueTabs({
               href={`/?league=${item.league}`}
               aria-current={isActive ? "page" : undefined}
               className={[
-                "relative inline-flex h-10 shrink-0 items-center justify-center overflow-hidden rounded-[13px] border px-[18px] text-[13px] font-bold transition-colors",
+                "relative inline-flex h-9 shrink-0 items-center justify-center rounded-[11px] border px-4 text-[13px] font-semibold leading-none transition-colors duration-150",
                 isActive
-                  ? "border-zinc-700/90 text-zinc-100"
-                  : "border-zinc-800/80 text-zinc-500 hover:border-zinc-700/80 hover:bg-zinc-900/30 hover:text-zinc-300",
+                  ? "border-zinc-700 bg-zinc-800/90 text-zinc-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  : "border-zinc-800 bg-zinc-950/70 text-zinc-500 active:bg-zinc-900/80",
               ].join(" ")}
             >
-              {isActive ? (
-                <span className="absolute inset-0 bg-zinc-800/40" />
-              ) : null}
-
               <span className="relative z-10 whitespace-nowrap">
                 {item.label}
               </span>
