@@ -55,7 +55,7 @@ body {
 
 #edge-scroll-gate-logo {
   display: block;
-  width: clamp(112px, 27vw, 138px);
+  width: clamp(88px, 22vw, 112px);
   height: auto;
   max-width: none;
   flex: none;
@@ -77,11 +77,9 @@ body {
   will-change: width, opacity, transform;
 }
 
-#edge-scroll-gate-tagline {
-  display: block;
-  padding-left: 16px;
+Jpx;
   color: #f4f4f5;
-  font-size: clamp(24px, 6vw, 32px);
+  font-size: clamp(30px, 7vw, 40px);
   font-weight: 650;
   line-height: 0.95;
   letter-spacing: -0.04em;
@@ -111,7 +109,7 @@ html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-cover {
  */
 html[data-edge-scroll-gate="browser-tagline"]
   #edge-scroll-gate-tagline-clip {
-  width: clamp(190px, 48vw, 250px);
+  width: clamp(240px, 58vw, 320px);
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
