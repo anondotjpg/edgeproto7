@@ -7,13 +7,27 @@ const SESSION_KEY = "edge:safari-session-active";
 const REQUIRED_STABLE_MS = 700;
 const LOGO_ZOOM_DURATION_MS = 460;
 
+type GateRunState = {
+  running: boolean;
+  finished: boolean;
+  runId: number;
+};
+
 declare global {
-  interface Window {
-    __edgeSafariGateRun?: {
-      started: boolean;
-      finished: boolean;
-    };
+  interface Navigator {
+    standalone?: boolean;
   }
+
+  interface Window {
+    __edgeSafariGateRun?: GateRunState;
+  }
+}
+
+function isStandaloneDisplayMode() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true
+  );
 }
 
 function forceDocumentToTop() {
@@ -65,6 +79,7 @@ export default function SafariScrollGate() {
   useLayoutEffect(() => {
     const root = document.documentElement;
     const logo = document.getElementById("edge-scroll-gate-logo");
+    const standalone = isStandaloneDisplayMode();
     const navigationType = getNavigationType();
 
     let hasExistingSession = false;
@@ -78,149 +93,232 @@ export default function SafariScrollGate() {
       hasExistingSession = true;
     }
 
-    const shouldRunGate =
-      navigationType !== "reload" && !hasExistingSession;
+    const shouldRunOnMount =
+      standalone ||
+      (navigationType !== "reload" && !hasExistingSession);
 
-    if (!shouldRunGate) {
-      root.removeAttribute(GATE_ATTRIBUTE);
-      return;
-    }
-
-    /*
-     * Prevent React Strict Mode, hydration remounts, or route remounts from
-     * starting the same cold-open animation more than once in this document.
-     */
     window.__edgeSafariGateRun ??= {
-      started: false,
+      running: false,
       finished: false,
+      runId: 0,
     };
 
     const gateRun = window.__edgeSafariGateRun;
 
-    if (gateRun.started || gateRun.finished) {
-      if (gateRun.finished) {
-        root.removeAttribute(GATE_ATTRIBUTE);
-      }
-
-      return;
-    }
-
-    gateRun.started = true;
-
-    let cancelled = false;
+    let disposed = false;
     let animationFrameId = 0;
     let safetyTimerId = 0;
     let zoomFallbackTimerId = 0;
-    let stableSince: number | null = null;
-    let zoomStarted = false;
 
-    if ("scrollRestoration" in window.history) {
-      window.history.scrollRestoration = "manual";
-    }
-
-    root.setAttribute(GATE_ATTRIBUTE, "locked");
-    forceDocumentToTop();
-
-    const finish = () => {
-      if (cancelled || gateRun.finished) return;
-
-      gateRun.finished = true;
-      zoomStarted = false;
-
+    const clearScheduledWork = () => {
       window.cancelAnimationFrame(animationFrameId);
       window.clearTimeout(safetyTimerId);
       window.clearTimeout(zoomFallbackTimerId);
-
-      forceDocumentToTop();
-      root.removeAttribute(GATE_ATTRIBUTE);
     };
 
-    const startLogoZoom = () => {
-      if (cancelled || zoomStarted || gateRun.finished) return;
+    const runGate = () => {
+      if (disposed || gateRun.running) return;
 
-      zoomStarted = true;
-      window.clearTimeout(safetyTimerId);
+      gateRun.running = true;
+      gateRun.finished = false;
+      gateRun.runId += 1;
 
+      const activeRunId = gateRun.runId;
+      let stableSince: number | null = null;
+      let zoomStarted = false;
+
+      clearScheduledWork();
+
+      if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "manual";
+      }
+
+      root.setAttribute(GATE_ATTRIBUTE, "locked");
       forceDocumentToTop();
-      root.setAttribute(GATE_ATTRIBUTE, "zooming");
 
-      const keepAtTop = () => {
-        if (cancelled || !zoomStarted || gateRun.finished) return;
-
-        forceDocumentToTop();
-        animationFrameId = window.requestAnimationFrame(keepAtTop);
-      };
-
-      animationFrameId = window.requestAnimationFrame(keepAtTop);
-
-      const handleAnimationEnd = (event: AnimationEvent) => {
+      const finish = () => {
         if (
-          event.animationName !== "edgeGateLogoZoom" ||
-          event.target !== logo
+          disposed ||
+          activeRunId !== gateRun.runId ||
+          gateRun.finished
         ) {
           return;
         }
 
-        logo?.removeEventListener("animationend", handleAnimationEnd);
-        finish();
+        gateRun.finished = true;
+        gateRun.running = false;
+        zoomStarted = false;
+
+        clearScheduledWork();
+        forceDocumentToTop();
+        root.removeAttribute(GATE_ATTRIBUTE);
       };
 
-      logo?.addEventListener("animationend", handleAnimationEnd);
-
-      /*
-       * Fallback only if Safari fails to dispatch animationend.
-       * finish() is guarded, so it cannot reveal twice.
-       */
-      zoomFallbackTimerId = window.setTimeout(() => {
-        logo?.removeEventListener("animationend", handleAnimationEnd);
-        finish();
-      }, LOGO_ZOOM_DURATION_MS + 120);
-    };
-
-    const verify = (now: number) => {
-      if (cancelled || zoomStarted || gateRun.finished) return;
-
-      forceDocumentToTop();
-
-      if (
-        document.readyState === "complete" &&
-        document.visibilityState === "visible" &&
-        documentIsAtTop()
-      ) {
-        stableSince ??= now;
-
-        if (now - stableSince >= REQUIRED_STABLE_MS) {
-          startLogoZoom();
+      const startLogoZoom = () => {
+        if (
+          disposed ||
+          activeRunId !== gateRun.runId ||
+          zoomStarted ||
+          gateRun.finished
+        ) {
           return;
         }
-      } else {
-        stableSince = null;
-      }
+
+        zoomStarted = true;
+        window.clearTimeout(safetyTimerId);
+
+        forceDocumentToTop();
+        root.setAttribute(GATE_ATTRIBUTE, "zooming");
+
+        const keepAtTop = () => {
+          if (
+            disposed ||
+            activeRunId !== gateRun.runId ||
+            !zoomStarted ||
+            gateRun.finished
+          ) {
+            return;
+          }
+
+          forceDocumentToTop();
+          animationFrameId = window.requestAnimationFrame(keepAtTop);
+        };
+
+        animationFrameId = window.requestAnimationFrame(keepAtTop);
+
+        const handleAnimationEnd = (event: AnimationEvent) => {
+          if (
+            event.animationName !== "edgeGateLogoZoom" ||
+            event.target !== logo
+          ) {
+            return;
+          }
+
+          logo?.removeEventListener("animationend", handleAnimationEnd);
+          finish();
+        };
+
+        logo?.addEventListener("animationend", handleAnimationEnd);
+
+        zoomFallbackTimerId = window.setTimeout(() => {
+          logo?.removeEventListener("animationend", handleAnimationEnd);
+          finish();
+        }, LOGO_ZOOM_DURATION_MS + 120);
+      };
+
+      const verify = (now: number) => {
+        if (
+          disposed ||
+          activeRunId !== gateRun.runId ||
+          zoomStarted ||
+          gateRun.finished
+        ) {
+          return;
+        }
+
+        forceDocumentToTop();
+
+        if (
+          document.readyState === "complete" &&
+          document.visibilityState === "visible" &&
+          documentIsAtTop()
+        ) {
+          stableSince ??= now;
+
+          if (now - stableSince >= REQUIRED_STABLE_MS) {
+            startLogoZoom();
+            return;
+          }
+        } else {
+          stableSince = null;
+        }
+
+        animationFrameId = window.requestAnimationFrame(verify);
+      };
 
       animationFrameId = window.requestAnimationFrame(verify);
+
+      safetyTimerId = window.setTimeout(() => {
+        if (
+          disposed ||
+          activeRunId !== gateRun.runId ||
+          zoomStarted ||
+          gateRun.finished
+        ) {
+          return;
+        }
+
+        forceDocumentToTop();
+        startLogoZoom();
+      }, 2500);
     };
 
-    animationFrameId = window.requestAnimationFrame(verify);
+    const lockBeforeStandaloneSuspends = () => {
+      if (!standalone || disposed) return;
 
-    safetyTimerId = window.setTimeout(() => {
-      if (cancelled || zoomStarted || gateRun.finished) return;
+      clearScheduledWork();
+      gateRun.runId += 1;
+      gateRun.running = false;
+      gateRun.finished = false;
+
+      root.setAttribute(GATE_ATTRIBUTE, "locked");
+
+      if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "manual";
+      }
 
       forceDocumentToTop();
-      startLogoZoom();
-    }, 2500);
+    };
+
+    const handleVisibilityChange = () => {
+      if (!standalone) return;
+
+      if (document.visibilityState === "hidden") {
+        lockBeforeStandaloneSuspends();
+        return;
+      }
+
+      runGate();
+    };
+
+    const handlePageHide = () => {
+      lockBeforeStandaloneSuspends();
+    };
+
+    const handlePageShow = () => {
+      if (standalone) {
+        runGate();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("pageshow", handlePageShow);
+
+    if (shouldRunOnMount) {
+      runGate();
+    } else {
+      root.removeAttribute(GATE_ATTRIBUTE);
+    }
 
     return () => {
-      cancelled = true;
+      disposed = true;
+      clearScheduledWork();
 
-      window.cancelAnimationFrame(animationFrameId);
-      window.clearTimeout(safetyTimerId);
-      window.clearTimeout(zoomFallbackTimerId);
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange,
+      );
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("pageshow", handlePageShow);
 
       /*
-       * Do not reset gateRun.started here. React Strict Mode intentionally
-       * mounts, cleans up, and mounts again in development. Keeping the global
-       * flag prevents that second mount from replaying the animation.
+       * Do not forcibly remove the lock while a standalone app is being
+       * suspended. iOS may reuse the frozen DOM on the next launch.
        */
+      if (!standalone || document.visibilityState === "visible") {
+        root.removeAttribute(GATE_ATTRIBUTE);
+      }
     };
   }, []);
 

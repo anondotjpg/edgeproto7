@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "Edge",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "black",
   },
 };
 
@@ -53,22 +53,27 @@ const earlyGateScript = `
         : null;
 
     var navigationType = navigationEntry ? navigationEntry.type : null;
+    var isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true;
     var hasExistingSession =
       sessionStorage.getItem(sessionKey) === "true";
 
     /*
-     * Ordinary reloads and navigations in the current tab must never be
-     * locked. Remove the server-side gate before the first body paint.
+     * Standalone iOS apps can restore a frozen document at an old scroll
+     * position, even when sessionStorage still exists. Keep the gate locked
+     * for every standalone document launch. In normal Safari, leave regular
+     * reloads and same-session navigation untouched.
      */
-    if (navigationType === "reload" || hasExistingSession) {
+    var shouldLock =
+      isStandalone ||
+      (navigationType !== "reload" && !hasExistingSession);
+
+    if (!shouldLock) {
       root.removeAttribute("data-edge-scroll-gate");
       return;
     }
 
-    /*
-     * A new Safari browsing session remains locked until the client gate
-     * verifies that every scroll position is at zero.
-     */
     root.setAttribute("data-edge-scroll-gate", "locked");
 
     if ("scrollRestoration" in history) {
@@ -103,10 +108,7 @@ export default function RootLayout({
 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Edge" />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent"
-        />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
         <link rel="apple-touch-icon" href="/apple-icon.png" />
         <link rel="apple-touch-startup-image" href="/splash.png" />

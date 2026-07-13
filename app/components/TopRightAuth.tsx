@@ -165,7 +165,7 @@ export default function TopRightAuth() {
   return (
     <>
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-50 md:left-[240px] lg:hidden">
-        <div className="px-4 py-5 sm:px-6 sm:py-6">
+        <div className="px-4 pb-5 pt-[calc(20px+env(safe-area-inset-top))] sm:px-6 sm:pb-6 sm:pt-[calc(24px+env(safe-area-inset-top))]">
           <div className="flex items-center justify-between gap-3 md:justify-end">
             <Link
               href="/"
@@ -220,7 +220,7 @@ export default function TopRightAuth() {
                 ease: [0.22, 1, 0.36, 1],
               }}
               style={{ transformOrigin: "top right" }}
-              className="fixed right-4 top-[72px] z-[210] min-w-[168px] whitespace-nowrap rounded-2xl border border-zinc-800 bg-[#09090b]/95 p-1.5 shadow-2xl backdrop-blur-md sm:right-6 lg:hidden"
+              className="fixed right-4 top-[calc(72px+env(safe-area-inset-top))] z-[210] min-w-[168px] whitespace-nowrap rounded-2xl border border-zinc-800 bg-[#09090b]/95 p-1.5 shadow-2xl backdrop-blur-md sm:right-6 lg:hidden"
             >
               <Link
                 href="/accounts"

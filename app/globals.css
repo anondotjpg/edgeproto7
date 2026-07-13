@@ -15,6 +15,7 @@
 html,
 body {
   min-height: 100%;
+  min-height: 100dvh;
   background: #09090b;
   color: #ffffff;
   color-scheme: dark;
@@ -54,10 +55,6 @@ body {
   will-change: transform;
 }
 
-/*
- * Do not use position: fixed on body here. That changes mobile Safari's
- * viewport geometry during an ordinary reload.
- */
 html[data-edge-scroll-gate="locked"],
 html[data-edge-scroll-gate="locked"] body,
 html[data-edge-scroll-gate="zooming"],
