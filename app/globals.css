@@ -44,21 +44,53 @@ body {
   pointer-events: none;
 }
 
+#edge-scroll-gate-lockup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  white-space: nowrap;
+  transform: translateZ(0);
+}
+
 #edge-scroll-gate-logo {
   display: block;
   width: clamp(112px, 30vw, 150px);
   height: auto;
   max-width: none;
+  flex: none;
   user-select: none;
-  transform: translateZ(0) scale(1);
-  transform-origin: center;
+  transform: translateZ(0);
   will-change: transform;
+}
+
+#edge-scroll-gate-tagline-clip {
+  width: 0;
+  overflow: hidden;
+  flex: none;
+  opacity: 0;
+  transform: translate3d(24px, 0, 0);
+  transition:
+    width 620ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 380ms ease-out 70ms,
+    transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: width, opacity, transform;
+}
+
+#edge-scroll-gate-tagline {
+  display: block;
+  padding-left: 18px;
+  color: #f4f4f5;
+  font-size: clamp(19px, 5vw, 27px);
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.035em;
 }
 
 html[data-edge-scroll-gate="browser"],
 html[data-edge-scroll-gate="browser"] body,
-html[data-edge-scroll-gate="browser-zooming"],
-html[data-edge-scroll-gate="browser-zooming"] body,
+html[data-edge-scroll-gate="browser-tagline"],
+html[data-edge-scroll-gate="browser-tagline"] body,
 html[data-edge-scroll-gate="standalone"],
 html[data-edge-scroll-gate="standalone"] body {
   overflow: hidden !important;
@@ -66,29 +98,30 @@ html[data-edge-scroll-gate="standalone"] body {
 }
 
 html[data-edge-scroll-gate="browser"] #edge-scroll-gate-cover,
-html[data-edge-scroll-gate="browser-zooming"] #edge-scroll-gate-cover,
+html[data-edge-scroll-gate="browser-tagline"] #edge-scroll-gate-cover,
 html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-cover {
   display: flex;
   pointer-events: auto;
 }
 
 /*
- * This is the original Safari animation only.
- * The standalone state has no animation rule at all.
+ * The lockup remains centered while its width grows. That naturally moves
+ * the logo left by exactly half of the added tagline width, leaving the
+ * completed logo + tagline combination perfectly centered.
  */
-html[data-edge-scroll-gate="browser-zooming"] #edge-scroll-gate-logo {
-  animation: edgeGateLogoZoom 460ms cubic-bezier(0.72, 0, 0.9, 0.45)
-    forwards;
+html[data-edge-scroll-gate="browser-tagline"]
+  #edge-scroll-gate-tagline-clip {
+  width: clamp(152px, 40vw, 205px);
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
 }
 
-@keyframes edgeGateLogoZoom {
-  0% {
-    transform: translateZ(0) scale(1);
-  }
-
-  100% {
-    transform: translateZ(0) scale(32);
-  }
+/*
+ * Standalone Home Screen mode stays logo-only and completely static.
+ */
+html[data-edge-scroll-gate="standalone"]
+  #edge-scroll-gate-tagline-clip {
+  display: none;
 }
 
 @media (max-width: 767px) {
@@ -109,7 +142,8 @@ html[data-edge-scroll-gate="browser-zooming"] #edge-scroll-gate-logo {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-edge-scroll-gate="browser-zooming"] #edge-scroll-gate-logo {
-    animation-duration: 160ms;
+  #edge-scroll-gate-tagline-clip {
+    transition-duration: 180ms;
+    transition-delay: 0ms;
   }
 }

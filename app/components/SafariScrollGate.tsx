@@ -3,34 +3,14 @@
 import { useLayoutEffect } from "react";
 
 const GATE_ATTRIBUTE = "data-edge-scroll-gate";
-const SESSION_KEY = "edge:safari-session-active";
 const REQUIRED_STABLE_MS = 700;
-const BROWSER_ZOOM_DURATION_MS = 460;
+const TAGLINE_ANIMATION_MS = 620;
 const STANDALONE_STATIC_HOLD_MS = 300;
 
 declare global {
-  interface Navigator {
-    standalone?: boolean;
-  }
-
   interface Window {
     __edgeSafariGateRunning?: boolean;
   }
-}
-
-function isStandaloneDisplayMode() {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true
-  );
-}
-
-function getNavigationType() {
-  const entry = performance.getEntriesByType(
-    "navigation",
-  )[0] as PerformanceNavigationTiming | undefined;
-
-  return entry?.type ?? null;
 }
 
 function forceDocumentToTop() {
@@ -73,30 +53,21 @@ function documentIsAtTop() {
 export default function SafariScrollGate() {
   useLayoutEffect(() => {
     const root = document.documentElement;
-    const standalone = isStandaloneDisplayMode();
-    const navigationType = getNavigationType();
 
-    let hasExistingSession = false;
-
-    try {
-      hasExistingSession =
-        window.sessionStorage.getItem(SESSION_KEY) === "true";
-
-      window.sessionStorage.setItem(SESSION_KEY, "true");
-    } catch {
-      hasExistingSession = true;
-    }
-
+    /*
+     * The inline head script decides the launch mode before first paint:
+     * - "browser" for a fresh Safari session
+     * - "standalone" for the Home Screen app
+     * - no attribute for ordinary reloads/navigation
+     */
+    const initialMode = root.getAttribute(GATE_ATTRIBUTE);
     const shouldRun =
-      standalone ||
-      (navigationType !== "reload" && !hasExistingSession);
+      initialMode === "browser" || initialMode === "standalone";
+    const standalone = initialMode === "standalone";
 
-    if (!shouldRun) {
-      root.removeAttribute(GATE_ATTRIBUTE);
-      return;
-    }
-
+    if (!shouldRun) return;
     if (window.__edgeSafariGateRunning) return;
+
     window.__edgeSafariGateRunning = true;
 
     let cancelled = false;
@@ -121,16 +92,6 @@ export default function SafariScrollGate() {
       window.__edgeSafariGateRunning = false;
     };
 
-    /*
-     * Keep the two experiences completely separate.
-     * Standalone never enters the browser zoom states.
-     * Browser Safari never enters the standalone state.
-     */
-    root.setAttribute(
-      GATE_ATTRIBUTE,
-      standalone ? "standalone" : "browser",
-    );
-
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
@@ -139,14 +100,14 @@ export default function SafariScrollGate() {
 
     const startEnding = () => {
       if (cancelled || endingStarted) return;
-      endingStarted = true;
 
+      endingStarted = true;
       window.clearTimeout(safetyTimerId);
       forceDocumentToTop();
 
       if (standalone) {
         /*
-         * Home Screen app: logo remains completely static.
+         * Home Screen app remains unchanged: static centered logo only.
          */
         finishTimerId = window.setTimeout(() => {
           forceDocumentToTop();
@@ -157,16 +118,16 @@ export default function SafariScrollGate() {
       }
 
       /*
-       * Normal Safari: original direct scale animation.
-       * No priming state, no opacity change, no shrink, and no visual-viewport
-       * repositioning.
+       * Fresh Safari:
+       * expand the centered lockup so the logo glides left while the
+       * tagline enters smoothly from its right.
        */
-      root.setAttribute(GATE_ATTRIBUTE, "browser-zooming");
+      root.setAttribute(GATE_ATTRIBUTE, "browser-tagline");
 
       finishTimerId = window.setTimeout(() => {
         forceDocumentToTop();
         finish();
-      }, BROWSER_ZOOM_DURATION_MS);
+      }, TAGLINE_ANIMATION_MS);
     };
 
     const verify = (now: number) => {
@@ -205,21 +166,23 @@ export default function SafariScrollGate() {
       cancelled = true;
       clearScheduledWork();
       window.__edgeSafariGateRunning = false;
-
-      if (!standalone || document.visibilityState === "visible") {
-        root.removeAttribute(GATE_ATTRIBUTE);
-      }
     };
   }, []);
 
   return (
     <div id="edge-scroll-gate-cover" aria-hidden="true">
-      <img
-        id="edge-scroll-gate-logo"
-        src="/logo.png"
-        alt=""
-        draggable={false}
-      />
+      <div id="edge-scroll-gate-lockup">
+        <img
+          id="edge-scroll-gate-logo"
+          src="/logo.png"
+          alt=""
+          draggable={false}
+        />
+
+        <div id="edge-scroll-gate-tagline-clip">
+          <span id="edge-scroll-gate-tagline">Beat the Odds.</span>
+        </div>
+      </div>
     </div>
   );
 }
