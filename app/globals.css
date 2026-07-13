@@ -61,6 +61,8 @@ body {
 
 html[data-edge-scroll-gate="locked"],
 html[data-edge-scroll-gate="locked"] body,
+html[data-edge-scroll-gate="standalone"],
+html[data-edge-scroll-gate="standalone"] body,
 html[data-edge-scroll-gate="primed"],
 html[data-edge-scroll-gate="primed"] body,
 html[data-edge-scroll-gate="zooming"],
@@ -70,12 +72,14 @@ html[data-edge-scroll-gate="zooming"] body {
 }
 
 html[data-edge-scroll-gate="locked"] #edge-scroll-gate-cover,
+html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-cover,
 html[data-edge-scroll-gate="primed"] #edge-scroll-gate-cover,
 html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-cover {
   display: block;
   pointer-events: auto;
 }
 
+html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-logo,
 html[data-edge-scroll-gate="primed"] #edge-scroll-gate-logo,
 html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-logo {
   opacity: 1;
