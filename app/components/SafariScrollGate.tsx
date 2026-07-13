@@ -5,8 +5,8 @@ import { useLayoutEffect } from "react";
 const GATE_ATTRIBUTE = "data-edge-scroll-gate";
 const SESSION_KEY = "edge:safari-session-active";
 const REQUIRED_STABLE_MS = 700;
-const LOGO_HOLD_MS = 220;
 const LOGO_ZOOM_DURATION_MS = 460;
+const STANDALONE_LOGO_HOLD_MS = 300;
 
 type GateRunState = {
   running: boolean;
@@ -76,29 +76,9 @@ function getNavigationType() {
   return entry?.type ?? null;
 }
 
-function pinLogoToVisualViewportCenter() {
-  const viewport = window.visualViewport;
-  const centerX = viewport
-    ? viewport.offsetLeft + viewport.width / 2
-    : window.innerWidth / 2;
-  const centerY = viewport
-    ? viewport.offsetTop + viewport.height / 2
-    : window.innerHeight / 2;
-
-  document.documentElement.style.setProperty(
-    "--edge-gate-logo-x",
-    `${centerX}px`,
-  );
-  document.documentElement.style.setProperty(
-    "--edge-gate-logo-y",
-    `${centerY}px`,
-  );
-}
-
 export default function SafariScrollGate() {
   useLayoutEffect(() => {
     const root = document.documentElement;
-    const logo = document.getElementById("edge-scroll-gate-logo");
     const standalone = isStandaloneDisplayMode();
     const navigationType = getNavigationType();
 
@@ -113,9 +93,20 @@ export default function SafariScrollGate() {
       hasExistingSession = true;
     }
 
-    const shouldRunOnMount =
+    /*
+     * Home Screen always uses the gate because iOS can restore a frozen
+     * standalone document at an old scroll position.
+     *
+     * Normal Safari only uses it for a genuinely new browser session.
+     */
+    const shouldRunGate =
       standalone ||
       (navigationType !== "reload" && !hasExistingSession);
+
+    if (!shouldRunGate) {
+      root.removeAttribute(GATE_ATTRIBUTE);
+      return;
+    }
 
     window.__edgeSafariGateRun ??= {
       running: false,
@@ -125,239 +116,188 @@ export default function SafariScrollGate() {
 
     const gateRun = window.__edgeSafariGateRun;
 
-    let disposed = false;
+    if (gateRun.running) return;
+
+    gateRun.running = true;
+    gateRun.finished = false;
+    gateRun.runId += 1;
+
+    const activeRunId = gateRun.runId;
+
+    let cancelled = false;
     let animationFrameId = 0;
     let safetyTimerId = 0;
     let finishTimerId = 0;
-    let zoomFallbackTimerId = 0;
+    let stableSince: number | null = null;
+    let endingStarted = false;
 
     const clearScheduledWork = () => {
       window.cancelAnimationFrame(animationFrameId);
       window.clearTimeout(safetyTimerId);
       window.clearTimeout(finishTimerId);
-      window.clearTimeout(zoomFallbackTimerId);
     };
 
-    const runGate = () => {
-      if (disposed || gateRun.running) return;
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
 
-      gateRun.running = true;
-      gateRun.finished = false;
-      gateRun.runId += 1;
+    root.setAttribute(
+      GATE_ATTRIBUTE,
+      standalone ? "standalone" : "locked",
+    );
+    forceDocumentToTop();
 
-      const activeRunId = gateRun.runId;
-      let stableSince: number | null = null;
-      let endingStarted = false;
-
-      clearScheduledWork();
-
-      if ("scrollRestoration" in window.history) {
-        window.history.scrollRestoration = "manual";
+    const finish = () => {
+      if (
+        cancelled ||
+        activeRunId !== gateRun.runId ||
+        gateRun.finished
+      ) {
+        return;
       }
 
-      pinLogoToVisualViewportCenter();
-      root.setAttribute(
-        GATE_ATTRIBUTE,
-        standalone ? "standalone" : "locked",
-      );
+      gateRun.finished = true;
+      gateRun.running = false;
+
+      clearScheduledWork();
+      forceDocumentToTop();
+      root.removeAttribute(GATE_ATTRIBUTE);
+    };
+
+    const startEnding = () => {
+      if (
+        cancelled ||
+        activeRunId !== gateRun.runId ||
+        endingStarted ||
+        gateRun.finished
+      ) {
+        return;
+      }
+
+      endingStarted = true;
+      window.clearTimeout(safetyTimerId);
       forceDocumentToTop();
 
-      const finish = () => {
-        if (
-          disposed ||
-          activeRunId !== gateRun.runId ||
-          gateRun.finished
-        ) {
-          return;
-        }
+      /*
+       * Home Screen: keep the logo completely static for 300ms,
+       * then reveal the app. No transform, transition, or animation.
+       */
+      if (standalone) {
+        root.setAttribute(GATE_ATTRIBUTE, "standalone");
 
-        gateRun.finished = true;
-        gateRun.running = false;
-        endingStarted = false;
-
-        clearScheduledWork();
-        forceDocumentToTop();
-        root.removeAttribute(GATE_ATTRIBUTE);
-      };
-
-      const startEnding = () => {
-        if (
-          disposed ||
-          activeRunId !== gateRun.runId ||
-          endingStarted ||
-          gateRun.finished
-        ) {
-          return;
-        }
-
-        endingStarted = true;
-        window.clearTimeout(safetyTimerId);
-
-        forceDocumentToTop();
-        pinLogoToVisualViewportCenter();
-
-        if (standalone) {
-          /*
-           * Home Screen app: keep the logo static, then reveal the app.
-           * No zoom animation is used in standalone mode.
-           */
-          root.setAttribute(GATE_ATTRIBUTE, "standalone");
-
-          finishTimerId = window.setTimeout(() => {
-            forceDocumentToTop();
-            finish();
-          }, LOGO_HOLD_MS);
-
-          return;
-        }
-
-        /*
-         * Normal Safari cold-open: keep the existing logo zoom animation.
-         */
-        root.setAttribute(GATE_ATTRIBUTE, "primed");
-
-        animationFrameId = window.requestAnimationFrame(() => {
-          if (
-            disposed ||
-            activeRunId !== gateRun.runId ||
-            gateRun.finished
-          ) {
-            return;
-          }
-
+        finishTimerId = window.setTimeout(() => {
           forceDocumentToTop();
-          pinLogoToVisualViewportCenter();
-          root.setAttribute(GATE_ATTRIBUTE, "zooming");
-        });
-
-        const handleAnimationEnd = (event: AnimationEvent) => {
-          if (
-            event.animationName !== "edgeGateLogoZoom" ||
-            event.target !== logo
-          ) {
-            return;
-          }
-
-          logo?.removeEventListener("animationend", handleAnimationEnd);
           finish();
-        };
+        }, STANDALONE_LOGO_HOLD_MS);
 
-        logo?.addEventListener("animationend", handleAnimationEnd);
+        return;
+      }
 
-        zoomFallbackTimerId = window.setTimeout(() => {
-          logo?.removeEventListener("animationend", handleAnimationEnd);
-          finish();
-        }, LOGO_ZOOM_DURATION_MS + 180);
-      };
+      /*
+       * Normal Safari: this is the original working animation exactly:
+       * scale 1 directly to scale 32 over 460ms.
+       */
+      root.setAttribute(GATE_ATTRIBUTE, "zooming");
 
-      const verify = (now: number) => {
+      const keepAtTop = () => {
         if (
-          disposed ||
+          cancelled ||
           activeRunId !== gateRun.runId ||
-          endingStarted ||
           gateRun.finished
         ) {
           return;
         }
 
         forceDocumentToTop();
-        pinLogoToVisualViewportCenter();
-
-        if (
-          document.readyState === "complete" &&
-          document.visibilityState === "visible" &&
-          documentIsAtTop()
-        ) {
-          stableSince ??= now;
-
-          if (now - stableSince >= REQUIRED_STABLE_MS) {
-            startEnding();
-            return;
-          }
-        } else {
-          stableSince = null;
-        }
-
-        animationFrameId = window.requestAnimationFrame(verify);
+        animationFrameId = window.requestAnimationFrame(keepAtTop);
       };
+
+      animationFrameId = window.requestAnimationFrame(keepAtTop);
+
+      finishTimerId = window.setTimeout(() => {
+        forceDocumentToTop();
+        finish();
+      }, LOGO_ZOOM_DURATION_MS);
+    };
+
+    const verify = (now: number) => {
+      if (
+        cancelled ||
+        activeRunId !== gateRun.runId ||
+        endingStarted ||
+        gateRun.finished
+      ) {
+        return;
+      }
+
+      forceDocumentToTop();
+
+      if (
+        document.readyState === "complete" &&
+        document.visibilityState === "visible" &&
+        documentIsAtTop()
+      ) {
+        stableSince ??= now;
+
+        if (now - stableSince >= REQUIRED_STABLE_MS) {
+          startEnding();
+          return;
+        }
+      } else {
+        stableSince = null;
+      }
 
       animationFrameId = window.requestAnimationFrame(verify);
-
-      safetyTimerId = window.setTimeout(() => {
-        if (
-          disposed ||
-          activeRunId !== gateRun.runId ||
-          endingStarted ||
-          gateRun.finished
-        ) {
-          return;
-        }
-
-        forceDocumentToTop();
-        startEnding();
-      }, 2500);
     };
 
-    const lockBeforeStandaloneSuspends = () => {
-      if (!standalone || disposed) return;
+    animationFrameId = window.requestAnimationFrame(verify);
 
-      clearScheduledWork();
-      gateRun.runId += 1;
-      gateRun.running = false;
-      gateRun.finished = false;
-
-      pinLogoToVisualViewportCenter();
-      root.setAttribute(GATE_ATTRIBUTE, "standalone");
-
-      if ("scrollRestoration" in window.history) {
-        window.history.scrollRestoration = "manual";
+    safetyTimerId = window.setTimeout(() => {
+      if (
+        cancelled ||
+        activeRunId !== gateRun.runId ||
+        endingStarted ||
+        gateRun.finished
+      ) {
+        return;
       }
 
       forceDocumentToTop();
-    };
+      startEnding();
+    }, 2500);
 
     const handleVisibilityChange = () => {
       if (!standalone) return;
 
       if (document.visibilityState === "hidden") {
-        lockBeforeStandaloneSuspends();
-        return;
-      }
+        clearScheduledWork();
+        gateRun.runId += 1;
+        gateRun.running = false;
+        gateRun.finished = false;
 
-      runGate();
-    };
-
-    const handlePageHide = () => {
-      lockBeforeStandaloneSuspends();
-    };
-
-    const handlePageShow = () => {
-      if (standalone) {
-        runGate();
+        root.setAttribute(GATE_ATTRIBUTE, "standalone");
+        forceDocumentToTop();
       }
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("pagehide", handlePageHide);
-    window.addEventListener("pageshow", handlePageShow);
-
-    if (shouldRunOnMount) {
-      runGate();
-    } else {
-      root.removeAttribute(GATE_ATTRIBUTE);
-    }
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange,
+    );
 
     return () => {
-      disposed = true;
+      cancelled = true;
       clearScheduledWork();
 
       document.removeEventListener(
         "visibilitychange",
         handleVisibilityChange,
       );
-      window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("pageshow", handlePageShow);
 
+      /*
+       * Keep the standalone cover in place if iOS is suspending the app.
+       * Otherwise clean it up normally.
+       */
       if (!standalone || document.visibilityState === "visible") {
         root.removeAttribute(GATE_ATTRIBUTE);
       }
