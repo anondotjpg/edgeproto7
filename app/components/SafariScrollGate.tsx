@@ -7,6 +7,15 @@ const SESSION_KEY = "edge:safari-session-active";
 const REQUIRED_STABLE_MS = 700;
 const LOGO_ZOOM_DURATION_MS = 460;
 
+declare global {
+  interface Window {
+    __edgeSafariGateRun?: {
+      started: boolean;
+      finished: boolean;
+    };
+  }
+}
+
 function forceDocumentToTop() {
   window.scrollTo({
     top: 0,
@@ -55,6 +64,7 @@ function getNavigationType() {
 export default function SafariScrollGate() {
   useLayoutEffect(() => {
     const root = document.documentElement;
+    const logo = document.getElementById("edge-scroll-gate-logo");
     const navigationType = getNavigationType();
 
     let hasExistingSession = false;
@@ -68,10 +78,6 @@ export default function SafariScrollGate() {
       hasExistingSession = true;
     }
 
-    /*
-     * Normal reloads and in-session navigation skip the gate entirely.
-     * The logo animation only runs on a genuinely new Safari session.
-     */
     const shouldRunGate =
       navigationType !== "reload" && !hasExistingSession;
 
@@ -80,8 +86,31 @@ export default function SafariScrollGate() {
       return;
     }
 
+    /*
+     * Prevent React Strict Mode, hydration remounts, or route remounts from
+     * starting the same cold-open animation more than once in this document.
+     */
+    window.__edgeSafariGateRun ??= {
+      started: false,
+      finished: false,
+    };
+
+    const gateRun = window.__edgeSafariGateRun;
+
+    if (gateRun.started || gateRun.finished) {
+      if (gateRun.finished) {
+        root.removeAttribute(GATE_ATTRIBUTE);
+      }
+
+      return;
+    }
+
+    gateRun.started = true;
+
     let cancelled = false;
     let animationFrameId = 0;
+    let safetyTimerId = 0;
+    let zoomFallbackTimerId = 0;
     let stableSince: number | null = null;
     let zoomStarted = false;
 
@@ -93,25 +122,30 @@ export default function SafariScrollGate() {
     forceDocumentToTop();
 
     const finish = () => {
-      if (cancelled) return;
+      if (cancelled || gateRun.finished) return;
+
+      gateRun.finished = true;
+      zoomStarted = false;
+
+      window.cancelAnimationFrame(animationFrameId);
+      window.clearTimeout(safetyTimerId);
+      window.clearTimeout(zoomFallbackTimerId);
 
       forceDocumentToTop();
       root.removeAttribute(GATE_ATTRIBUTE);
     };
 
     const startLogoZoom = () => {
-      if (cancelled || zoomStarted) return;
+      if (cancelled || zoomStarted || gateRun.finished) return;
 
       zoomStarted = true;
+      window.clearTimeout(safetyTimerId);
+
       forceDocumentToTop();
       root.setAttribute(GATE_ATTRIBUTE, "zooming");
 
-      /*
-       * Keep forcing the document to zero throughout the zoom so Safari
-       * cannot restore a nonzero viewport behind the cover.
-       */
       const keepAtTop = () => {
-        if (cancelled || !zoomStarted) return;
+        if (cancelled || !zoomStarted || gateRun.finished) return;
 
         forceDocumentToTop();
         animationFrameId = window.requestAnimationFrame(keepAtTop);
@@ -119,25 +153,32 @@ export default function SafariScrollGate() {
 
       animationFrameId = window.requestAnimationFrame(keepAtTop);
 
-      window.setTimeout(() => {
-        if (cancelled) return;
+      const handleAnimationEnd = (event: AnimationEvent) => {
+        if (
+          event.animationName !== "edgeGateLogoZoom" ||
+          event.target !== logo
+        ) {
+          return;
+        }
 
-        zoomStarted = false;
-        window.cancelAnimationFrame(animationFrameId);
+        logo?.removeEventListener("animationend", handleAnimationEnd);
+        finish();
+      };
 
-        forceDocumentToTop();
+      logo?.addEventListener("animationend", handleAnimationEnd);
 
-        window.requestAnimationFrame(() => {
-          if (cancelled) return;
-
-          forceDocumentToTop();
-          finish();
-        });
-      }, LOGO_ZOOM_DURATION_MS);
+      /*
+       * Fallback only if Safari fails to dispatch animationend.
+       * finish() is guarded, so it cannot reveal twice.
+       */
+      zoomFallbackTimerId = window.setTimeout(() => {
+        logo?.removeEventListener("animationend", handleAnimationEnd);
+        finish();
+      }, LOGO_ZOOM_DURATION_MS + 120);
     };
 
     const verify = (now: number) => {
-      if (cancelled || zoomStarted) return;
+      if (cancelled || zoomStarted || gateRun.finished) return;
 
       forceDocumentToTop();
 
@@ -161,8 +202,8 @@ export default function SafariScrollGate() {
 
     animationFrameId = window.requestAnimationFrame(verify);
 
-    const safetyTimer = window.setTimeout(() => {
-      if (cancelled || zoomStarted) return;
+    safetyTimerId = window.setTimeout(() => {
+      if (cancelled || zoomStarted || gateRun.finished) return;
 
       forceDocumentToTop();
       startLogoZoom();
@@ -170,10 +211,16 @@ export default function SafariScrollGate() {
 
     return () => {
       cancelled = true;
-      zoomStarted = false;
+
       window.cancelAnimationFrame(animationFrameId);
-      window.clearTimeout(safetyTimer);
-      root.removeAttribute(GATE_ATTRIBUTE);
+      window.clearTimeout(safetyTimerId);
+      window.clearTimeout(zoomFallbackTimerId);
+
+      /*
+       * Do not reset gateRun.started here. React Strict Mode intentionally
+       * mounts, cleans up, and mounts again in development. Keeping the global
+       * flag prevents that second mount from replaying the animation.
+       */
     };
   }, []);
 
