@@ -46,6 +46,7 @@ body {
 
 #edge-scroll-gate-lockup {
   display: flex;
+  width: max-content;
   align-items: center;
   justify-content: center;
   gap: 0;
@@ -55,7 +56,7 @@ body {
 
 #edge-scroll-gate-logo {
   display: block;
-  width: clamp(88px, 22vw, 112px);
+  width: clamp(62px, 15.4vw, 78px);
   height: auto;
   max-width: none;
   flex: none;
@@ -79,9 +80,9 @@ body {
 
 #edge-scroll-gate-tagline {
   display: block;
-  padding-left: 12px;
+  padding-left: 8px;
   color: #f4f4f5;
-  font-size: clamp(30px, 7vw, 40px);
+  font-size: clamp(21px, 4.9vw, 28px);
   font-weight: 650;
   line-height: 0.95;
   letter-spacing: -0.04em;
@@ -111,7 +112,7 @@ html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-cover {
  */
 html[data-edge-scroll-gate="browser-tagline"]
   #edge-scroll-gate-tagline-clip {
-  width: clamp(240px, 58vw, 320px);
+  width: clamp(168px, 40.6vw, 224px);
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
