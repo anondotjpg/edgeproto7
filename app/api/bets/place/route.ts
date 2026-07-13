@@ -156,7 +156,7 @@ function getTeamStoredNameForOutcome(game: EligibleGameRow, outcomeName: string)
       textMatches(outcomeName, teamAbbreviation);
 
     if (isMatchingTeam) {
-      return teamAlias ?? teamAbbreviation ?? teamName;
+      return teamAlias ?? teamName;
     }
   }
 
