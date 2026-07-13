@@ -15,25 +15,25 @@ const MAIN_NAV_LINKS = [
     label: "Dash",
     href: "/",
     Icon: GoHomeFill,
-    mobileIconClassName: "h-[26px] w-[26px]",
+    mobileIconClassName: "h-[34px] w-[34px]",
   },
   {
     label: "Accounts",
     href: "/accounts",
     Icon: MdAccountBalanceWallet,
-    mobileIconClassName: "h-[26px] w-[26px]",
+    mobileIconClassName: "h-[34px] w-[34px]",
   },
   {
     label: "Portfolio",
     href: "/portfolio",
     Icon: IoStatsChart,
-    mobileIconClassName: "h-[27px] w-[27px]",
+    mobileIconClassName: "h-[35px] w-[35px]",
   },
   {
     label: "Payouts",
     href: "/payouts",
     Icon: SiCashapp,
-    mobileIconClassName: "h-[22px] w-[22px]",
+    mobileIconClassName: "h-[29px] w-[29px]",
   },
 ] as const;
 
@@ -42,7 +42,7 @@ const SECONDARY_NAV_LINKS = [
     label: "Deposits",
     href: "/deposits",
     Icon: BiSolidPurchaseTag,
-    mobileIconClassName: "h-[27px] w-[27px]",
+    mobileIconClassName: "h-[35px] w-[35px]",
   },
 ] as const;
 
@@ -141,7 +141,7 @@ export default function AppSidebar() {
       </aside>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-800 bg-[#09090b]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-        <div className="relative mx-[7%] h-20">
+        <div className="relative mx-[3%] h-20">
           {activeIndex >= 0 ? (
             <motion.div
               className="pointer-events-none absolute inset-y-0 left-0 z-0 flex w-1/5 items-center justify-center"
@@ -169,12 +169,12 @@ export default function AppSidebar() {
                   href={item.href}
                   aria-label={item.label}
                   className={[
-                    "flex h-full items-center justify-center px-1 outline-none transition-colors",
+                    "flex h-full items-center justify-center px-0.5 outline-none transition-colors",
                     "focus:outline-none focus-visible:outline-none",
                     isActive ? "text-zinc-100" : "text-zinc-500",
                   ].join(" ")}
                 >
-                  <span className="flex h-8 w-8 items-center justify-center">
+                  <span className="flex h-11 w-11 items-center justify-center">
                     <Icon
                       aria-hidden="true"
                       className={`${item.mobileIconClassName} block shrink-0`}
