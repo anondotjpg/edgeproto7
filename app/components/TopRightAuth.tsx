@@ -89,17 +89,23 @@ export default function TopRightAuth() {
         <button
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
-          className="relative flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full"
+          className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           aria-label="Open account menu"
         >
-          <Avatar
-            size={36}
-            name={`Edge-${avatarSeed}`}
-            variant="pixel"
-            colors={avatarColors}
-          />
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#a97924] p-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.42)]">
+            <span className="flex h-full w-full items-center justify-center rounded-full bg-[#09090b] p-[2px]">
+              <span className="flex h-[28px] w-[28px] items-center justify-center overflow-hidden rounded-full">
+                <Avatar
+                  size={28}
+                  name={`Edge-${avatarSeed}`}
+                  variant="pixel"
+                  colors={avatarColors}
+                />
+              </span>
+            </span>
+          </span>
         </button>
 
         <AnimatePresence initial={false}>
