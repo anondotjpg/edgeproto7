@@ -31,14 +31,28 @@ export default function LeagueTabs({
               href={`/?league=${item.league}`}
               aria-current={isActive ? "page" : undefined}
               className={[
-                "relative inline-flex h-9 shrink-0 items-center justify-center rounded-[11px] border px-4 text-[13px] font-bold leading-none transition-colors duration-150",
+                "relative inline-flex h-9 shrink-0 items-center justify-center rounded-[11px] border px-4 text-[13px] leading-none transition-colors duration-150",
                 isActive
                   ? "border-zinc-700/70 bg-zinc-800/35 text-zinc-100"
                   : "border-zinc-800 bg-zinc-950/70 text-zinc-500",
               ].join(" ")}
             >
-              <span className="relative z-10 whitespace-nowrap">
-                {item.label}
+              <span className="relative grid whitespace-nowrap">
+                <span
+                  aria-hidden="true"
+                  className="invisible col-start-1 row-start-1 font-extrabold"
+                >
+                  {item.label}
+                </span>
+
+                <span
+                  className={[
+                    "col-start-1 row-start-1",
+                    isActive ? "font-extrabold" : "font-bold",
+                  ].join(" ")}
+                >
+                  {item.label}
+                </span>
               </span>
             </Link>
           );
