@@ -1590,7 +1590,7 @@ export default function GamesClient({
                               key={game.id}
                               className={
                                 index > 0
-                                  ? "lg:border-t lg:border-zinc-900/80 lg:pt-3"
+                                  ? ""
                                   : ""
                               }
                             >
