@@ -5,7 +5,7 @@ import { useLayoutEffect } from "react";
 const GATE_ATTRIBUTE = "data-edge-scroll-gate";
 const REQUIRED_STABLE_MS = 700;
 const TAGLINE_ANIMATION_MS = 620;
-const STANDALONE_LOGO_HOLD_MS = 1300;
+const STANDALONE_LOGO_HOLD_MS = 1400;
 
 declare global {
   interface Window {
