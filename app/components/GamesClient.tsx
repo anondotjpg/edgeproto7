@@ -1033,7 +1033,7 @@ function GameCardHeader({
 
       <Link
         href={eventHref}
-        className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[14px] font-medium text-zinc-300 transition-colors hover:text-zinc-400"
+        className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[14px] font-medium text-zinc-300 transition-colors hover:text-zinc-500"
       >
         <span>Game View</span>
         <FaChevronRight className="h-2.5 w-2.5" />
@@ -1407,13 +1407,15 @@ export default function GamesClient({
   }, []);
 
   const visibleGames = useMemo(() => {
-    if (!hideLiveGamesLoaded || !hideLiveGames) return allGames;
+    if (!hideLiveGamesLoaded) return [];
+    if (!hideLiveGames) return allGames;
 
     return allGames.filter((game) =>
       now === null ? !getGameIsLive(game) : !getGameIsLive(game, now),
     );
   }, [allGames, hideLiveGames, hideLiveGamesLoaded, now]);
 
+  const initialGameStateReady = hideLiveGamesLoaded && now !== null;
   const totalGames = visibleGames.length;
 
   const visibleFirstBet = useMemo(
@@ -1509,9 +1511,9 @@ export default function GamesClient({
   }, [hideLiveGamesLoaded, now, visibleFirstBet, visibleGames]);
 
   return (
-    <div className="relative min-h-screen bg-[#09090b] text-white [overflow-anchor:none]">
+    <div className="relative min-h-screen bg-[#09090b] text-white">
       <div className="relative mx-auto w-full max-w-[1660px] px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-6">
-        <header className="pt-[60px] lg:pt-2 xl:pr-[420px]">
+        <header className="pt-[56px] lg:pt-2 xl:pr-[420px]">
           <LeagueTabs leagues={leagues} selectedLeague={selectedLeague} />
         </header>
 
@@ -1544,7 +1546,12 @@ export default function GamesClient({
                 </div>
               </div>
 
-              {!league || league.games.length === 0 ? (
+              {!initialGameStateReady ? (
+                <div
+                  className="min-h-[calc(100svh-180px)]"
+                  aria-hidden="true"
+                />
+              ) : !league || league.games.length === 0 ? (
                 <div className="text-[13px] text-zinc-400">
                   No active {selectedLeagueMeta.label} markets right now
                 </div>
