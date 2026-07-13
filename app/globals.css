@@ -55,28 +55,28 @@ body {
   will-change: transform;
 }
 
-html[data-edge-scroll-gate="locked"],
-html[data-edge-scroll-gate="locked"] body,
+html[data-edge-scroll-gate="browser"],
+html[data-edge-scroll-gate="browser"] body,
+html[data-edge-scroll-gate="browser-zooming"],
+html[data-edge-scroll-gate="browser-zooming"] body,
 html[data-edge-scroll-gate="standalone"],
-html[data-edge-scroll-gate="standalone"] body,
-html[data-edge-scroll-gate="zooming"],
-html[data-edge-scroll-gate="zooming"] body {
+html[data-edge-scroll-gate="standalone"] body {
   overflow: hidden !important;
   overscroll-behavior: none;
 }
 
-html[data-edge-scroll-gate="locked"] #edge-scroll-gate-cover,
-html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-cover,
-html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-cover {
+html[data-edge-scroll-gate="browser"] #edge-scroll-gate-cover,
+html[data-edge-scroll-gate="browser-zooming"] #edge-scroll-gate-cover,
+html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-cover {
   display: flex;
   pointer-events: auto;
 }
 
 /*
- * Exact original normal-Safari zoom animation.
- * Standalone never receives the "zooming" state.
+ * This is the original Safari animation only.
+ * The standalone state has no animation rule at all.
  */
-html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-logo {
+html[data-edge-scroll-gate="browser-zooming"] #edge-scroll-gate-logo {
   animation: edgeGateLogoZoom 460ms cubic-bezier(0.72, 0, 0.9, 0.45)
     forwards;
 }
@@ -109,7 +109,7 @@ html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-logo {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-logo {
+  html[data-edge-scroll-gate="browser-zooming"] #edge-scroll-gate-logo {
     animation-duration: 160ms;
   }
 }

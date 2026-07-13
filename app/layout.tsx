@@ -53,28 +53,19 @@ const earlyGateScript = `
         : null;
 
     var navigationType = navigationEntry ? navigationEntry.type : null;
-    var isStandalone =
+    var standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       window.navigator.standalone === true;
     var hasExistingSession =
       sessionStorage.getItem(sessionKey) === "true";
 
-    /*
-     * Standalone iOS apps can restore a frozen document at an old scroll
-     * position, even when sessionStorage still exists. Keep the gate locked
-     * for every standalone document launch. In normal Safari, leave regular
-     * reloads and same-session navigation untouched.
-     */
-    var shouldLock =
-      isStandalone ||
-      (navigationType !== "reload" && !hasExistingSession);
-
-    if (!shouldLock) {
+    if (standalone) {
+      root.setAttribute("data-edge-scroll-gate", "standalone");
+    } else if (navigationType !== "reload" && !hasExistingSession) {
+      root.setAttribute("data-edge-scroll-gate", "browser");
+    } else {
       root.removeAttribute("data-edge-scroll-gate");
-      return;
     }
-
-    root.setAttribute("data-edge-scroll-gate", "locked");
 
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
@@ -93,7 +84,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-edge-scroll-gate="locked"
+      data-edge-scroll-gate="browser"
       suppressHydrationWarning
       className={`${inter.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
     >
@@ -103,9 +94,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: earlyGateScript }}
         />
 
+        <link rel="preload" as="image" href="/logo.png" />
+
         <meta name="theme-color" content="#09090b" />
         <meta name="color-scheme" content="dark" />
-
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Edge" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
