@@ -528,7 +528,7 @@ function MobileMoneylineModalButton({
               {ticker}
             </span>
 
-            <span className="text-[15.6px] font-bold leading-none tracking-tight text-zinc-100">
+            <span className="text-[15.6px] font-semibold leading-none tracking-tight text-zinc-100">
               {betData.odds}
             </span>
           </>
@@ -565,7 +565,7 @@ function MobileMarketModalButton({
               {label}
             </span>
 
-            <span className="shrink-0 text-[15.6px] font-bold leading-none tracking-tight text-zinc-100">
+            <span className="shrink-0 text-[15.6px] font-semibold leading-none tracking-tight text-zinc-100">
               {betData.odds}
             </span>
           </>
