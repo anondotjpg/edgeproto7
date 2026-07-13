@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import AppSidebar from "./components/AppSidebar";
@@ -41,68 +40,6 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-const initialScrollScript = `
-(function () {
-  try {
-    var navigationEntry =
-      typeof performance !== "undefined" &&
-      typeof performance.getEntriesByType === "function"
-        ? performance.getEntriesByType("navigation")[0]
-        : null;
-
-    var navigationType = navigationEntry ? navigationEntry.type : null;
-
-    // Leave ordinary browser reloads completely untouched.
-    if (navigationType === "reload") {
-      return;
-    }
-
-    if ("scrollRestoration" in window.history) {
-      window.history.scrollRestoration = "manual";
-    }
-
-    var root = document.documentElement;
-    root.classList.add("safari-fresh-open-reset");
-
-    function forceTop() {
-      window.scrollTo(0, 0);
-
-      var scrollingElement =
-        document.scrollingElement || document.documentElement;
-
-      if (scrollingElement) {
-        scrollingElement.scrollTop = 0;
-        scrollingElement.scrollLeft = 0;
-      }
-
-      if (document.body) {
-        document.body.scrollTop = 0;
-        document.body.scrollLeft = 0;
-      }
-    }
-
-    function reveal() {
-      forceTop();
-      root.classList.remove("safari-fresh-open-reset");
-    }
-
-    forceTop();
-
-    window.requestAnimationFrame(function () {
-      forceTop();
-
-      window.requestAnimationFrame(function () {
-        reveal();
-      });
-    });
-
-    window.setTimeout(reveal, 200);
-  } catch (_) {
-    document.documentElement.classList.remove("safari-fresh-open-reset");
-  }
-})();
-`;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -114,12 +51,6 @@ export default function RootLayout({
       className={`${inter.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
     >
       <head>
-        <Script
-          id="fresh-open-scroll-position"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: initialScrollScript }}
-        />
-
         <meta name="theme-color" content="#09090b" />
         <meta name="color-scheme" content="dark" />
 

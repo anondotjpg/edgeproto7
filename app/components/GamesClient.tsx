@@ -1510,6 +1510,15 @@ export default function GamesClient({
     });
   }, [hideLiveGamesLoaded, now, visibleFirstBet, visibleGames]);
 
+  if (!initialGameStateReady) {
+    return (
+      <div
+        className="min-h-screen bg-[#09090b]"
+        aria-hidden="true"
+      />
+    );
+  }
+
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white">
       <div className="relative mx-auto w-full max-w-[1660px] px-4 py-5 pb-24 sm:px-6 sm:py-6 md:pb-6">
@@ -1546,12 +1555,7 @@ export default function GamesClient({
                 </div>
               </div>
 
-              {!initialGameStateReady ? (
-                <div
-                  className="min-h-[calc(100svh-180px)]"
-                  aria-hidden="true"
-                />
-              ) : !league || league.games.length === 0 ? (
+              {!league || league.games.length === 0 ? (
                 <div className="text-[13px] text-zinc-400">
                   No active {selectedLeagueMeta.label} markets right now
                 </div>

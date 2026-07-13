@@ -15,20 +15,13 @@
 html,
 body {
   min-height: 100%;
-  margin: 0;
-  padding: 0;
   background: #09090b;
   color: #ffffff;
   color-scheme: dark;
-  scroll-behavior: auto;
-  overflow-anchor: none;
-}
-
-html.safari-fresh-open-reset body {
-  visibility: hidden;
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -36,19 +29,4 @@ body {
 
 * {
   box-sizing: border-box;
-}
-
-@media (max-width: 767px) {
-  html,
-  body {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
-  }
 }
