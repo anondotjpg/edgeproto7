@@ -3,7 +3,6 @@ import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import AppSidebar from "./components/AppSidebar";
 import TopRightAuth from "./components/TopRightAuth";
-import InitialTopRenderGate from "./components/InitialTopRenderGate";
 import Providers from "./providers";
 import ResponsiveToaster from "./components/ResponsiveToaster";
 
@@ -67,8 +66,6 @@ export default function RootLayout({
       </head>
 
       <body className="relative min-h-screen overflow-x-hidden bg-[#09090b] font-sans text-white">
-        <InitialTopRenderGate />
-
         <Providers>
           <style>{`
             @keyframes buttonShimmer {
