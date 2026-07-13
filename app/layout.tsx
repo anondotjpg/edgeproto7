@@ -43,11 +43,28 @@ export const viewport: Viewport = {
 
 const initialScrollScript = `
 (function () {
-  var root = document.documentElement;
-  var revealed = false;
+  try {
+    var navigationEntry =
+      typeof performance !== "undefined" &&
+      typeof performance.getEntriesByType === "function"
+        ? performance.getEntriesByType("navigation")[0]
+        : null;
 
-  function forceTop() {
-    try {
+    var navigationType = navigationEntry ? navigationEntry.type : null;
+
+    // Leave ordinary browser reloads completely untouched.
+    if (navigationType === "reload") {
+      return;
+    }
+
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    var root = document.documentElement;
+    root.classList.add("safari-fresh-open-reset");
+
+    function forceTop() {
       window.scrollTo(0, 0);
 
       var scrollingElement =
@@ -62,55 +79,26 @@ const initialScrollScript = `
         document.body.scrollTop = 0;
         document.body.scrollLeft = 0;
       }
-    } catch (_) {}
-  }
-
-  function reveal() {
-    if (revealed) return;
-    revealed = true;
-    forceTop();
-    root.classList.remove("initial-scroll-reset");
-  }
-
-  try {
-    if ("scrollRestoration" in window.history) {
-      window.history.scrollRestoration = "manual";
     }
 
-    root.classList.add("initial-scroll-reset");
+    function reveal() {
+      forceTop();
+      root.classList.remove("safari-fresh-open-reset");
+    }
+
     forceTop();
-
-    window.addEventListener(
-      "pageshow",
-      function () {
-        revealed = false;
-        root.classList.add("initial-scroll-reset");
-        forceTop();
-
-        window.requestAnimationFrame(function () {
-          forceTop();
-
-          window.requestAnimationFrame(function () {
-            forceTop();
-            reveal();
-          });
-        });
-      },
-      { passive: true }
-    );
 
     window.requestAnimationFrame(function () {
       forceTop();
 
       window.requestAnimationFrame(function () {
-        forceTop();
         reveal();
       });
     });
 
-    window.setTimeout(reveal, 250);
+    window.setTimeout(reveal, 200);
   } catch (_) {
-    root.classList.remove("initial-scroll-reset");
+    document.documentElement.classList.remove("safari-fresh-open-reset");
   }
 })();
 `;
@@ -123,12 +111,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      suppressHydrationWarning
-      className={`${inter.variable} ${geistMono.variable} initial-scroll-reset h-full bg-[#09090b] antialiased`}
+      className={`${inter.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
     >
       <head>
         <Script
-          id="initial-scroll-position"
+          id="fresh-open-scroll-position"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: initialScrollScript }}
         />

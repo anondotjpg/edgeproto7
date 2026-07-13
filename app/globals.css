@@ -24,12 +24,7 @@ body {
   overflow-anchor: none;
 }
 
-html.initial-scroll-reset,
-html.initial-scroll-reset body {
-  background: #09090b;
-}
-
-html.initial-scroll-reset body {
+html.safari-fresh-open-reset body {
   visibility: hidden;
 }
 
