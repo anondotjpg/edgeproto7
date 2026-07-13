@@ -15,25 +15,25 @@ const MAIN_NAV_LINKS = [
     label: "Dash",
     href: "/",
     Icon: GoHomeFill,
-    mobileIconClassName: "h-[34px] w-[34px]",
+    mobileIconClassName: "h-[31px] w-[31px]",
   },
   {
     label: "Accounts",
     href: "/accounts",
     Icon: MdAccountBalanceWallet,
-    mobileIconClassName: "h-[34px] w-[34px]",
+    mobileIconClassName: "h-[31px] w-[31px]",
   },
   {
     label: "Portfolio",
     href: "/portfolio",
     Icon: IoStatsChart,
-    mobileIconClassName: "h-[35px] w-[35px]",
+    mobileIconClassName: "h-[32px] w-[32px]",
   },
   {
     label: "Payouts",
     href: "/payouts",
     Icon: SiCashapp,
-    mobileIconClassName: "h-[29px] w-[29px]",
+    mobileIconClassName: "h-[26px] w-[26px]",
   },
 ] as const;
 
@@ -42,7 +42,7 @@ const SECONDARY_NAV_LINKS = [
     label: "Deposits",
     href: "/deposits",
     Icon: BiSolidPurchaseTag,
-    mobileIconClassName: "h-[35px] w-[35px]",
+    mobileIconClassName: "h-[32px] w-[32px]",
   },
 ] as const;
 

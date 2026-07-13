@@ -31,7 +31,7 @@ export default function LeagueTabs({
               href={`/?league=${item.league}`}
               aria-current={isActive ? "page" : undefined}
               className={[
-                "relative inline-flex h-9 shrink-0 items-center justify-center rounded-[11px] border px-4 text-[13px] font-semibold leading-none transition-colors duration-150",
+                "relative inline-flex h-9 shrink-0 items-center justify-center rounded-[11px] border px-4 text-[13px] font-bold leading-none transition-colors duration-150",
                 isActive
                   ? "border-zinc-700/70 bg-zinc-800/35 text-zinc-100"
                   : "border-zinc-800 bg-zinc-950/70 text-zinc-500",
