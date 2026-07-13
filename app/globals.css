@@ -3,6 +3,8 @@
 :root {
   --background: #09090b;
   --foreground: #ffffff;
+  --edge-gate-logo-x: 50vw;
+  --edge-gate-logo-y: 50dvh;
 }
 
 @theme inline {
@@ -37,26 +39,30 @@ body {
   inset: 0;
   z-index: 2147483647;
   display: none;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
   background: #09090b;
   pointer-events: none;
 }
 
 #edge-scroll-gate-logo {
+  position: fixed;
+  left: var(--edge-gate-logo-x);
+  top: var(--edge-gate-logo-y);
   display: block;
   width: clamp(112px, 30vw, 150px);
   height: auto;
   max-width: none;
+  opacity: 0;
   user-select: none;
-  transform: translateZ(0) scale(1);
+  transform: translate3d(-50%, -50%, 0) scale(1);
   transform-origin: center;
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
 html[data-edge-scroll-gate="locked"],
 html[data-edge-scroll-gate="locked"] body,
+html[data-edge-scroll-gate="primed"],
+html[data-edge-scroll-gate="primed"] body,
 html[data-edge-scroll-gate="zooming"],
 html[data-edge-scroll-gate="zooming"] body {
   overflow: hidden !important;
@@ -64,9 +70,15 @@ html[data-edge-scroll-gate="zooming"] body {
 }
 
 html[data-edge-scroll-gate="locked"] #edge-scroll-gate-cover,
+html[data-edge-scroll-gate="primed"] #edge-scroll-gate-cover,
 html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-cover {
-  display: flex;
+  display: block;
   pointer-events: auto;
+}
+
+html[data-edge-scroll-gate="primed"] #edge-scroll-gate-logo,
+html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-logo {
+  opacity: 1;
 }
 
 html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-logo {
@@ -76,11 +88,11 @@ html[data-edge-scroll-gate="zooming"] #edge-scroll-gate-logo {
 
 @keyframes edgeGateLogoZoom {
   0% {
-    transform: translateZ(0) scale(1);
+    transform: translate3d(-50%, -50%, 0) scale(1);
   }
 
   100% {
-    transform: translateZ(0) scale(32);
+    transform: translate3d(-50%, -50%, 0) scale(32);
   }
 }
 

@@ -5,6 +5,7 @@ import { useLayoutEffect } from "react";
 const GATE_ATTRIBUTE = "data-edge-scroll-gate";
 const SESSION_KEY = "edge:safari-session-active";
 const REQUIRED_STABLE_MS = 700;
+const LOGO_HOLD_MS = 90;
 const LOGO_ZOOM_DURATION_MS = 460;
 
 type GateRunState = {
@@ -75,6 +76,25 @@ function getNavigationType() {
   return entry?.type ?? null;
 }
 
+function pinLogoToVisualViewportCenter() {
+  const viewport = window.visualViewport;
+  const centerX = viewport
+    ? viewport.offsetLeft + viewport.width / 2
+    : window.innerWidth / 2;
+  const centerY = viewport
+    ? viewport.offsetTop + viewport.height / 2
+    : window.innerHeight / 2;
+
+  document.documentElement.style.setProperty(
+    "--edge-gate-logo-x",
+    `${centerX}px`,
+  );
+  document.documentElement.style.setProperty(
+    "--edge-gate-logo-y",
+    `${centerY}px`,
+  );
+}
+
 export default function SafariScrollGate() {
   useLayoutEffect(() => {
     const root = document.documentElement;
@@ -109,11 +129,13 @@ export default function SafariScrollGate() {
     let animationFrameId = 0;
     let safetyTimerId = 0;
     let zoomFallbackTimerId = 0;
+    let logoHoldTimerId = 0;
 
     const clearScheduledWork = () => {
       window.cancelAnimationFrame(animationFrameId);
       window.clearTimeout(safetyTimerId);
       window.clearTimeout(zoomFallbackTimerId);
+      window.clearTimeout(logoHoldTimerId);
     };
 
     const runGate = () => {
@@ -168,7 +190,40 @@ export default function SafariScrollGate() {
         window.clearTimeout(safetyTimerId);
 
         forceDocumentToTop();
-        root.setAttribute(GATE_ATTRIBUTE, "zooming");
+        pinLogoToVisualViewportCenter();
+
+        /*
+         * Reveal the logo only after its final visual-viewport center has
+         * been measured. This removes the standalone-app downward snap.
+         */
+        root.setAttribute(GATE_ATTRIBUTE, "primed");
+
+        animationFrameId = window.requestAnimationFrame(() => {
+          if (
+            disposed ||
+            activeRunId !== gateRun.runId ||
+            gateRun.finished
+          ) {
+            return;
+          }
+
+          forceDocumentToTop();
+          pinLogoToVisualViewportCenter();
+
+          logoHoldTimerId = window.setTimeout(() => {
+            if (
+              disposed ||
+              activeRunId !== gateRun.runId ||
+              gateRun.finished
+            ) {
+              return;
+            }
+
+            forceDocumentToTop();
+            pinLogoToVisualViewportCenter();
+            root.setAttribute(GATE_ATTRIBUTE, "zooming");
+          }, LOGO_HOLD_MS);
+        });
 
         const keepAtTop = () => {
           if (
@@ -203,7 +258,7 @@ export default function SafariScrollGate() {
         zoomFallbackTimerId = window.setTimeout(() => {
           logo?.removeEventListener("animationend", handleAnimationEnd);
           finish();
-        }, LOGO_ZOOM_DURATION_MS + 120);
+        }, LOGO_HOLD_MS + LOGO_ZOOM_DURATION_MS + 180);
       };
 
       const verify = (now: number) => {
@@ -312,10 +367,6 @@ export default function SafariScrollGate() {
       window.removeEventListener("pagehide", handlePageHide);
       window.removeEventListener("pageshow", handlePageShow);
 
-      /*
-       * Do not forcibly remove the lock while a standalone app is being
-       * suspended. iOS may reuse the frozen DOM on the next launch.
-       */
       if (!standalone || document.visibilityState === "visible") {
         root.removeAttribute(GATE_ATTRIBUTE);
       }
