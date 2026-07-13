@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import AppSidebar from "./components/AppSidebar";
+import SafariScrollGate from "./components/SafariScrollGate";
 import TopRightAuth from "./components/TopRightAuth";
 import Providers from "./providers";
 import ResponsiveToaster from "./components/ResponsiveToaster";
@@ -48,9 +49,23 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-edge-scroll-gate="locked"
       className={`${inter.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
     >
       <head>
+        <script
+          id="edge-manual-scroll-restoration"
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if ("scrollRestoration" in history) {
+                  history.scrollRestoration = "manual";
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+
         <meta name="theme-color" content="#09090b" />
         <meta name="color-scheme" content="dark" />
 
@@ -66,6 +81,8 @@ export default function RootLayout({
       </head>
 
       <body className="relative min-h-screen overflow-x-hidden bg-[#09090b] font-sans text-white">
+        <SafariScrollGate />
+
         <Providers>
           <style>{`
             @keyframes buttonShimmer {
