@@ -5,7 +5,7 @@ import { useLayoutEffect } from "react";
 const GATE_ATTRIBUTE = "data-edge-scroll-gate";
 const REQUIRED_STABLE_MS = 700;
 const TAGLINE_ANIMATION_MS = 620;
-const STANDALONE_STATIC_HOLD_MS = 300;
+const STANDALONE_LOGO_HOLD_MS = 300;
 
 declare global {
   interface Window {
@@ -50,17 +50,33 @@ function documentIsAtTop() {
   );
 }
 
+function pinStandaloneLogoToVisualViewport() {
+  const viewport = window.visualViewport;
+
+  const centerX = viewport
+    ? viewport.offsetLeft + viewport.width / 2
+    : window.innerWidth / 2;
+
+  const centerY = viewport
+    ? viewport.offsetTop + viewport.height / 2
+    : window.innerHeight / 2;
+
+  document.documentElement.style.setProperty(
+    "--edge-standalone-logo-x",
+    `${centerX}px`,
+  );
+
+  document.documentElement.style.setProperty(
+    "--edge-standalone-logo-y",
+    `${centerY}px`,
+  );
+}
+
 export default function SafariScrollGate() {
   useLayoutEffect(() => {
     const root = document.documentElement;
-
-    /*
-     * The inline head script decides the launch mode before first paint:
-     * - "browser" for a fresh Safari session
-     * - "standalone" for the Home Screen app
-     * - no attribute for ordinary reloads/navigation
-     */
     const initialMode = root.getAttribute(GATE_ATTRIBUTE);
+
     const shouldRun =
       initialMode === "browser" || initialMode === "standalone";
     const standalone = initialMode === "standalone";
@@ -98,6 +114,10 @@ export default function SafariScrollGate() {
 
     forceDocumentToTop();
 
+    if (standalone) {
+      pinStandaloneLogoToVisualViewport();
+    }
+
     const startEnding = () => {
       if (cancelled || endingStarted) return;
 
@@ -107,21 +127,20 @@ export default function SafariScrollGate() {
 
       if (standalone) {
         /*
-         * Home Screen app remains unchanged: static centered logo only.
+         * Keep the Home Screen logo hidden until the visual viewport has
+         * completely settled. Then reveal it already at its final center.
          */
+        pinStandaloneLogoToVisualViewport();
+        root.setAttribute(GATE_ATTRIBUTE, "standalone-visible");
+
         finishTimerId = window.setTimeout(() => {
           forceDocumentToTop();
           finish();
-        }, STANDALONE_STATIC_HOLD_MS);
+        }, STANDALONE_LOGO_HOLD_MS);
 
         return;
       }
 
-      /*
-       * Fresh Safari:
-       * expand the centered lockup so the logo glides left while the
-       * tagline enters smoothly from its right.
-       */
       root.setAttribute(GATE_ATTRIBUTE, "browser-tagline");
 
       finishTimerId = window.setTimeout(() => {
@@ -134,6 +153,10 @@ export default function SafariScrollGate() {
       if (cancelled || endingStarted) return;
 
       forceDocumentToTop();
+
+      if (standalone) {
+        pinStandaloneLogoToVisualViewport();
+      }
 
       if (
         document.readyState === "complete" &&
@@ -159,6 +182,11 @@ export default function SafariScrollGate() {
       if (cancelled || endingStarted) return;
 
       forceDocumentToTop();
+
+      if (standalone) {
+        pinStandaloneLogoToVisualViewport();
+      }
+
       startEnding();
     }, 2500);
 

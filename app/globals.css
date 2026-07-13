@@ -37,21 +37,22 @@ body {
   inset: 0;
   z-index: 2147483647;
   display: none;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
   background: #09090b;
   pointer-events: none;
 }
 
 #edge-scroll-gate-lockup {
+  position: fixed;
+  left: 50%;
+  top: 50%;
   display: flex;
   width: max-content;
   align-items: center;
   justify-content: center;
   gap: 0;
   white-space: nowrap;
-  transform: translateZ(0);
+  transform: translate3d(-50%, -50%, 0);
 }
 
 #edge-scroll-gate-logo {
@@ -93,23 +94,21 @@ html[data-edge-scroll-gate="browser"] body,
 html[data-edge-scroll-gate="browser-tagline"],
 html[data-edge-scroll-gate="browser-tagline"] body,
 html[data-edge-scroll-gate="standalone"],
-html[data-edge-scroll-gate="standalone"] body {
+html[data-edge-scroll-gate="standalone"] body,
+html[data-edge-scroll-gate="standalone-visible"],
+html[data-edge-scroll-gate="standalone-visible"] body {
   overflow: hidden !important;
   overscroll-behavior: none;
 }
 
 html[data-edge-scroll-gate="browser"] #edge-scroll-gate-cover,
 html[data-edge-scroll-gate="browser-tagline"] #edge-scroll-gate-cover,
-html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-cover {
-  display: flex;
+html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-cover,
+html[data-edge-scroll-gate="standalone-visible"] #edge-scroll-gate-cover {
+  display: block;
   pointer-events: auto;
 }
 
-/*
- * The lockup remains centered while its width grows. That naturally moves
- * the logo left by exactly half of the added tagline width, leaving the
- * completed logo + tagline combination perfectly centered.
- */
 html[data-edge-scroll-gate="browser-tagline"]
   #edge-scroll-gate-tagline-clip {
   width: clamp(168px, 40.6vw, 224px);
@@ -118,9 +117,26 @@ html[data-edge-scroll-gate="browser-tagline"]
 }
 
 /*
- * Standalone Home Screen mode stays logo-only and completely static.
+ * In standalone mode, pin the lockup to the measured visual viewport center.
+ * Keep it invisible until the viewport has stopped moving.
  */
-html[data-edge-scroll-gate="standalone"]
+html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-lockup,
+html[data-edge-scroll-gate="standalone-visible"] #edge-scroll-gate-lockup {
+  left: var(--edge-standalone-logo-x, 50vw);
+  top: var(--edge-standalone-logo-y, 50dvh);
+}
+
+html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-lockup {
+  opacity: 0;
+}
+
+html[data-edge-scroll-gate="standalone-visible"]
+  #edge-scroll-gate-lockup {
+  opacity: 1;
+}
+
+html[data-edge-scroll-gate="standalone"] #edge-scroll-gate-tagline-clip,
+html[data-edge-scroll-gate="standalone-visible"]
   #edge-scroll-gate-tagline-clip {
   display: none;
 }
