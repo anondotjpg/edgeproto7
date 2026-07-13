@@ -3,9 +3,8 @@
 import { useLayoutEffect } from "react";
 
 const GATE_ATTRIBUTE = "data-edge-scroll-gate";
-const LOCKED_VALUE = "locked";
-const REQUIRED_STABLE_MS = 900;
-const MINIMUM_LOCK_MS = 450;
+const SESSION_KEY = "edge:safari-session-active";
+const REQUIRED_STABLE_MS = 700;
 
 function forceDocumentToTop() {
   window.scrollTo({
@@ -33,194 +32,111 @@ function documentIsAtTop() {
   const scrollingElement =
     document.scrollingElement ?? document.documentElement;
 
-  const visualPageTop = window.visualViewport?.pageTop ?? 0;
-  const visualPageLeft = window.visualViewport?.pageLeft ?? 0;
-
   return (
     Math.abs(window.scrollY) < 1 &&
     Math.abs(window.scrollX) < 1 &&
     Math.abs(scrollingElement.scrollTop) < 1 &&
     Math.abs(scrollingElement.scrollLeft) < 1 &&
     Math.abs(document.documentElement.scrollTop) < 1 &&
-    Math.abs(document.documentElement.scrollLeft) < 1 &&
     Math.abs(document.body?.scrollTop ?? 0) < 1 &&
-    Math.abs(document.body?.scrollLeft ?? 0) < 1 &&
-    Math.abs(visualPageTop) < 1 &&
-    Math.abs(visualPageLeft) < 1
+    Math.abs(window.visualViewport?.pageTop ?? 0) < 1
   );
+}
+
+function getNavigationType() {
+  const entry = performance.getEntriesByType(
+    "navigation",
+  )[0] as PerformanceNavigationTiming | undefined;
+
+  return entry?.type ?? null;
 }
 
 export default function SafariScrollGate() {
   useLayoutEffect(() => {
     const root = document.documentElement;
+    const navigationType = getNavigationType();
 
-    let disposed = false;
-    let animationFrameId = 0;
-    let runId = 0;
+    let hasExistingSession = false;
 
-    const lock = () => {
-      root.setAttribute(GATE_ATTRIBUTE, LOCKED_VALUE);
-    };
+    try {
+      hasExistingSession =
+        window.sessionStorage.getItem(SESSION_KEY) === "true";
 
-    const unlock = () => {
+      window.sessionStorage.setItem(SESSION_KEY, "true");
+    } catch {
+      hasExistingSession = true;
+    }
+
+    /*
+     * Never run the gate on a normal reload or an in-session navigation.
+     * This preserves the exact layout and viewport behavior you already had.
+     */
+    const shouldRunGate =
+      navigationType !== "reload" && !hasExistingSession;
+
+    if (!shouldRunGate) {
       root.removeAttribute(GATE_ATTRIBUTE);
-    };
+      return;
+    }
 
-    const cancelCurrentRun = () => {
-      runId += 1;
+    let cancelled = false;
+    let animationFrameId = 0;
+    let stableSince: number | null = null;
 
-      if (animationFrameId) {
-        window.cancelAnimationFrame(animationFrameId);
-        animationFrameId = 0;
-      }
-    };
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
 
-    const startTopVerification = () => {
-      cancelCurrentRun();
+    root.setAttribute(GATE_ATTRIBUTE, "locked");
+    forceDocumentToTop();
 
-      const currentRunId = runId;
-      const startedAt = performance.now();
-      let stableSince: number | null = null;
-
-      lock();
-
-      if ("scrollRestoration" in window.history) {
-        window.history.scrollRestoration = "manual";
-      }
+    const verify = (now: number) => {
+      if (cancelled) return;
 
       forceDocumentToTop();
 
-      const verify = (now: number) => {
-        if (disposed || currentRunId !== runId) return;
+      if (
+        document.readyState === "complete" &&
+        document.visibilityState === "visible" &&
+        documentIsAtTop()
+      ) {
+        stableSince ??= now;
 
-        forceDocumentToTop();
+        if (now - stableSince >= REQUIRED_STABLE_MS) {
+          forceDocumentToTop();
 
-        const pageCanBeShown =
-          document.visibilityState === "visible" &&
-          document.readyState === "complete";
+          animationFrameId = window.requestAnimationFrame(() => {
+            if (cancelled) return;
 
-        if (pageCanBeShown && documentIsAtTop()) {
-          if (stableSince === null) {
-            stableSince = now;
-          }
-
-          const minimumLockFinished =
-            now - startedAt >= MINIMUM_LOCK_MS;
-          const stayedAtTopLongEnough =
-            now - stableSince >= REQUIRED_STABLE_MS;
-
-          if (minimumLockFinished && stayedAtTopLongEnough) {
             forceDocumentToTop();
+            root.removeAttribute(GATE_ATTRIBUTE);
+          });
 
-            animationFrameId = window.requestAnimationFrame(() => {
-              if (disposed || currentRunId !== runId) return;
-
-              forceDocumentToTop();
-
-              animationFrameId = window.requestAnimationFrame(() => {
-                if (disposed || currentRunId !== runId) return;
-
-                forceDocumentToTop();
-
-                if (documentIsAtTop()) {
-                  unlock();
-                  animationFrameId = 0;
-                  return;
-                }
-
-                stableSince = null;
-                animationFrameId = window.requestAnimationFrame(verify);
-              });
-            });
-
-            return;
-          }
-        } else {
-          stableSince = null;
+          return;
         }
-
-        animationFrameId = window.requestAnimationFrame(verify);
-      };
+      } else {
+        stableSince = null;
+      }
 
       animationFrameId = window.requestAnimationFrame(verify);
     };
 
-    const prepareForSuspension = () => {
-      cancelCurrentRun();
-      lock();
+    animationFrameId = window.requestAnimationFrame(verify);
 
-      if ("scrollRestoration" in window.history) {
-        window.history.scrollRestoration = "manual";
-      }
+    const safetyTimer = window.setTimeout(() => {
+      if (cancelled) return;
 
       forceDocumentToTop();
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        /*
-         * Safari can restore the complete frozen DOM after the app is
-         * relaunched. Lock the persistent cover before that snapshot is made.
-         */
-        prepareForSuspension();
-        return;
-      }
-
-      startTopVerification();
-    };
-
-    const handlePageHide = () => {
-      prepareForSuspension();
-    };
-
-    const handlePageShow = () => {
-      /*
-       * pageshow also runs when iOS restores a frozen page or bfcache entry.
-       * Re-run the gate even when React itself was never remounted.
-       */
-      startTopVerification();
-    };
-
-    window.addEventListener("pagehide", handlePageHide);
-    window.addEventListener("pageshow", handlePageShow);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    window.visualViewport?.addEventListener(
-      "scroll",
-      forceDocumentToTop,
-      { passive: true },
-    );
-
-    startTopVerification();
+      root.removeAttribute(GATE_ATTRIBUTE);
+    }, 2500);
 
     return () => {
-      disposed = true;
-      cancelCurrentRun();
-
-      window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("pageshow", handlePageShow);
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibilityChange,
-      );
-
-      window.visualViewport?.removeEventListener(
-        "scroll",
-        forceDocumentToTop,
-      );
-
-      unlock();
+      cancelled = true;
+      window.cancelAnimationFrame(animationFrameId);
+      window.clearTimeout(safetyTimer);
+      root.removeAttribute(GATE_ATTRIBUTE);
     };
   }, []);
 
-  /*
-   * Keep this element mounted permanently. When Safari restores a frozen page,
-   * the existing DOM and React state can be reused without remounting.
-   */
-  return (
-    <div
-      id="edge-scroll-gate-cover"
-      aria-hidden="true"
-    />
-  );
+  return <div id="edge-scroll-gate-cover" aria-hidden="true" />;
 }

@@ -41,6 +41,45 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const earlyGateScript = `
+(function () {
+  var root = document.documentElement;
+  var sessionKey = "edge:safari-session-active";
+
+  try {
+    var navigationEntry =
+      typeof performance.getEntriesByType === "function"
+        ? performance.getEntriesByType("navigation")[0]
+        : null;
+
+    var navigationType = navigationEntry ? navigationEntry.type : null;
+    var hasExistingSession =
+      sessionStorage.getItem(sessionKey) === "true";
+
+    /*
+     * Ordinary reloads and navigations in the current tab must never be
+     * locked. Remove the server-side gate before the first body paint.
+     */
+    if (navigationType === "reload" || hasExistingSession) {
+      root.removeAttribute("data-edge-scroll-gate");
+      return;
+    }
+
+    /*
+     * A new Safari browsing session remains locked until the client gate
+     * verifies that every scroll position is at zero.
+     */
+    root.setAttribute("data-edge-scroll-gate", "locked");
+
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+  } catch (_) {
+    root.removeAttribute("data-edge-scroll-gate");
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -50,20 +89,13 @@ export default function RootLayout({
     <html
       lang="en"
       data-edge-scroll-gate="locked"
+      suppressHydrationWarning
       className={`${inter.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
     >
       <head>
         <script
-          id="edge-manual-scroll-restoration"
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                if ("scrollRestoration" in history) {
-                  history.scrollRestoration = "manual";
-                }
-              } catch (_) {}
-            `,
-          }}
+          id="edge-early-scroll-gate"
+          dangerouslySetInnerHTML={{ __html: earlyGateScript }}
         />
 
         <meta name="theme-color" content="#09090b" />
