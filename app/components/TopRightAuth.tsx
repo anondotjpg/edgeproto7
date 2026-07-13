@@ -23,6 +23,7 @@ export default function TopRightAuth() {
     function handleDesktopPointerDown(event: MouseEvent) {
       if (window.innerWidth < 1024) return;
       if (!menuRef.current) return;
+
       if (!menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
       }
@@ -34,6 +35,7 @@ export default function TopRightAuth() {
     return () => {
       document.removeEventListener("keydown", handleEscape);
       document.removeEventListener("mousedown", handleDesktopPointerDown);
+
       if (closeTimer.current) clearTimeout(closeTimer.current);
     };
   }, []);
@@ -49,12 +51,16 @@ export default function TopRightAuth() {
 
   const scheduleClose = () => {
     if (window.innerWidth < 1024) return;
+
     if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setMenuOpen(false), 120);
+
+    closeTimer.current = setTimeout(() => {
+      setMenuOpen(false);
+    }, 120);
   };
 
-  const flatPillClassName =
-    "inline-flex h-9 items-center rounded-full border border-zinc-800 px-4 text-[13px] font-bold whitespace-nowrap";
+  const goldButtonClassName =
+    "relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626] whitespace-nowrap";
 
   const avatarSeed =
     user?.id ||
@@ -66,10 +72,7 @@ export default function TopRightAuth() {
 
   const signedInControls = (
     <>
-      <Link
-        href="/accounts"
-        className="relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626] whitespace-nowrap"
-      >
+      <Link href="/accounts" className={goldButtonClassName}>
         <span
           aria-hidden="true"
           className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
@@ -106,7 +109,10 @@ export default function TopRightAuth() {
               initial={{ opacity: 0, y: -5, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -5, scale: 0.98 }}
-              transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.16,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               style={{ transformOrigin: "top right" }}
               className="absolute right-0 top-full z-[220] hidden pt-[10px] lg:block"
             >
@@ -147,12 +153,12 @@ export default function TopRightAuth() {
   ) : authenticated ? (
     signedInControls
   ) : (
-    <button
-      type="button"
-      onClick={login}
-      className={`${flatPillClassName} cursor-pointer bg-zinc-100 text-black`}
-    >
-      Sign in
+    <button type="button" onClick={login} className={goldButtonClassName}>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
+      />
+      <span className="relative z-10">Sign in</span>
     </button>
   );
 
@@ -184,7 +190,9 @@ export default function TopRightAuth() {
       </div>
 
       <div className="pointer-events-none fixed top-4 right-6 z-50 hidden lg:block">
-        <div className="pointer-events-auto flex items-center gap-3">{cta}</div>
+        <div className="pointer-events-auto flex items-center gap-3">
+          {cta}
+        </div>
       </div>
 
       <AnimatePresence initial={false}>
@@ -207,7 +215,10 @@ export default function TopRightAuth() {
               initial={{ opacity: 0, y: -5, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -5, scale: 0.98 }}
-              transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.16,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               style={{ transformOrigin: "top right" }}
               className="fixed right-4 top-[72px] z-[210] min-w-[168px] whitespace-nowrap rounded-2xl border border-zinc-800 bg-[#09090b]/95 p-1.5 shadow-2xl backdrop-blur-md sm:right-6 lg:hidden"
             >

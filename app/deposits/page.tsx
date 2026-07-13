@@ -1241,14 +1241,18 @@ export default function DepositsPage() {
         ) : !authenticated ? (
           <EmptyState
             title="Sign in to view your deposits"
-            description="Open and past crypto deposits will appear here once you sign in."
+            description="Open and past crypto deposits will appear here."
             action={
               <button
                 type="button"
                 onClick={login}
-                className="cursor-pointer rounded-xl bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-950"
+                className="relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626] whitespace-nowrap"
               >
-                Sign in
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
+                />
+                <span className="relative z-10">Sign in</span>
               </button>
             }
           />

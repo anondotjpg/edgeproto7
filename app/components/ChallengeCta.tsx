@@ -624,7 +624,7 @@ function QuantitySelector({
           </div>
 
           <div className="mt-1 text-[12px] leading-4 text-zinc-500">
-            Buy up to {MAX_ACCOUNT_QUANTITY} accounts at once.
+            Buy up to {MAX_ACCOUNT_QUANTITY} accounts at once
           </div>
         </div>
 
