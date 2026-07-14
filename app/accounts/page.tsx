@@ -271,7 +271,7 @@ function MobileAccountCardContent({
           type="button"
           aria-expanded={rulesOpen}
           onClick={() => setRulesOpen((current) => !current)}
-          className="inline-flex cursor-pointer items-center gap-1.5 py-1.5 text-[14px] font-semibold text-zinc-300 transition-colors hover:text-zinc-500"
+          className="inline-flex cursor-pointer items-center gap-1.5 py-1.5 text-[14px] font-medium text-zinc-300 transition-colors hover:text-zinc-500"
         >
           <span>See Rules</span>
 
