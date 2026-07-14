@@ -1052,12 +1052,11 @@ export default function ChallengeCta({
   const countdown = formatCountdown(expiresAtMs ? expiresAtMs - nowMs : 0);
 
   const ctaClassName = [
-    "relative inline-flex h-11 w-full cursor-pointer items-center justify-center overflow-hidden rounded-[16px] px-4 text-[15px] font-semibold transition-transform duration-100 hover:translate-y-px active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70",
+    "relative inline-flex h-11 w-full -translate-y-[2px] cursor-pointer touch-manipulation items-center justify-center overflow-hidden rounded-[16px] px-4 text-[15px] font-semibold transition-transform duration-100 hover:-translate-y-px active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70",
     getButtonFaceClassName(buttonStyle),
   ].join(" ");
 
   const ctaStyle = {
-    transform: "translateY(-2px)",
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
   } as const;
 
