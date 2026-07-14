@@ -603,13 +603,13 @@ function QuantitySelector({
             type="button"
             onClick={() => adjustQuantity(-1)}
             disabled={disabled || safeQuantity <= 1}
-            className="grid h-8 w-8 cursor-pointer place-items-center bg-transparent text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
+            className="grid h-8 w-7 cursor-pointer place-items-center bg-transparent text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Decrease account quantity"
           >
             −
           </button>
 
-          <div className="grid h-8 min-w-10 place-items-center px-2 text-[15px] font-semibold tabular-nums text-zinc-100">
+          <div className="grid h-8 min-w-6 place-items-center text-[15px] font-semibold tabular-nums text-zinc-100">
             {safeQuantity}
           </div>
 
@@ -617,7 +617,7 @@ function QuantitySelector({
             type="button"
             onClick={() => adjustQuantity(1)}
             disabled={disabled || safeQuantity >= MAX_ACCOUNT_QUANTITY}
-            className="grid h-8 w-8 cursor-pointer place-items-center bg-transparent text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
+            className="grid h-8 w-7 cursor-pointer place-items-center bg-transparent text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Increase account quantity"
           >
             +
