@@ -21,9 +21,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Edge",
   description: "Beat the odds.",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icon.png",
     apple: "/apple-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Edge",
+    statusBarStyle: "black-translucent",
   },
 };
 
@@ -32,6 +38,8 @@ export const viewport: Viewport = {
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
 };
 
 const earlyGateScript = `
@@ -66,10 +74,6 @@ const earlyGateScript = `
   }
 
   try {
-    /*
-     * The server-rendered HTML never starts with the gate enabled.
-     * The gate is added here only during a true fresh Safari session.
-     */
     root.removeAttribute(gateAttribute);
 
     var navigationType = getNavigationType();
@@ -79,34 +83,35 @@ const earlyGateScript = `
       /Safari/i.test(userAgent) &&
       !/Chrome|CriOS|FxiOS|EdgiOS|OPiOS|Android/i.test(userAgent);
 
+    var standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true;
+
+    if (standalone) {
+      root.setAttribute("data-edge-standalone", "true");
+    } else {
+      root.removeAttribute("data-edge-standalone");
+    }
+
     var hasExistingSession =
       sessionStorage.getItem(sessionKey) === "true";
 
     var shouldRun =
-      isSafari &&
+      (isSafari || standalone) &&
       navigationType === "navigate" &&
       !hasExistingSession;
 
-    /*
-     * Mark the current Safari tab/session as active. Reloads and normal
-     * navigation during this session will not run the opening gate.
-     */
     sessionStorage.setItem(sessionKey, "true");
 
-    /*
-     * Regular reloads, back/forward navigation and normal app navigation
-     * remain completely untouched, including native scroll restoration.
-     */
     if (!shouldRun) {
       return;
     }
 
-    root.setAttribute(gateAttribute, "browser");
+    root.setAttribute(
+      gateAttribute,
+      standalone ? "standalone" : "browser"
+    );
 
-    /*
-     * Manual restoration is used only while the fresh-session gate runs.
-     * SafariScrollGate restores this to "auto" when the gate finishes.
-     */
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
@@ -134,10 +139,15 @@ export default function RootLayout({
         />
 
         <link rel="preload" as="image" href="/logo.png" />
+
+        <meta name="theme-color" content="#09090b" />
+        <meta name="color-scheme" content="dark" />
+
         <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <link rel="apple-touch-startup-image" href="/splash.png" />
       </head>
 
-      <body className="relative min-h-screen overflow-x-hidden bg-[#09090b] font-sans text-white">
+      <body className="relative min-h-[100dvh] overflow-x-hidden bg-[#09090b] font-sans text-white">
         <SafariScrollGate />
 
         <Providers>
@@ -168,14 +178,16 @@ export default function RootLayout({
             }
           `}</style>
 
-          <AppSidebar />
-          <TopRightAuth />
+          <div className="edge-app-shell min-h-[100dvh]">
+            <AppSidebar />
+            <TopRightAuth />
 
-          <main className="min-h-screen bg-[#09090b] md:pl-[240px]">
-            {children}
-          </main>
+            <main className="min-h-[100dvh] bg-[#09090b] md:pl-[240px]">
+              {children}
+            </main>
 
-          <ResponsiveToaster />
+            <ResponsiveToaster />
+          </div>
         </Providers>
       </body>
     </html>
