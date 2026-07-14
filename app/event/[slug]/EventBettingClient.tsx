@@ -1245,10 +1245,12 @@ export default function EventBettingClient({
 }) {
   const now = useCurrentTimestamp(true);
   const [marketColorsEnabled, setMarketColorsEnabled] = useState(true);
+  const [marketColorsReady, setMarketColorsReady] = useState(false);
   const marketSet = useMemo(() => getMarketSet(game), [game]);
 
   useBrowserLayoutEffect(() => {
     setMarketColorsEnabled(readStoredMarketColorsEnabled());
+    setMarketColorsReady(true);
   }, []);
 
   const betData = useMemo(() => {
@@ -1334,6 +1336,8 @@ export default function EventBettingClient({
       return refreshedBet ?? firstBet;
     });
   }, [betData, firstBet]);
+
+  if (!marketColorsReady) return null;
 
   return (
     <div className="mt-5 grid gap-5 md:mt-8 md:gap-6 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start xl:justify-center">
