@@ -766,6 +766,7 @@ function DesktopMarketCell({
         <div className="group relative">
           <BetSlipModal
             {...betData}
+            colorsEnabled={colorsEnabled}
             teamColor={betData.teamColor}
             triggerClassName={[
               "peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
@@ -871,6 +872,7 @@ function MobileMarketModalButton({
       }}
     >
       <BetSlipModal
+        colorsEnabled={colorsEnabled}
         team={betData.team}
         teamAlias={betData.teamAlias}
         gameId={betData.gameId}
@@ -966,7 +968,7 @@ function MarketSettingsDropdown({
         aria-label="Market display settings"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="grid h-[29px] w-[29px] cursor-pointer place-items-center rounded-lg text-zinc-400 transition-colors hover:text-zinc-200"
+        className="grid h-[29px] w-[29px] cursor-pointer place-items-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-200"
       >
         <motion.span
           animate={{ rotate: open ? 45 : 0 }}
@@ -1807,6 +1809,7 @@ export default function GamesClient({
                   teamLogo={selectedBet.teamLogo}
                   teamLogoAlt={selectedBet.teamLogoAlt}
                   teamColor={selectedBet.teamColor}
+                  colorsEnabled={marketColorsEnabled}
                   enabled
                   panelMode="sidebar"
                 />

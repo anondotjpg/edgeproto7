@@ -1,4 +1,3 @@
-// BetSlipModal.tsx
 "use client";
 
 import {
@@ -90,6 +89,7 @@ export type BetSlipData = {
 };
 
 type BetSlipModalProps = BetSlipData & {
+  colorsEnabled?: boolean;
   triggerClassName?: string;
   triggerContentClassName?: string;
 };
@@ -1539,10 +1539,12 @@ function BetSlipContent({
 export function BetSlipPanel({
   enabled = true,
   panelMode = "modal",
+  colorsEnabled = true,
   onPlaced,
   ...bet
 }: BetSlipData & {
   enabled?: boolean;
+  colorsEnabled?: boolean;
   panelMode?: "modal" | "sidebar";
   onPlaced?: () => void;
 }) {
@@ -1940,7 +1942,7 @@ export function BetSlipPanel({
       ruleWarning={ruleWarning}
       mobileLayout={isMobile}
       panelMode={panelMode}
-      teamColor={bet.teamColor}
+      teamColor={colorsEnabled ? bet.teamColor : null}
       onToggleAccount={toggleAccount}
       onAmountChange={handleSliderAmountChange}
       onQuickAmount={handleQuickAmount}
@@ -1962,6 +1964,7 @@ export function BetSlipPanel({
 export default function BetSlipModal({
   triggerClassName,
   triggerContentClassName,
+  colorsEnabled = true,
   ...bet
 }: BetSlipModalProps) {
   const isMobile = useIsMobile();
@@ -2029,6 +2032,7 @@ export default function BetSlipModal({
                 <BetSlipPanel
                   {...bet}
                   enabled={open}
+                  colorsEnabled={colorsEnabled}
                   panelMode="modal"
                   onPlaced={closeBetSlip}
                 />
@@ -2049,6 +2053,7 @@ export default function BetSlipModal({
             <BetSlipPanel
               {...bet}
               enabled={open}
+              colorsEnabled={colorsEnabled}
               panelMode="modal"
               onPlaced={closeBetSlip}
             />

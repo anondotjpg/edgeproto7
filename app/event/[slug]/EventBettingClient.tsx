@@ -622,6 +622,7 @@ function MobileMoneylineModalButton({
     >
       <BetSlipModal
         {...betData}
+        colorsEnabled={colorsEnabled}
         teamColor={betData.teamColor}
         triggerClassName={[
           "peer flex h-[42px] w-full translate-y-[-4px] cursor-pointer items-center justify-center overflow-hidden rounded-lg px-3 text-center transition-transform duration-100 hover:translate-y-[-3px] active:translate-y-0",
@@ -992,6 +993,7 @@ function DesktopMarketCell({
         <div className="group relative">
           <BetSlipModal
             {...betData}
+            colorsEnabled={colorsEnabled}
             teamColor={betData.teamColor}
             triggerClassName={[
               "peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
@@ -1390,6 +1392,7 @@ export default function EventBettingClient({
             <BetSlipPanel
               {...selectedBet}
               teamColor={selectedBet.teamColor}
+              colorsEnabled={marketColorsEnabled}
               enabled
               panelMode="sidebar"
             />
