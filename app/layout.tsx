@@ -21,15 +21,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Edge",
   description: "Beat the odds.",
-  manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icon.png",
     apple: "/apple-icon.png",
-  },
-  appleWebApp: {
-    capable: true,
-    title: "Edge",
-    statusBarStyle: "black",
   },
 };
 
@@ -38,7 +32,6 @@ export const viewport: Viewport = {
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
-  viewportFit: "cover",
 };
 
 const earlyGateScript = `
@@ -75,7 +68,7 @@ const earlyGateScript = `
   try {
     /*
      * The server-rendered HTML never starts with the gate enabled.
-     * The gate is added here only when this is a true fresh Safari session.
+     * The gate is added here only during a true fresh Safari session.
      */
     root.removeAttribute(gateAttribute);
 
@@ -86,15 +79,11 @@ const earlyGateScript = `
       /Safari/i.test(userAgent) &&
       !/Chrome|CriOS|FxiOS|EdgiOS|OPiOS|Android/i.test(userAgent);
 
-    var standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone === true;
-
     var hasExistingSession =
       sessionStorage.getItem(sessionKey) === "true";
 
     var shouldRun =
-      (isSafari || standalone) &&
+      isSafari &&
       navigationType === "navigate" &&
       !hasExistingSession;
 
@@ -112,10 +101,7 @@ const earlyGateScript = `
       return;
     }
 
-    root.setAttribute(
-      gateAttribute,
-      standalone ? "standalone" : "browser"
-    );
+    root.setAttribute(gateAttribute, "browser");
 
     /*
      * Manual restoration is used only while the fresh-session gate runs.
@@ -148,18 +134,7 @@ export default function RootLayout({
         />
 
         <link rel="preload" as="image" href="/logo.png" />
-
-        <meta name="theme-color" content="#09090b" />
-        <meta name="color-scheme" content="dark" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="Edge" />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="black"
-        />
-
         <link rel="apple-touch-icon" href="/apple-icon.png" />
-        <link rel="apple-touch-startup-image" href="/splash.png" />
       </head>
 
       <body className="relative min-h-screen overflow-x-hidden bg-[#09090b] font-sans text-white">
