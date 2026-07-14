@@ -400,7 +400,7 @@ function AccountCard(plan: AccountPlan) {
 
       <div
         className={[
-          "relative flex h-auto flex-col rounded-[18px] border bg-zinc-950 px-4 py-3",
+          "relative flex h-auto flex-col rounded-[18px] border bg-zinc-900/55 px-4 py-3 md:bg-zinc-950",
           "md:rounded-[24px] md:px-5 md:py-4",
           getCardBorderClassName(buttonStyle),
         ].join(" ")}
