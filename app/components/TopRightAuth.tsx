@@ -63,12 +63,12 @@ export default function TopRightAuth() {
     "relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626] whitespace-nowrap";
 
   const avatarSeed =
-    user?.id ||
-    user?.wallet?.address ||
-    user?.email?.address ||
-    "edge-user";
+    user?.id || user?.wallet?.address || user?.email?.address || "edge-user";
 
   const avatarColors = ["#18181b", "#52525b"];
+
+  const accountMenuItemClassName =
+    "flex h-10 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-left text-[14px] font-medium transition-colors hover:bg-zinc-900 active:bg-zinc-900";
 
   const signedInControls = (
     <>
@@ -112,21 +112,22 @@ export default function TopRightAuth() {
           {menuOpen ? (
             <motion.div
               key="desktop-account-menu"
+              role="menu"
               initial={{ opacity: 0, y: -5, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -5, scale: 0.98 }}
               transition={{
                 duration: 0.16,
-                ease: [0.22, 1, 0.36, 1],
+                ease: [0.16, 1, 0.3, 1],
               }}
               style={{ transformOrigin: "top right" }}
-              className="absolute right-0 top-full z-[220] hidden pt-[10px] lg:block"
+              className="absolute right-0 top-full z-[220] hidden pt-2 lg:block"
             >
-              <div className="min-w-[168px] whitespace-nowrap rounded-2xl border border-zinc-800 bg-[#09090b]/95 p-1.5 shadow-2xl backdrop-blur-md">
+              <div className="w-[176px] whitespace-nowrap rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl">
                 <Link
                   href="/accounts"
                   onClick={() => setMenuOpen(false)}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium text-zinc-200 transition-colors hover:bg-zinc-800 active:bg-zinc-800"
+                  className={`${accountMenuItemClassName} text-zinc-200`}
                 >
                   <RiUserFill className="h-4 w-4 text-current" />
                   <span>Accounts</span>
@@ -138,7 +139,7 @@ export default function TopRightAuth() {
                     setMenuOpen(false);
                     logout();
                   }}
-                  className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-red-400 transition-colors hover:bg-zinc-800 active:bg-zinc-800 whitespace-nowrap"
+                  className={`${accountMenuItemClassName} text-red-400`}
                 >
                   <FiLogOut className="h-4 w-4 text-current" />
                   <span>Sign out</span>
@@ -196,9 +197,7 @@ export default function TopRightAuth() {
       </div>
 
       <div className="pointer-events-none fixed top-4 right-6 z-50 hidden lg:block">
-        <div className="pointer-events-auto flex items-center gap-3">
-          {cta}
-        </div>
+        <div className="pointer-events-auto flex items-center gap-3">{cta}</div>
       </div>
 
       <AnimatePresence initial={false}>
@@ -218,20 +217,21 @@ export default function TopRightAuth() {
 
             <motion.div
               key="mobile-account-menu"
+              role="menu"
               initial={{ opacity: 0, y: -5, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -5, scale: 0.98 }}
               transition={{
                 duration: 0.16,
-                ease: [0.22, 1, 0.36, 1],
+                ease: [0.16, 1, 0.3, 1],
               }}
               style={{ transformOrigin: "top right" }}
-              className="fixed right-4 top-[calc(72px+env(safe-area-inset-top))] z-[210] min-w-[168px] whitespace-nowrap rounded-2xl border border-zinc-800 bg-[#09090b]/95 p-1.5 shadow-2xl backdrop-blur-md sm:right-6 lg:hidden"
+              className="fixed right-4 top-[calc(72px+env(safe-area-inset-top))] z-[210] w-[176px] whitespace-nowrap rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl sm:right-6 lg:hidden"
             >
               <Link
                 href="/accounts"
                 onClick={() => setMenuOpen(false)}
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium text-zinc-200 transition-colors active:bg-zinc-800"
+                className={`${accountMenuItemClassName} text-zinc-200`}
               >
                 <RiUserFill className="h-4 w-4 text-current" />
                 <span>Accounts</span>
@@ -243,7 +243,7 @@ export default function TopRightAuth() {
                   setMenuOpen(false);
                   logout();
                 }}
-                className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-red-400 transition-colors active:bg-zinc-800 whitespace-nowrap"
+                className={`${accountMenuItemClassName} text-red-400`}
               >
                 <FiLogOut className="h-4 w-4 text-current" />
                 <span>Sign out</span>
