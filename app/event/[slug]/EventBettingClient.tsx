@@ -504,6 +504,10 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
     now === null || isLive
       ? null
       : formatGameStartCountdown(game.commence_time, now);
+  const formattedStartTime = formatGameTime(game.commence_time);
+  const showStartTime = now !== null && !isLive && !countdown;
+  const showCountdown = now !== null && !isLive && Boolean(countdown);
+  const showLive = now !== null && isLive;
 
   return (
     <div className="relative text-center">
@@ -527,31 +531,48 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
 
       <div
         className={[
-          "mt-2 inline-flex h-5 items-center text-[13px] leading-none sm:mt-3 sm:text-sm",
+          "relative mt-2 inline-grid h-5 min-w-[210px] grid-cols-1 place-items-center text-[13px] leading-none sm:mt-3 sm:min-w-[230px] sm:text-sm",
           now === null ? "invisible" : "",
-          isLive
-            ? "gap-1.5 font-medium text-zinc-100"
-            : countdown
-              ? "font-semibold tabular-nums text-zinc-100"
-              : "text-zinc-400",
         ].join(" ")}
-        title={isLive ? "Live now" : formatGameTime(game.commence_time)}
+        title={isLive ? "Live now" : formattedStartTime}
         aria-label={
           isLive
             ? "Live now"
             : countdown
               ? `Starts in ${countdown}`
-              : `Starts at ${formatGameTime(game.commence_time)}`
+              : `Starts at ${formattedStartTime}`
         }
       >
-        {isLive ? (
-          <>
-            <span className="h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.55)]" />
-            <span>LIVE</span>
-          </>
-        ) : (
-          (countdown ?? formatGameTime(game.commence_time))
-        )}
+        <span
+          aria-hidden={!showStartTime}
+          className={[
+            "col-start-1 row-start-1 whitespace-nowrap text-zinc-400 transition-opacity duration-200",
+            showStartTime ? "opacity-100" : "pointer-events-none opacity-0",
+          ].join(" ")}
+        >
+          {formattedStartTime}
+        </span>
+
+        <span
+          aria-hidden={!showCountdown}
+          className={[
+            "col-start-1 row-start-1 whitespace-nowrap font-semibold tabular-nums text-zinc-100 transition-opacity duration-200",
+            showCountdown ? "opacity-100" : "pointer-events-none opacity-0",
+          ].join(" ")}
+        >
+          {countdown ?? "0s"}
+        </span>
+
+        <span
+          aria-hidden={!showLive}
+          className={[
+            "col-start-1 row-start-1 inline-flex items-center gap-1.5 whitespace-nowrap font-medium text-zinc-100 transition-opacity duration-200",
+            showLive ? "opacity-100" : "pointer-events-none opacity-0",
+          ].join(" ")}
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.55)]" />
+          <span>LIVE</span>
+        </span>
       </div>
     </div>
   );
