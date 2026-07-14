@@ -32,8 +32,14 @@ export async function GET() {
 
     if (userError) throw userError;
 
+    // The authenticated user may not have a database row until their first
+    // purchase or another account-creation flow runs.
+    // Treat that as an empty portfolio instead of an error.
     if (!dbUser) {
-      return NextResponse.json({ error: "User not found." }, { status: 404 });
+      return NextResponse.json({
+        openBets: [],
+        pastBets: [],
+      });
     }
 
     const betSelect = `
@@ -100,7 +106,7 @@ export async function GET() {
         error:
           error instanceof Error ? error.message : "Unable to load portfolio.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

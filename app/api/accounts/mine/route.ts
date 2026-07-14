@@ -32,52 +32,56 @@ export async function GET() {
 
     if (userError) throw userError;
 
+    // An authenticated Privy user may not have a database user row yet.
+    // Treat that the same as having no purchased accounts.
     if (!dbUser) {
-      return NextResponse.json({ error: "User not found." }, { status: 404 });
+      return NextResponse.json({
+        accounts: [],
+      });
     }
 
     const { data: accounts, error: accountsError } = await supabaseAdmin
-    .from("challenge_accounts")
-    .select(
-      `
-      id,
-      account_name,
-      plan_key,
-      plan_size,
-      one_time_fee,
-      status,
-      starting_balance,
-      current_balance,
-      reserved_risk,
-      realized_pnl,
-  
-      funded_started_at,
-      funded_starting_balance,
-      funded_current_balance,
-      funded_reserved_risk,
-      funded_realized_pnl,
-      funded_max_risk_amount,
-      funded_daily_loss_limit_amount,
-      funded_total_loss_limit_amount,
-      funded_failed_at,
-      funded_failure_reason,
-  
-      profit_target_percent,
-      daily_drawdown_percent,
-      total_drawdown_percent,
-  
-      max_risk_amount,
-      daily_loss_limit_amount,
-      total_loss_limit_amount,
-  
-      passed_at,
-      failed_at,
-      failure_reason,
-      created_at
-    `,
-    )
-    .eq("user_id", dbUser.id)
-    .order("created_at", { ascending: false });
+      .from("challenge_accounts")
+      .select(
+        `
+          id,
+          account_name,
+          plan_key,
+          plan_size,
+          one_time_fee,
+          status,
+          starting_balance,
+          current_balance,
+          reserved_risk,
+          realized_pnl,
+
+          funded_started_at,
+          funded_starting_balance,
+          funded_current_balance,
+          funded_reserved_risk,
+          funded_realized_pnl,
+          funded_max_risk_amount,
+          funded_daily_loss_limit_amount,
+          funded_total_loss_limit_amount,
+          funded_failed_at,
+          funded_failure_reason,
+
+          profit_target_percent,
+          daily_drawdown_percent,
+          total_drawdown_percent,
+
+          max_risk_amount,
+          daily_loss_limit_amount,
+          total_loss_limit_amount,
+
+          passed_at,
+          failed_at,
+          failure_reason,
+          created_at
+        `,
+      )
+      .eq("user_id", dbUser.id)
+      .order("created_at", { ascending: false });
 
     if (accountsError) throw accountsError;
 
@@ -92,7 +96,7 @@ export async function GET() {
         error:
           error instanceof Error ? error.message : "Unable to load accounts.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

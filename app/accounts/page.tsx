@@ -1,3 +1,4 @@
+import Image from "next/image";
 import ChallengeCta from "../components/ChallengeCta";
 import OwnedAccountsSection from "../components/OwnedAccountsSection";
 import type { PlanKey } from "@/lib/plans";
@@ -56,24 +57,43 @@ const PLAN_DETAILS: PlanDetail[] = [
   { label: "Max Risk/Trade", value: "5%" },
 ];
 
+const PLAN_IMAGE_SRC: Record<PlanKey, string> = {
+  "10000": "/10k.png",
+  "5000": "/5k.png",
+  "2000": "/2k.png",
+  "1000": "/1k.png",
+};
+
 function DetailRow({
   label,
   value,
   accent,
+  compact = false,
 }: {
   label: string;
   value: string;
   accent?: boolean;
+  compact?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-5">
-      <span className="text-[14px] font-medium leading-5 text-zinc-400">
+      <span
+        className={[
+          "font-medium text-zinc-400",
+          compact
+            ? "text-[12px] leading-4"
+            : "text-[14px] leading-5",
+        ].join(" ")}
+      >
         {label}
       </span>
 
       <span
         className={[
-          "text-[14px] font-semibold leading-5 tabular-nums",
+          "font-semibold tabular-nums",
+          compact
+            ? "text-[12px] leading-4"
+            : "text-[14px] leading-5",
           accent ? "text-zinc-100" : "text-zinc-300",
         ].join(" ")}
       >
@@ -119,16 +139,161 @@ function getBadgeClassName(style: ButtonStyle) {
   return "border-zinc-700 bg-zinc-900 text-zinc-200";
 }
 
-function AccountCard({
+function MobileAccountCardContent({
   planKey,
   sizeLabel,
-  badge,
   feeLabel,
   cta,
-}: AccountPlan) {
+  buttonStyle,
+  shimmerEnabled,
+}: AccountPlan & {
+  buttonStyle: ButtonStyle;
+  shimmerEnabled: boolean;
+}) {
+  return (
+    <div className="md:hidden">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-h-10 items-center">
+          <Image
+            src={PLAN_IMAGE_SRC[planKey]}
+            alt={`${sizeLabel} challenge`}
+            width={112}
+            height={48}
+            sizes="112px"
+            className="h-10 w-auto max-w-[118px] object-contain object-left"
+            priority
+          />
+        </div>
+
+        <div className="shrink-0 text-right">
+          <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+            One Time Fee
+          </p>
+
+          <p className="mt-0.5 text-[22px] font-semibold leading-none tracking-tight text-zinc-100">
+            {feeLabel}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <ChallengeCta
+          cta={cta}
+          buttonStyle={buttonStyle}
+          shimmerEnabled={shimmerEnabled}
+          planKey={planKey}
+        />
+      </div>
+
+      <details className="group mt-1">
+        <summary className="flex cursor-pointer list-none items-center justify-start gap-1.5 py-1.5 text-[11px] font-semibold text-zinc-500 transition-colors duration-200 hover:text-zinc-300 [&::-webkit-details-marker]:hidden">
+          <span>See Rules</span>
+
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 20 20"
+            fill="none"
+            className="h-3.5 w-3.5 transition-transform duration-300 ease-out group-open:rotate-180"
+          >
+            <path
+              d="m6 8 4 4 4-4"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </summary>
+
+        <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out group-open:grid-rows-[1fr]">
+          <div className="min-h-0 overflow-hidden">
+            <div className="mt-1 space-y-2.5 border-t border-zinc-800 pt-3">
+              {PLAN_DETAILS.map((detail) => (
+                <DetailRow
+                  key={detail.label}
+                  label={detail.label}
+                  value={detail.value}
+                  accent={detail.accent}
+                  compact
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function DesktopAccountCardContent({
+  planKey,
+  sizeLabel,
+  feeLabel,
+  cta,
+  buttonStyle,
+  shimmerEnabled,
+}: AccountPlan & {
+  buttonStyle: ButtonStyle;
+  shimmerEnabled: boolean;
+}) {
+  return (
+    <div className="hidden md:flex md:flex-1 md:flex-col">
+      <div className="pt-1 text-center">
+        <h2 className="text-[30px] font-semibold leading-none tracking-tight text-zinc-100">
+          {sizeLabel}
+        </h2>
+
+        <p className="mt-1.5 text-[15px] font-medium text-zinc-500">
+          Funded Account
+        </p>
+      </div>
+
+      <div className="mt-4 border-t border-zinc-800 pt-4" />
+
+      <div className="space-y-3.5">
+        {PLAN_DETAILS.map((detail) => (
+          <DetailRow
+            key={detail.label}
+            label={detail.label}
+            value={detail.value}
+            accent={detail.accent}
+          />
+        ))}
+      </div>
+
+      <div className="mt-5 border-t border-zinc-800 pt-4" />
+
+      <div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-[16px] text-zinc-300">One Time Fee</div>
+
+          <div className="text-right text-[22px] font-semibold text-zinc-100 sm:text-[26px]">
+            {feeLabel}
+          </div>
+        </div>
+
+        <ChallengeCta
+          cta={cta}
+          buttonStyle={buttonStyle}
+          shimmerEnabled={shimmerEnabled}
+          planKey={planKey}
+        />
+
+        <p className="mt-3 text-center text-[7px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+          Pay with card or crypto. Instant activation after payment.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function AccountCard(plan: AccountPlan) {
+  const { sizeLabel, badge } = plan;
   const buttonStyle = getButtonStyle(sizeLabel);
-  const shimmerEnabled = buttonStyle === "gold" || buttonStyle === "silver";
-  const cardGlowEnabled = buttonStyle === "gold" || buttonStyle === "silver";
+  const shimmerEnabled =
+    buttonStyle === "gold" || buttonStyle === "silver";
+  const cardGlowEnabled =
+    buttonStyle === "gold" || buttonStyle === "silver";
 
   return (
     <div className="relative">
@@ -141,12 +306,13 @@ function AccountCard({
 
       <div
         className={[
-          "relative flex h-auto flex-col rounded-[24px] border bg-zinc-950 px-5 py-4",
+          "relative flex h-auto flex-col rounded-[18px] border bg-zinc-950 px-4 py-3",
+          "md:rounded-[24px] md:px-5 md:py-4",
           getCardBorderClassName(buttonStyle),
         ].join(" ")}
       >
         {badge ? (
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute left-1/2 top-0 hidden -translate-x-1/2 -translate-y-1/2 md:block">
             <div
               className={[
                 "whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-semibold",
@@ -158,49 +324,17 @@ function AccountCard({
           </div>
         ) : null}
 
-        <div className="pt-1 text-center">
-          <h2 className="text-[30px] font-semibold leading-none tracking-tight text-zinc-100">
-            {sizeLabel}
-          </h2>
-          <p className="mt-1.5 text-[15px] font-medium text-zinc-500">
-            Funded Account
-          </p>
-        </div>
+        <MobileAccountCardContent
+          {...plan}
+          buttonStyle={buttonStyle}
+          shimmerEnabled={shimmerEnabled}
+        />
 
-        <div className="mt-4 border-t border-zinc-800 pt-4" />
-
-        <div className="space-y-3.5">
-          {PLAN_DETAILS.map((detail) => (
-            <DetailRow
-              key={detail.label}
-              label={detail.label}
-              value={detail.value}
-              accent={detail.accent}
-            />
-          ))}
-        </div>
-
-        <div className="mt-5 border-t border-zinc-800 pt-4" />
-
-        <div>
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-[16px] text-zinc-300">One Time Fee</div>
-            <div className="text-right text-[22px] font-semibold text-zinc-100 sm:text-[26px]">
-              {feeLabel}
-            </div>
-          </div>
-
-          <ChallengeCta
-            cta={cta}
-            buttonStyle={buttonStyle}
-            shimmerEnabled={shimmerEnabled}
-            planKey={planKey}
-          />
-
-          <p className="mt-3 text-center text-[7px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-            Pay with card or crypto. Instant activation after payment.
-          </p>
-        </div>
+        <DesktopAccountCardContent
+          {...plan}
+          buttonStyle={buttonStyle}
+          shimmerEnabled={shimmerEnabled}
+        />
       </div>
     </div>
   );
@@ -215,16 +349,20 @@ export default function AccountsPage() {
             transform: translateX(0) skewX(-20deg);
             opacity: 0;
           }
+
           8% {
             opacity: 0.42;
           }
+
           24% {
             opacity: 0.42;
           }
+
           38% {
             transform: translateX(520%) skewX(-20deg);
             opacity: 0;
           }
+
           100% {
             transform: translateX(520%) skewX(-20deg);
             opacity: 0;
@@ -238,19 +376,20 @@ export default function AccountsPage() {
             <OwnedAccountsSection />
 
             <div className="mb-7 hidden text-center sm:mb-10 md:block">
-              <h1 className="text-[30px] font-semibold tracking-tight text-zinc-100 sm:text-[38px] italic">
+              <h1 className="text-[30px] font-semibold italic tracking-tight text-zinc-100 sm:text-[38px]">
                 Find Your Edge
               </h1>
+
               <p className="text-[15px] text-zinc-500 sm:text-[16px]">
                 Beat the odds.
               </p>
             </div>
 
-            <div className="grid justify-center gap-7 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid w-full gap-3 md:grid-cols-2 md:justify-center md:gap-5 xl:grid-cols-4">
               {ACCOUNT_PLANS.map((plan) => (
                 <div
                   key={plan.planKey}
-                  className="mx-auto w-full max-w-[340px]"
+                  className="w-full md:mx-auto md:max-w-[340px]"
                 >
                   <AccountCard {...plan} />
                 </div>
@@ -260,9 +399,9 @@ export default function AccountsPage() {
             <div className="mx-auto mt-8 max-w-[640px] text-center">
               <p className="text-[10px] leading-5 text-zinc-500 sm:text-[11px]">
                 Edge is a performance evaluation platform for sports analysts.
-                Participation involves a paid evaluation fee. Funded accounts are
-                simulated environments. Past performance does not guarantee future
-                results. Not financial or investment advice. Must be 18+.
+                Participation involves a paid evaluation fee. Funded accounts
+                are simulated environments. Past performance does not guarantee
+                future results. Not financial or investment advice. Must be 18+.
               </p>
             </div>
           </div>
