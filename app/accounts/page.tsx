@@ -1,5 +1,3 @@
-"use client";
-
 import ChallengeCta from "../components/ChallengeCta";
 import OwnedAccountsSection from "../components/OwnedAccountsSection";
 import type { PlanKey } from "@/lib/plans";
@@ -58,37 +56,6 @@ const PLAN_DETAILS: PlanDetail[] = [
   { label: "Max Risk/Trade", value: "5%" },
 ];
 
-function DotPatternBackground() {
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 hidden overflow-hidden"
-    >
-      <div
-        className="absolute inset-0 opacity-[0.18]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.42) 1px, transparent 1px)",
-          backgroundSize: "15px 15px",
-          backgroundPosition: "center",
-          WebkitMaskImage:
-            "radial-gradient(ellipse at 50% 0%, black 0%, black 26%, rgba(0,0,0,0.55) 44%, transparent 72%)",
-          maskImage:
-            "radial-gradient(ellipse at 50% 0%, black 0%, black 26%, rgba(0,0,0,0.55) 44%, transparent 72%)",
-        }}
-      />
-
-      <div
-        className="absolute inset-0 opacity-[0.032]"
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.55), transparent 54%)",
-        }}
-      />
-    </div>
-  );
-}
-
 function DetailRow({
   label,
   value,
@@ -100,21 +67,18 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-5">
-      <div className="flex items-center gap-2.5 text-[12px] text-zinc-400">
-        <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full border border-zinc-700 text-[10px] font-semibold text-zinc-500">
-          ?
-        </span>
-        <span>{label}</span>
-      </div>
+      <span className="text-[14px] font-medium leading-5 text-zinc-400">
+        {label}
+      </span>
 
-      <div
+      <span
         className={[
-          "text-[12px] font-semibold",
+          "text-[14px] font-semibold leading-5 tabular-nums",
           accent ? "text-zinc-100" : "text-zinc-300",
         ].join(" ")}
       >
         {value}
-      </div>
+      </span>
     </div>
   );
 }
@@ -133,11 +97,11 @@ function getCardBorderClassName(style: ButtonStyle) {
 
 function getCardGlowClassName(style: ButtonStyle) {
   if (style === "gold") {
-    return "absolute inset-[-1px] rounded-[24px] shadow-[0_0_30px_rgba(224,184,75,0.11),0_0_60px_rgba(224,184,75,0.05)]";
+    return "hidden lg:block absolute inset-[-1px] rounded-[24px] shadow-[0_0_30px_rgba(224,184,75,0.22),0_0_60px_rgba(224,184,75,0.1)]";
   }
 
   if (style === "silver") {
-    return "absolute inset-[-1px] rounded-[24px] shadow-[0_0_28px_rgba(255,255,255,0.08),0_0_56px_rgba(161,161,170,0.06)]";
+    return "hidden lg:block absolute inset-[-1px] rounded-[24px] shadow-[0_0_28px_rgba(255,255,255,0.16),0_0_56px_rgba(161,161,170,0.12)]";
   }
 
   return "";
@@ -161,14 +125,10 @@ function AccountCard({
   badge,
   feeLabel,
   cta,
-  glowEnabled = true,
-}: AccountPlan & {
-  glowEnabled?: boolean;
-}) {
+}: AccountPlan) {
   const buttonStyle = getButtonStyle(sizeLabel);
   const shimmerEnabled = buttonStyle === "gold" || buttonStyle === "silver";
-  const cardGlowEnabled =
-    glowEnabled && (buttonStyle === "gold" || buttonStyle === "silver");
+  const cardGlowEnabled = buttonStyle === "gold" || buttonStyle === "silver";
 
   return (
     <div className="relative">
@@ -238,22 +198,10 @@ function AccountCard({
           />
 
           <p className="mt-3 text-center text-[7px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-            Pay with crypto. Instant activation after payment received on-chain.
+            Pay with card or crypto. Instant activation after payment.
           </p>
         </div>
       </div>
-    </div>
-  );
-}
-
-function MobileChallengeStack() {
-  return (
-    <div className="grid gap-6 pt-3 md:hidden">
-      {ACCOUNT_PLANS.map((plan) => (
-        <div key={plan.planKey} className="w-full">
-          <AccountCard {...plan} glowEnabled={false} />
-        </div>
-      ))}
     </div>
   );
 }
@@ -284,15 +232,13 @@ export default function AccountsPage() {
         }
       `}</style>
 
-      <div className="relative min-h-screen overflow-hidden bg-[#09090b] text-white">
-        <DotPatternBackground />
-
-        <div className="relative z-10 flex min-h-screen items-center pt-10 xl:pt-0">
+      <div className="relative min-h-screen bg-transparent text-white">
+        <div className="relative z-10 flex min-h-screen items-center pt-10 lg:pt-0">
           <div className="mx-auto w-full max-w-[1480px] px-5 py-8 pb-24 sm:px-6 md:pb-8">
             <OwnedAccountsSection />
 
             <div className="mb-7 hidden text-center sm:mb-10 md:block">
-              <h1 className="text-[30px] font-semibold italic tracking-tight text-zinc-100 sm:text-[38px]">
+              <h1 className="text-[30px] font-semibold tracking-tight text-zinc-100 sm:text-[38px] italic">
                 Find Your Edge
               </h1>
               <p className="text-[15px] text-zinc-500 sm:text-[16px]">
@@ -300,13 +246,11 @@ export default function AccountsPage() {
               </p>
             </div>
 
-            <MobileChallengeStack />
-
-            <div className="hidden gap-7 sm:gap-5 md:grid md:grid-cols-2 md:justify-center xl:grid-cols-4">
+            <div className="grid justify-center gap-7 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
               {ACCOUNT_PLANS.map((plan) => (
                 <div
                   key={plan.planKey}
-                  className="w-full md:mx-auto md:max-w-[340px]"
+                  className="mx-auto w-full max-w-[340px]"
                 >
                   <AccountCard {...plan} />
                 </div>
