@@ -79,10 +79,11 @@ export default function SafariScrollGate() {
 
     const shouldRun =
       initialMode === "browser" || initialMode === "standalone";
-    const standalone = initialMode === "standalone";
 
     if (!shouldRun) return;
     if (window.__edgeSafariGateRunning) return;
+
+    const standalone = initialMode === "standalone";
 
     window.__edgeSafariGateRunning = true;
 
@@ -108,10 +109,6 @@ export default function SafariScrollGate() {
       window.__edgeSafariGateRunning = false;
     };
 
-    if ("scrollRestoration" in window.history) {
-      window.history.scrollRestoration = "manual";
-    }
-
     forceDocumentToTop();
 
     if (standalone) {
@@ -126,10 +123,6 @@ export default function SafariScrollGate() {
       forceDocumentToTop();
 
       if (standalone) {
-        /*
-         * Keep the Home Screen logo hidden until the visual viewport has
-         * completely settled. Then reveal it already at its final center.
-         */
         pinStandaloneLogoToVisualViewport();
         root.setAttribute(GATE_ATTRIBUTE, "standalone-visible");
 
@@ -158,11 +151,12 @@ export default function SafariScrollGate() {
         pinStandaloneLogoToVisualViewport();
       }
 
-      if (
+      const ready =
         document.readyState === "complete" &&
         document.visibilityState === "visible" &&
-        documentIsAtTop()
-      ) {
+        documentIsAtTop();
+
+      if (ready) {
         stableSince ??= now;
 
         if (now - stableSince >= REQUIRED_STABLE_MS) {

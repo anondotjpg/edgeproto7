@@ -44,34 +44,92 @@ export const viewport: Viewport = {
 const earlyGateScript = `
 (function () {
   var root = document.documentElement;
+  var gateAttribute = "data-edge-scroll-gate";
   var sessionKey = "edge:safari-session-active";
 
-  try {
-    var navigationEntry =
-      typeof performance.getEntriesByType === "function"
-        ? performance.getEntriesByType("navigation")[0]
-        : null;
+  function removeGate() {
+    root.removeAttribute(gateAttribute);
+  }
 
-    var navigationType = navigationEntry ? navigationEntry.type : null;
+  function getNavigationType() {
+    try {
+      if (typeof performance.getEntriesByType === "function") {
+        var navigationEntries = performance.getEntriesByType("navigation");
+        var navigationEntry = navigationEntries && navigationEntries[0];
+
+        if (navigationEntry && navigationEntry.type) {
+          return navigationEntry.type;
+        }
+      }
+
+      if (performance.navigation) {
+        if (performance.navigation.type === 1) {
+          return "reload";
+        }
+
+        if (performance.navigation.type === 2) {
+          return "back_forward";
+        }
+      }
+    } catch (_) {}
+
+    return "navigate";
+  }
+
+  try {
+    removeGate();
+
+    var userAgent = window.navigator.userAgent;
+    var isSafari =
+      /Safari/i.test(userAgent) &&
+      !/Chrome|CriOS|FxiOS|EdgiOS|OPiOS|Android/i.test(userAgent);
+
     var standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       window.navigator.standalone === true;
+
+    var navigationType = getNavigationType();
+    var isFreshNavigation = navigationType === "navigate";
     var hasExistingSession =
       sessionStorage.getItem(sessionKey) === "true";
 
-    if (standalone) {
-      root.setAttribute("data-edge-scroll-gate", "standalone");
-    } else if (navigationType !== "reload" && !hasExistingSession) {
-      root.setAttribute("data-edge-scroll-gate", "browser");
-    } else {
-      root.removeAttribute("data-edge-scroll-gate");
+    /*
+     * Mark the Safari tab/session as active regardless of whether this
+     * particular load is a reload. This prevents a later navigation in the
+     * same session from unexpectedly triggering the gate.
+     */
+    if (!hasExistingSession) {
+      sessionStorage.setItem(sessionKey, "true");
     }
 
+    /*
+     * Only run on the first fresh document navigation of a Safari session.
+     * Reload and back/forward navigation never activate the gate.
+     */
+    var shouldRun =
+      (isSafari || standalone) &&
+      isFreshNavigation &&
+      !hasExistingSession;
+
+    if (!shouldRun) {
+      removeGate();
+      return;
+    }
+
+    root.setAttribute(
+      gateAttribute,
+      standalone ? "standalone" : "browser"
+    );
+
+    /*
+     * Scroll restoration is changed only while the cold-start gate is
+     * actually active. Reloads remain completely unaffected.
+     */
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
   } catch (_) {
-    root.removeAttribute("data-edge-scroll-gate");
+    removeGate();
   }
 })();
 `;
@@ -84,7 +142,6 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-edge-scroll-gate="browser"
       suppressHydrationWarning
       className={`${inter.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
     >
@@ -100,7 +157,10 @@ export default function RootLayout({
         <meta name="color-scheme" content="dark" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Edge" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black"
+        />
 
         <link rel="apple-touch-icon" href="/apple-icon.png" />
         <link rel="apple-touch-startup-image" href="/splash.png" />
