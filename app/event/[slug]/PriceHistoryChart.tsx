@@ -55,7 +55,10 @@ function formatTimeLabel(timestampSeconds: number) {
   });
 }
 
-function normalizeChartColor(color: string | null | undefined, fallback: string) {
+function normalizeChartColor(
+  color: string | null | undefined,
+  fallback: string,
+) {
   const clean = color?.trim();
 
   if (!clean) return fallback;
@@ -104,6 +107,7 @@ function EndDot(props: EndDotProps) {
         begin="0.42s"
         fill="freeze"
       />
+
       <animate
         attributeName="r"
         from="1"
@@ -143,6 +147,94 @@ function ChartLegend({
           style={{ backgroundColor: homeStroke }}
         />
         <span>{homeLabel || "Home"}</span>
+      </div>
+    </div>
+  );
+}
+
+function PriceHistoryChartSkeleton() {
+  const horizontalGridLines = [0, 25, 50, 75, 100];
+
+  return (
+    <div
+      aria-hidden="true"
+      className="h-[260px] w-full min-w-0 animate-pulse overflow-visible"
+    >
+      <div className="relative h-[224px] w-full overflow-visible">
+        <div className="absolute bottom-[28px] left-11 right-3 top-2 overflow-visible">
+          {horizontalGridLines.map((value) => (
+            <span
+              key={value}
+              className="absolute left-0 right-0 h-px bg-white/[0.06]"
+              style={{
+                top:
+                  value === 0
+                    ? "calc(100% - 1px)"
+                    : value === 100
+                      ? "1px"
+                      : `${100 - value}%`,
+              }}
+            />
+          ))}
+
+          <svg
+            viewBox="0 0 1000 200"
+            preserveAspectRatio="none"
+            className="absolute inset-0 h-full w-full overflow-visible"
+          >
+            <path
+              d="M0 128 L95 120 L185 139 L280 108 L375 116 L470 81 L565 91 L660 65 L760 75 L855 46 L1000 57"
+              fill="none"
+              stroke="rgba(244,244,245,0.32)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+
+            <path
+              d="M0 71 L95 79 L185 60 L280 91 L375 83 L470 118 L565 108 L660 134 L760 124 L855 153 L1000 142"
+              fill="none"
+              stroke="rgba(113,113,122,0.42)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+
+            <circle
+              cx="1000"
+              cy="57"
+              r="3.5"
+              fill="rgba(244,244,245,0.32)"
+              stroke="#09090b"
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+            />
+
+            <circle
+              cx="1000"
+              cy="142"
+              r="3.5"
+              fill="rgba(113,113,122,0.42)"
+              stroke="#09090b"
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <div className="flex h-[36px] items-end justify-center gap-4 pb-1">
+        <div className="flex items-center gap-1.5">
+          <span className="h-[2px] w-4 rounded-full bg-zinc-600/70" />
+          <span className="h-2.5 w-10 rounded-full bg-zinc-800" />
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="h-[2px] w-4 rounded-full bg-zinc-700" />
+          <span className="h-2.5 w-10 rounded-full bg-zinc-800" />
+        </div>
       </div>
     </div>
   );
@@ -206,7 +298,10 @@ export default function PriceHistoryChart({
 
     return () => {
       cancelled = true;
-      if (revealTimer) clearTimeout(revealTimer);
+
+      if (revealTimer) {
+        clearTimeout(revealTimer);
+      }
     };
   }, [slug]);
 
@@ -259,18 +354,26 @@ export default function PriceHistoryChart({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.45, ease: "easeInOut" }}
+            transition={{
+              duration: 0.45,
+              ease: "easeInOut",
+            }}
             className="w-full min-w-0"
             tabIndex={-1}
-            onMouseDown={(e) => {
-              e.currentTarget.blur();
+            onMouseDown={(event) => {
+              event.currentTarget.blur();
             }}
           >
             <div className="w-full min-w-0 rounded-2xl outline-none focus:outline-none [&_*:focus]:outline-none">
               <ResponsiveContainer width="100%" height={260}>
                 <LineChart
                   data={chartData}
-                  margin={{ top: 8, right: 12, left: 0, bottom: 12 }}
+                  margin={{
+                    top: 8,
+                    right: 12,
+                    left: 0,
+                    bottom: 12,
+                  }}
                 >
                   <CartesianGrid
                     stroke="rgba(255,255,255,0.08)"
@@ -281,9 +384,14 @@ export default function PriceHistoryChart({
                     dataKey="t"
                     type="number"
                     domain={["dataMin", "dataMax"]}
-                    tickFormatter={(value) => formatTimeLabel(Number(value))}
+                    tickFormatter={(value) =>
+                      formatTimeLabel(Number(value))
+                    }
                     minTickGap={32}
-                    tick={{ fill: "#a1a1aa", fontSize: 12 }}
+                    tick={{
+                      fill: "#a1a1aa",
+                      fontSize: 12,
+                    }}
                     tickMargin={10}
                     tickLine={false}
                     axisLine={false}
@@ -294,7 +402,10 @@ export default function PriceHistoryChart({
                     tickFormatter={(value) =>
                       `${Math.round(Number(value) * 100)}%`
                     }
-                    tick={{ fill: "#a1a1aa", fontSize: 12 }}
+                    tick={{
+                      fill: "#a1a1aa",
+                      fontSize: 12,
+                    }}
                     tickLine={false}
                     axisLine={false}
                     width={44}
@@ -340,7 +451,7 @@ export default function PriceHistoryChart({
             </div>
           </motion.div>
         ) : (
-          <div className="h-[280px] w-full" />
+          <PriceHistoryChartSkeleton />
         )}
       </div>
     </div>
