@@ -35,9 +35,20 @@ type MarketSet = {
   underTotal?: OddsOutcome;
 };
 
+const MARKET_COLORS_STORAGE_KEY = "edge:market-colors-enabled";
 const GAME_START_COUNTDOWN_WINDOW_MS = 3 * 60 * 60 * 1000;
 const useBrowserLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+function readStoredMarketColorsEnabled() {
+  if (typeof window === "undefined") return true;
+
+  try {
+    return window.localStorage.getItem(MARKET_COLORS_STORAGE_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
 
 function formatGameTime(date: string) {
   const formatted = new Date(date).toLocaleString("en-US", {
@@ -585,12 +596,15 @@ function MobileTeamRow({
 function MobileMoneylineModalButton({
   betData,
   ticker,
+  colorsEnabled,
 }: {
   betData: BetSlipDataWithTeamAlias;
   ticker: string;
+  colorsEnabled: boolean;
 }) {
+  const displayTeamColor = colorsEnabled ? betData.teamColor : null;
   const { shellStyle, faceStyle } = getTeamColorStyles({
-    color: betData.teamColor,
+    color: displayTeamColor,
     selected: false,
     isLive: betData.isLive,
   });
@@ -619,7 +633,7 @@ function MobileMoneylineModalButton({
       <div
         className={[
           "pointer-events-none absolute inset-0 flex translate-y-[-4px] items-center justify-center gap-1.5 rounded-lg px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-3px] peer-active:translate-y-0 group-hover:translate-y-[-3px] group-active:translate-y-0",
-          betData.isLive ? "bg-zinc-900" : "",
+          betData.isLive || !displayTeamColor ? "bg-zinc-900" : "",
         ].join(" ")}
         style={faceStyle}
       >
@@ -685,10 +699,12 @@ function MobileMatchupCard({
   game,
   awayBetData,
   homeBetData,
+  colorsEnabled,
 }: {
   game: Game;
   awayBetData: BetSlipDataWithTeamAlias;
   homeBetData: BetSlipDataWithTeamAlias;
+  colorsEnabled: boolean;
 }) {
   return (
     <article className="relative md:hidden">
@@ -710,11 +726,13 @@ function MobileMatchupCard({
         <MobileMoneylineModalButton
           betData={awayBetData}
           ticker={getTeamTicker(game.away_team, game.away_team_info)}
+          colorsEnabled={colorsEnabled}
         />
 
         <MobileMoneylineModalButton
           betData={homeBetData}
           ticker={getTeamTicker(game.home_team, game.home_team_info)}
+          colorsEnabled={colorsEnabled}
         />
       </div>
     </article>
@@ -874,6 +892,7 @@ function MarketFace({
   label,
   odds,
   centerContent = false,
+  colorsEnabled = true,
 }: {
   selected: boolean;
   isLive?: boolean;
@@ -881,9 +900,11 @@ function MarketFace({
   label: string;
   odds: string;
   centerContent?: boolean;
+  colorsEnabled?: boolean;
 }) {
+  const displayTeamColor = colorsEnabled ? teamColor : null;
   const { shellStyle, faceStyle } = getTeamColorStyles({
-    color: teamColor,
+    color: displayTeamColor,
     selected,
     isLive,
   });
@@ -931,11 +952,13 @@ function DesktopMarketCell({
   label,
   selected,
   onSelect,
+  colorsEnabled,
 }: {
   betData?: BetSlipDataWithTeamAlias;
   label: string;
   selected: boolean;
   onSelect: () => void;
+  colorsEnabled: boolean;
 }) {
   if (!betData) {
     return (
@@ -947,8 +970,9 @@ function DesktopMarketCell({
 
   const isLive = Boolean(betData.isLive);
   const centerContent = betData.market === "h2h";
+  const displayTeamColor = colorsEnabled ? betData.teamColor : null;
   const { shellStyle, faceStyle } = getTeamColorStyles({
-    color: betData.teamColor,
+    color: displayTeamColor,
     selected,
     isLive,
   });
@@ -1016,6 +1040,7 @@ function DesktopMarketCell({
           label={label}
           odds={betData.odds}
           centerContent={centerContent}
+          colorsEnabled={colorsEnabled}
         />
       </button>
     </div>
@@ -1028,6 +1053,7 @@ function DesktopMarketsBoard({
   betData,
   selectedBet,
   onSelectBet,
+  colorsEnabled,
 }: {
   game: Game;
   marketSet: MarketSet;
@@ -1041,6 +1067,7 @@ function DesktopMarketsBoard({
   };
   selectedBet: BetSlipDataWithTeamAlias | null;
   onSelectBet: (bet: BetSlipDataWithTeamAlias) => void;
+  colorsEnabled: boolean;
 }) {
   return (
     <div className="hidden min-w-0 rounded-[28px] border border-zinc-800 bg-zinc-950 p-4 md:block md:p-5">
@@ -1072,6 +1099,7 @@ function DesktopMarketsBoard({
               betData.awayMoneyline &&
               isBetSelected(selectedBet, betData.awayMoneyline),
             )}
+            colorsEnabled={colorsEnabled}
             onSelect={() => {
               if (betData.awayMoneyline) onSelectBet(betData.awayMoneyline);
             }}
@@ -1093,6 +1121,7 @@ function DesktopMarketsBoard({
               betData.awaySpread &&
               isBetSelected(selectedBet, betData.awaySpread),
             )}
+            colorsEnabled={colorsEnabled}
             onSelect={() => {
               if (betData.awaySpread) onSelectBet(betData.awaySpread);
             }}
@@ -1112,6 +1141,7 @@ function DesktopMarketsBoard({
               betData.overTotal &&
               isBetSelected(selectedBet, betData.overTotal),
             )}
+            colorsEnabled={colorsEnabled}
             onSelect={() => {
               if (betData.overTotal) onSelectBet(betData.overTotal);
             }}
@@ -1132,6 +1162,7 @@ function DesktopMarketsBoard({
               betData.homeMoneyline &&
               isBetSelected(selectedBet, betData.homeMoneyline),
             )}
+            colorsEnabled={colorsEnabled}
             onSelect={() => {
               if (betData.homeMoneyline) onSelectBet(betData.homeMoneyline);
             }}
@@ -1153,6 +1184,7 @@ function DesktopMarketsBoard({
               betData.homeSpread &&
               isBetSelected(selectedBet, betData.homeSpread),
             )}
+            colorsEnabled={colorsEnabled}
             onSelect={() => {
               if (betData.homeSpread) onSelectBet(betData.homeSpread);
             }}
@@ -1172,6 +1204,7 @@ function DesktopMarketsBoard({
               betData.underTotal &&
               isBetSelected(selectedBet, betData.underTotal),
             )}
+            colorsEnabled={colorsEnabled}
             onSelect={() => {
               if (betData.underTotal) onSelectBet(betData.underTotal);
             }}
@@ -1209,7 +1242,12 @@ export default function EventBettingClient({
   children?: ReactNode;
 }) {
   const now = useCurrentTimestamp(true);
+  const [marketColorsEnabled, setMarketColorsEnabled] = useState(true);
   const marketSet = useMemo(() => getMarketSet(game), [game]);
+
+  useBrowserLayoutEffect(() => {
+    setMarketColorsEnabled(readStoredMarketColorsEnabled());
+  }, []);
 
   const betData = useMemo(() => {
     return {
@@ -1306,6 +1344,7 @@ export default function EventBettingClient({
               game={game}
               awayBetData={betData.awayMoneyline}
               homeBetData={betData.homeMoneyline}
+              colorsEnabled={marketColorsEnabled}
             />
           ) : null}
 
@@ -1329,6 +1368,7 @@ export default function EventBettingClient({
             betData={betData}
             selectedBet={selectedBet}
             onSelectBet={setSelectedBet}
+            colorsEnabled={marketColorsEnabled}
           />
 
           {children ? (

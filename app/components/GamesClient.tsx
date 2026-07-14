@@ -9,7 +9,7 @@ import LastUpdatedAgo from "./LastUpdatedAgo";
 import LeagueTabs from "./LeagueTabs";
 import BetSlipModal, { BetSlipPanel, type BetSlipData } from "./BetSlipModal";
 import type { Game } from "../page";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiSettings } from "react-icons/fi";
 
 type LeagueBlock = {
   leagueKey: string;
@@ -85,6 +85,7 @@ type GameWithLiveStatus = Game & {
 };
 
 const HIDE_LIVE_GAMES_STORAGE_KEY = "edge:hide-live-games";
+const MARKET_COLORS_STORAGE_KEY = "edge:market-colors-enabled";
 const GAME_START_COUNTDOWN_WINDOW_MS = 3 * 60 * 60 * 1000;
 const useBrowserLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
@@ -105,6 +106,29 @@ function writeStoredHideLiveGames(value: boolean) {
   try {
     window.localStorage.setItem(
       HIDE_LIVE_GAMES_STORAGE_KEY,
+      value ? "true" : "false",
+    );
+  } catch {
+    // Ignore storage failures so the toggle still works in-memory.
+  }
+}
+
+function readStoredMarketColorsEnabled() {
+  if (typeof window === "undefined") return true;
+
+  try {
+    return window.localStorage.getItem(MARKET_COLORS_STORAGE_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
+
+function writeStoredMarketColorsEnabled(value: boolean) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(
+      MARKET_COLORS_STORAGE_KEY,
       value ? "true" : "false",
     );
   } catch {
@@ -613,6 +637,7 @@ function MarketFace({
   label,
   odds,
   centered = false,
+  colorsEnabled = true,
   children,
 }: {
   selected: boolean;
@@ -621,10 +646,12 @@ function MarketFace({
   label?: string;
   odds?: string;
   centered?: boolean;
+  colorsEnabled?: boolean;
   children?: ReactNode;
 }) {
+  const displayTeamColor = colorsEnabled ? teamColor : null;
   const { shellStyle, faceStyle } = getTeamColorStyles({
-    color: teamColor,
+    color: displayTeamColor,
     selected,
     isLive,
   });
@@ -689,6 +716,7 @@ function DesktopMarketCell({
   selectedBet,
   onSelect,
   now,
+  colorsEnabled,
 }: {
   game: Game;
   market?: OddsMarket;
@@ -698,6 +726,7 @@ function DesktopMarketCell({
   selectedBet: BetSlipDataWithTeamAlias | null;
   onSelect: (data: BetSlipDataWithTeamAlias) => void;
   now: number | null;
+  colorsEnabled: boolean;
 }) {
   if (!market || !outcome) {
     return (
@@ -715,8 +744,9 @@ function DesktopMarketCell({
     selectedBet.polymarketTokenId === betData.polymarketTokenId;
   const centered = market.key === "h2h";
   const label = getOutcomeButtonLabel({ market, outcome, team, teamInfo });
+  const displayTeamColor = colorsEnabled ? betData.teamColor : null;
   const { shellStyle, faceStyle } = getTeamColorStyles({
-    color: betData.teamColor,
+    color: displayTeamColor,
     selected,
     isLive,
   });
@@ -790,6 +820,7 @@ function DesktopMarketCell({
           label={label}
           odds={betData.odds}
           centered={centered}
+          colorsEnabled={colorsEnabled}
         />
       </button>
     </div>
@@ -803,6 +834,7 @@ function MobileMarketModalButton({
   team,
   teamInfo,
   now,
+  colorsEnabled,
 }: {
   game: Game;
   market?: OddsMarket;
@@ -810,6 +842,7 @@ function MobileMarketModalButton({
   team?: string;
   teamInfo?: TeamInfo;
   now: number | null;
+  colorsEnabled: boolean;
 }) {
   if (!market || !outcome) {
     return (
@@ -822,8 +855,9 @@ function MobileMarketModalButton({
   }
 
   const betData = buildBetData({ game, market, outcome, teamInfo, now });
+  const displayTeamColor = colorsEnabled ? betData.teamColor : null;
   const { shellStyle, faceStyle } = getTeamColorStyles({
-    color: betData.teamColor,
+    color: displayTeamColor,
     selected: false,
     isLive: betData.isLive,
   });
@@ -868,7 +902,7 @@ function MobileMarketModalButton({
       <div
         className={[
           "pointer-events-none absolute inset-0 flex translate-y-[-3px] items-center justify-center gap-1.5 rounded-lg px-3 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-2px] peer-active:translate-y-0 group-hover:translate-y-[-2px] group-active:translate-y-0",
-          betData.isLive || !betData.teamColor ? "bg-zinc-900" : "",
+          betData.isLive || !displayTeamColor ? "bg-zinc-900" : "",
         ].join(" ")}
         style={faceStyle}
       >
@@ -886,6 +920,99 @@ function MobileMarketModalButton({
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function MarketSettingsDropdown({
+  colorsEnabled,
+  onToggleColors,
+}: {
+  colorsEnabled: boolean;
+  onToggleColors: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handlePointerDown(event: MouseEvent | TouchEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={menuRef} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        aria-label="Market display settings"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="grid h-[29px] w-[29px] cursor-pointer place-items-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-200"
+      >
+        <motion.span
+          animate={{ rotate: open ? 45 : 0 }}
+          transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <FiSettings className="h-[17px] w-[17px]" />
+        </motion.span>
+      </button>
+
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            role="menu"
+            initial={{ opacity: 0, y: -5, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -5, scale: 0.98 }}
+            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute right-0 top-[calc(100%+8px)] z-50 w-[176px] origin-top-right rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl"
+          >
+            <button
+              type="button"
+              role="switch"
+              aria-checked={colorsEnabled}
+              onClick={onToggleColors}
+              className="flex h-10 w-full cursor-pointer items-center justify-between rounded-lg px-2.5 text-left transition-colors hover:bg-zinc-900"
+            >
+              <span className="text-[14px] font-medium text-zinc-200">
+                Colors
+              </span>
+
+              <span
+                className={[
+                  "relative h-[19px] w-[38px] shrink-0 rounded-full p-[2.5px] transition-colors duration-200",
+                  colorsEnabled ? "bg-emerald-500" : "bg-zinc-800",
+                ].join(" ")}
+              >
+                <motion.span
+                  animate={{ x: colorsEnabled ? 19 : 0 }}
+                  transition={{ type: "spring", stiffness: 520, damping: 34 }}
+                  className="block h-3.5 w-3.5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+                />
+              </span>
+            </button>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1054,12 +1181,14 @@ function GameCard({
   onSelectBet,
   shouldAutoScrollOnMoreBetsOpen = false,
   now,
+  colorsEnabled,
 }: {
   game: Game;
   selectedBet: BetSlipDataWithTeamAlias | null;
   onSelectBet: (data: BetSlipDataWithTeamAlias) => void;
   shouldAutoScrollOnMoreBetsOpen?: boolean;
   now: number | null;
+  colorsEnabled: boolean;
 }) {
   const bookmaker = game.bookmakers[0];
   const h2h = getMarket(bookmaker, "h2h");
@@ -1132,6 +1261,7 @@ function GameCard({
             team={game.away_team}
             teamInfo={game.away_team_info}
             now={now}
+            colorsEnabled={colorsEnabled}
           />
 
           <MobileMarketModalButton
@@ -1141,6 +1271,7 @@ function GameCard({
             team={game.home_team}
             teamInfo={game.home_team_info}
             now={now}
+            colorsEnabled={colorsEnabled}
           />
         </div>
 
@@ -1194,6 +1325,7 @@ function GameCard({
                             team={game.away_team}
                             teamInfo={game.away_team_info}
                             now={now}
+                            colorsEnabled={colorsEnabled}
                           />
 
                           <MobileMarketModalButton
@@ -1203,6 +1335,7 @@ function GameCard({
                             team={game.home_team}
                             teamInfo={game.home_team_info}
                             now={now}
+                            colorsEnabled={colorsEnabled}
                           />
                         </div>
                       </div>
@@ -1220,6 +1353,7 @@ function GameCard({
                             market={total}
                             outcome={overTotal}
                             now={now}
+                            colorsEnabled={colorsEnabled}
                           />
 
                           <MobileMarketModalButton
@@ -1227,6 +1361,7 @@ function GameCard({
                             market={total}
                             outcome={underTotal}
                             now={now}
+                            colorsEnabled={colorsEnabled}
                           />
                         </div>
                       </div>
@@ -1267,6 +1402,7 @@ function GameCard({
               selectedBet={selectedBet}
               onSelect={onSelectBet}
               now={now}
+              colorsEnabled={colorsEnabled}
             />
 
             <DesktopMarketCell
@@ -1278,6 +1414,7 @@ function GameCard({
               selectedBet={selectedBet}
               onSelect={onSelectBet}
               now={now}
+              colorsEnabled={colorsEnabled}
             />
           </div>
 
@@ -1291,6 +1428,7 @@ function GameCard({
               selectedBet={selectedBet}
               onSelect={onSelectBet}
               now={now}
+              colorsEnabled={colorsEnabled}
             />
 
             <DesktopMarketCell
@@ -1302,6 +1440,7 @@ function GameCard({
               selectedBet={selectedBet}
               onSelect={onSelectBet}
               now={now}
+              colorsEnabled={colorsEnabled}
             />
           </div>
 
@@ -1313,6 +1452,7 @@ function GameCard({
               selectedBet={selectedBet}
               onSelect={onSelectBet}
               now={now}
+              colorsEnabled={colorsEnabled}
             />
 
             <DesktopMarketCell
@@ -1322,6 +1462,7 @@ function GameCard({
               selectedBet={selectedBet}
               onSelect={onSelectBet}
               now={now}
+              colorsEnabled={colorsEnabled}
             />
           </div>
         </div>
@@ -1406,10 +1547,14 @@ export default function GamesClient({
 
   const [hideLiveGames, setHideLiveGames] = useState(false);
   const [hideLiveGamesLoaded, setHideLiveGamesLoaded] = useState(false);
+  const [marketColorsEnabled, setMarketColorsEnabled] = useState(true);
+  const [marketColorsLoaded, setMarketColorsLoaded] = useState(false);
 
   useBrowserLayoutEffect(() => {
     setHideLiveGames(readStoredHideLiveGames());
+    setMarketColorsEnabled(readStoredMarketColorsEnabled());
     setHideLiveGamesLoaded(true);
+    setMarketColorsLoaded(true);
   }, []);
 
   const visibleGames = useMemo(() => {
@@ -1421,7 +1566,8 @@ export default function GamesClient({
     );
   }, [allGames, hideLiveGames, hideLiveGamesLoaded, now]);
 
-  const initialGameStateReady = hideLiveGamesLoaded && now !== null;
+  const initialGameStateReady =
+    hideLiveGamesLoaded && marketColorsLoaded && now !== null;
   const totalGames = visibleGames.length;
 
   const visibleFirstBet = useMemo(
@@ -1440,24 +1586,31 @@ export default function GamesClient({
     });
   }
 
-  function renderHideLiveToggle() {
-    const hasLiveGames = liveGameCount > 0;
-    const showToggle = hideLiveGamesLoaded && hasLiveGames;
+  function toggleMarketColors() {
+    setMarketColorsEnabled((current) => {
+      const nextValue = !current;
+      writeStoredMarketColorsEnabled(nextValue);
+      return nextValue;
+    });
+  }
+
+  function renderMarketControls() {
+    const showHideLiveToggle = hideLiveGamesLoaded && liveGameCount > 0;
 
     return (
-      <span
-        className={[
-          "inline-flex",
-          showToggle ? "" : "pointer-events-none invisible",
-        ].join(" ")}
-        aria-hidden={!showToggle}
-      >
-        <HideLiveToggle
-          enabled={hideLiveGames}
-          onToggle={toggleHideLiveGames}
-          disabled={!showToggle}
+      <div className="inline-flex h-[29px] items-center gap-1.5">
+        <MarketSettingsDropdown
+          colorsEnabled={marketColorsEnabled}
+          onToggleColors={toggleMarketColors}
         />
-      </span>
+
+        {showHideLiveToggle ? (
+          <HideLiveToggle
+            enabled={hideLiveGames}
+            onToggle={toggleHideLiveGames}
+          />
+        ) : null}
+      </div>
     );
   }
 
@@ -1535,7 +1688,7 @@ export default function GamesClient({
         <div className="mt-5 grid gap-6 lg:mt-[26px] xl:grid-cols-[minmax(0,1156px)_420px] xl:items-start xl:justify-center">
           <main className="min-w-0">
             <section className="lg:space-y-4">
-              <div className="hidden grid-cols-[112px_minmax(0,1fr)_112px] items-end gap-3 lg:grid">
+              <div className="hidden grid-cols-[148px_minmax(0,1fr)_148px] items-end gap-3 lg:grid">
                 <LastUpdatedAgo updatedAt={data.updatedAt} />
 
                 <div className="hidden min-w-0 text-center sm:block">
@@ -1550,13 +1703,13 @@ export default function GamesClient({
                   </p>
                 </div>
 
-                <div className="hidden w-[112px] items-end justify-end lg:flex">
+                <div className="hidden w-[148px] items-end justify-end lg:flex">
                   {league?.error ? (
                     <div className="rounded-full border border-red-900/60 bg-red-950/60 px-3 py-1 text-[11px] font-medium text-red-400">
                       {league.error}
                     </div>
                   ) : (
-                    renderHideLiveToggle()
+                    renderMarketControls()
                   )}
                 </div>
               </div>
@@ -1570,7 +1723,7 @@ export default function GamesClient({
                   <span>
                     No non-live {selectedLeagueMeta.label} markets right now
                   </span>
-                  <span className="lg:hidden">{renderHideLiveToggle()}</span>
+                  <span className="lg:hidden">{renderMarketControls()}</span>
                 </div>
               ) : (
                 <div className="grid gap-7">
@@ -1580,7 +1733,7 @@ export default function GamesClient({
                         date={group.date}
                         games={group.games}
                         action={
-                          groupIndex === 0 ? renderHideLiveToggle() : null
+                          groupIndex === 0 ? renderMarketControls() : null
                         }
                         now={now}
                         showMarketLabels={groupIndex === 0}
@@ -1609,6 +1762,7 @@ export default function GamesClient({
                                   isLastVisibleGame && totalGames >= 2
                                 }
                                 now={now}
+                                colorsEnabled={marketColorsEnabled}
                               />
                             </div>
                           );
