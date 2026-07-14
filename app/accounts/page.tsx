@@ -1,4 +1,9 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { FiChevronDown } from "react-icons/fi";
 import ChallengeCta from "../components/ChallengeCta";
 import OwnedAccountsSection from "../components/OwnedAccountsSection";
 import type { PlanKey } from "@/lib/plans";
@@ -64,6 +69,24 @@ const PLAN_IMAGE_SRC: Record<PlanKey, string> = {
   "1000": "/1k.png",
 };
 
+const PLAN_FEE_CENTS: Record<PlanKey, number> = {
+  "10000": 29900,
+  "5000": 17900,
+  "2000": 8900,
+  "1000": 4900,
+};
+
+const MAX_ACCOUNT_QUANTITY = 5;
+
+function formatCents(cents: number) {
+  return (cents / 100).toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}
+
 function DetailRow({
   label,
   value,
@@ -99,6 +122,49 @@ function DetailRow({
       >
         {value}
       </span>
+    </div>
+  );
+}
+
+function MobileQuantitySelector({
+  quantity,
+  onChange,
+}: {
+  quantity: number;
+  onChange: (quantity: number) => void;
+}) {
+  return (
+    <div
+      className="flex h-[46px] shrink-0 items-center rounded-2xl bg-zinc-900/70 p-[1px]"
+      aria-label="Account quantity"
+    >
+      <div className="flex h-full items-center">
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(1, quantity - 1))}
+          disabled={quantity <= 1}
+          aria-label="Decrease account quantity"
+          className="grid h-9 w-7 cursor-pointer place-items-center rounded-xl text-[17px] font-semibold leading-none text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          −
+        </button>
+
+        <span className="grid h-9 min-w-6 place-items-center text-[14px] font-semibold tabular-nums text-zinc-100">
+          {quantity}
+        </span>
+
+        <button
+          type="button"
+          onClick={() =>
+            onChange(Math.min(MAX_ACCOUNT_QUANTITY, quantity + 1))
+          }
+          disabled={quantity >= MAX_ACCOUNT_QUANTITY}
+          aria-label="Increase account quantity"
+          className="grid h-9 w-7 cursor-pointer place-items-center rounded-xl text-[17px] font-semibold leading-none text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          +
+        </button>
+      </div>
     </div>
   );
 }
@@ -150,6 +216,13 @@ function MobileAccountCardContent({
   buttonStyle: ButtonStyle;
   shimmerEnabled: boolean;
 }) {
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [accountQuantity, setAccountQuantity] = useState(1);
+
+  const displayedFeeLabel = formatCents(
+    PLAN_FEE_CENTS[planKey] * accountQuantity,
+  );
+
   return (
     <div className="md:hidden">
       <div className="flex items-start justify-between gap-4">
@@ -171,56 +244,77 @@ function MobileAccountCardContent({
           </p>
 
           <p className="mt-0.5 text-[22px] font-semibold leading-none tracking-tight text-zinc-100">
-            {feeLabel}
+            {displayedFeeLabel}
           </p>
         </div>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-3 flex w-full items-start gap-2">
+        <MobileQuantitySelector
+          quantity={accountQuantity}
+          onChange={setAccountQuantity}
+        />
+
         <ChallengeCta
           cta={cta}
           buttonStyle={buttonStyle}
           shimmerEnabled={shimmerEnabled}
           planKey={planKey}
+          accountQuantity={accountQuantity}
+          onAccountQuantityChange={setAccountQuantity}
+          inlineLayout
         />
       </div>
 
-      <details className="group mt-1">
-        <summary className="flex cursor-pointer list-none items-center justify-start gap-1.5 py-1.5 text-[11px] font-semibold text-zinc-500 transition-colors duration-200 hover:text-zinc-300 [&::-webkit-details-marker]:hidden">
+      <div className="mt-1">
+        <button
+          type="button"
+          aria-expanded={rulesOpen}
+          onClick={() => setRulesOpen((current) => !current)}
+          className="inline-flex cursor-pointer items-center gap-1.5 py-1.5 text-[14px] font-semibold text-zinc-300 transition-colors hover:text-zinc-500"
+        >
           <span>See Rules</span>
 
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 20 20"
-            fill="none"
-            className="h-3.5 w-3.5 transition-transform duration-300 ease-out group-open:rotate-180"
+          <motion.span
+            animate={{ rotate: rulesOpen ? 180 : 0 }}
+            transition={{
+              duration: 0.2,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            className="grid place-items-center text-zinc-300"
           >
-            <path
-              d="m6 8 4 4 4-4"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </summary>
+            <FiChevronDown className="h-3 w-3" />
+          </motion.span>
+        </button>
 
-        <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out group-open:grid-rows-[1fr]">
-          <div className="min-h-0 overflow-hidden">
-            <div className="mt-1 space-y-2.5 border-t border-zinc-800 pt-3">
-              {PLAN_DETAILS.map((detail) => (
-                <DetailRow
-                  key={detail.label}
-                  label={detail.label}
-                  value={detail.value}
-                  accent={detail.accent}
-                  compact
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </details>
+        <AnimatePresence initial={false}>
+          {rulesOpen ? (
+            <motion.div
+              key="mobile-account-rules"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{
+                duration: 0.24,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="overflow-hidden"
+            >
+              <div className="mt-1 space-y-2.5 border-t border-zinc-800 pt-3">
+                {PLAN_DETAILS.map((detail) => (
+                  <DetailRow
+                    key={detail.label}
+                    label={detail.label}
+                    value={detail.value}
+                    accent={detail.accent}
+                    compact
+                  />
+                ))}
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

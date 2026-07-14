@@ -136,6 +136,9 @@ type ChallengeCtaProps = {
   buttonStyle: ButtonStyle;
   shimmerEnabled: boolean;
   planKey: PlanKey;
+  accountQuantity?: number;
+  onAccountQuantityChange?: (quantity: number) => void;
+  inlineLayout?: boolean;
 };
 
 const PLAN_FEE_CENTS: Partial<Record<PlanKey, number>> = {
@@ -1034,6 +1037,9 @@ export default function ChallengeCta({
   buttonStyle,
   shimmerEnabled,
   planKey,
+  accountQuantity: controlledAccountQuantity,
+  onAccountQuantityChange,
+  inlineLayout = false,
 }: ChallengeCtaProps) {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -1050,7 +1056,16 @@ export default function ChallengeCta({
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<PromoPreview | null>(null);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
-  const [accountQuantity, setAccountQuantity] = useState(1);
+  const [internalAccountQuantity, setInternalAccountQuantity] = useState(1);
+
+  const isAccountQuantityControlled =
+    typeof controlledAccountQuantity === "number";
+
+  const accountQuantity = clampAccountQuantity(
+    isAccountQuantityControlled
+      ? controlledAccountQuantity
+      : internalAccountQuantity,
+  );
 
   const accountTitle = getAccountTitle(planKey);
   const feeLabel = getPlanFeeLabel(planKey);
@@ -1086,6 +1101,16 @@ export default function ChallengeCta({
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
   } as const;
 
+  function setAccountQuantity(quantity: number) {
+    const nextQuantity = clampAccountQuantity(quantity);
+
+    if (!isAccountQuantityControlled) {
+      setInternalAccountQuantity(nextQuantity);
+    }
+
+    onAccountQuantityChange?.(nextQuantity);
+  }
+
   function resetFlow() {
     setStep("method");
     setInvoice(null);
@@ -1094,7 +1119,10 @@ export default function ChallengeCta({
     setPromoCode("");
     setAppliedPromo(null);
     setIsApplyingPromo(false);
-    setAccountQuantity(1);
+
+    if (!isAccountQuantityControlled) {
+      setInternalAccountQuantity(1);
+    }
   }
 
   function openCheckout() {
@@ -1421,7 +1449,9 @@ export default function ChallengeCta({
     <>
       <div
         className={[
-          "mt-4 inline-block w-full rounded-[16px]",
+          inlineLayout
+            ? "min-w-0 flex-1 rounded-[16px]"
+            : "mt-4 inline-block w-full rounded-[16px]",
           getButtonShellClassName(buttonStyle),
         ].join(" ")}
         style={{ paddingBottom: "2px", lineHeight: 0 }}
