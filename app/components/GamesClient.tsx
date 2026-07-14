@@ -968,7 +968,7 @@ function MarketSettingsDropdown({
         aria-label="Market display settings"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="grid h-[29px] w-[29px] cursor-pointer place-items-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-200"
+        className="grid h-[29px] w-[29px] cursor-pointer place-items-center rounded-lg text-zinc-400 transition-colors hover:text-zinc-200"
       >
         <motion.span
           animate={{ rotate: open ? 45 : 0 }}
