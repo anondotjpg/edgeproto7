@@ -153,87 +153,78 @@ function ChartLegend({
 }
 
 function PriceHistoryChartSkeleton() {
-  const horizontalGridLines = [
-    { value: 100, position: "1px" },
-    { value: 75, position: "25%" },
-    { value: 50, position: "50%" },
-    { value: 25, position: "75%" },
-    { value: 0, position: "calc(100% - 1px)" },
-  ];
-
   return (
     <div
       aria-hidden="true"
-      className="relative h-[260px] w-full min-w-0 animate-pulse overflow-visible"
+      className="relative h-[260px] w-full min-w-0 animate-pulse"
     >
-      <div className="absolute bottom-3 left-0 top-2 w-11">
-        {horizontalGridLines.map(({ value, position }) => (
-          <span
-            key={value}
-            className="absolute right-2 -translate-y-1/2 text-[11px] font-medium text-zinc-700"
-            style={{ top: position }}
-          >
-            {value}%
-          </span>
-        ))}
-      </div>
+      <svg
+        viewBox="0 0 1000 260"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute inset-0 h-full w-full"
+      >
+        <path
+          d="
+            M0 126
+            L90 116
+            L180 137
+            L270 120
+            L360 142
+            L450 115
+            L540 139
+            L630 118
+            L720 145
+            L810 121
+            L900 140
+            L1000 124
+          "
+          fill="none"
+          stroke="rgba(244,244,245,0.3)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
 
-      <div className="absolute bottom-3 left-11 right-3 top-2 overflow-visible">
-        {horizontalGridLines.map(({ value, position }) => (
-          <span
-            key={value}
-            className="absolute left-0 right-0 h-px bg-white/[0.06]"
-            style={{ top: position }}
-          />
-        ))}
+        <path
+          d="
+            M0 140
+            L90 145
+            L180 122
+            L270 141
+            L360 119
+            L450 144
+            L540 121
+            L630 143
+            L720 116
+            L810 142
+            L900 120
+            L1000 137
+          "
+          fill="none"
+          stroke="rgba(113,113,122,0.42)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+      
+      <span
+        className="absolute right-0 h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
+        style={{
+          top: `${(124 / 260) * 100}%`,
+          backgroundColor: "#f4f4f5",
+        }}
+      />
 
-        <svg
-          viewBox="0 0 1024 200"
-          preserveAspectRatio="none"
-          className="absolute inset-0 h-full w-full overflow-visible"
-          style={{ overflow: "visible" }}
-        >
-          <path
-            d="M0 128 L96 120 L188 139 L284 108 L380 116 L476 81 L572 91 L668 65 L764 75 L860 46 L1008 57"
-            fill="none"
-            stroke="rgba(244,244,245,0.32)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-
-          <path
-            d="M0 71 L96 79 L188 60 L284 91 L380 83 L476 118 L572 108 L668 134 L764 124 L860 153 L1008 142"
-            fill="none"
-            stroke="rgba(113,113,122,0.42)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-
-          <circle
-            cx="1008"
-            cy="57"
-            r="3.5"
-            fill="rgba(244,244,245,0.32)"
-            stroke="#09090b"
-            strokeWidth="2"
-            vectorEffect="non-scaling-stroke"
-          />
-
-          <circle
-            cx="1008"
-            cy="142"
-            r="3.5"
-            fill="rgba(113,113,122,0.42)"
-            stroke="#09090b"
-            strokeWidth="2"
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
-      </div>
+      <span
+        className="absolute right-0 h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
+        style={{
+          top: `${(137 / 260) * 100}%`,
+          backgroundColor: "#71717a",
+        }}
+      />
     </div>
   );
 }
