@@ -78,6 +78,12 @@ const PLAN_FEE_CENTS: Record<PlanKey, number> = {
 
 const MAX_ACCOUNT_QUANTITY = 5;
 
+const MOBILE_PAYMENT_LOGOS = [
+  { asset: "SOL", src: "/sol.png" },
+  { asset: "ETH", src: "/eth.png" },
+  { asset: "BTC", src: "/btc.png" },
+] as const;
+
 function formatCents(cents: number) {
   return (cents / 100).toLocaleString("en-US", {
     style: "currency",
@@ -267,25 +273,50 @@ function MobileAccountCardContent({
       </div>
 
       <div className="mt-1">
-        <button
-          type="button"
-          aria-expanded={rulesOpen}
-          onClick={() => setRulesOpen((current) => !current)}
-          className="inline-flex cursor-pointer items-center gap-1.5 pt-1.5 text-[14px] font-medium text-zinc-300 transition-colors hover:text-zinc-500"
-        >
-          <span>See Rules</span>
-
-          <motion.span
-            animate={{ rotate: rulesOpen ? 180 : 0 }}
-            transition={{
-              duration: 0.2,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            className="grid place-items-center text-zinc-300"
+        <div className="flex items-center justify-between gap-3 pt-1.5">
+          <button
+            type="button"
+            aria-expanded={rulesOpen}
+            onClick={() => setRulesOpen((current) => !current)}
+            className="inline-flex cursor-pointer items-center gap-1.5 text-[14px] font-medium text-zinc-300 transition-colors hover:text-zinc-500"
           >
-            <FiChevronDown className="h-3 w-3" />
-          </motion.span>
-        </button>
+            <span>See Rules</span>
+
+            <motion.span
+              animate={{ rotate: rulesOpen ? 180 : 0 }}
+              transition={{
+                duration: 0.2,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="grid place-items-center text-zinc-300"
+            >
+              <FiChevronDown className="h-3 w-3" />
+            </motion.span>
+          </button>
+
+          <div className="flex shrink-0 items-center gap-1.5" aria-label="Pay with SOL, ETH, or BTC">
+            <span className="text-[10px] font-medium lowercase tracking-[0.12em] text-zinc-500">
+              Pay with
+            </span>
+
+            <div className="flex items-center gap-1">
+              {MOBILE_PAYMENT_LOGOS.map((payment) => (
+                <div
+                  key={payment.asset}
+                  className="relative h-[17px] w-[17px] shrink-0 overflow-hidden rounded-full"
+                >
+                  <Image
+                    src={payment.src}
+                    alt={`${payment.asset} logo`}
+                    fill
+                    sizes="17px"
+                    className="object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
         <AnimatePresence initial={false}>
           {rulesOpen ? (
