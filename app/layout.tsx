@@ -47,18 +47,14 @@ const earlyGateScript = `
   var gateAttribute = "data-edge-scroll-gate";
   var sessionKey = "edge:safari-session-active";
 
-  function removeGate() {
-    root.removeAttribute(gateAttribute);
-  }
-
   function getNavigationType() {
     try {
       if (typeof performance.getEntriesByType === "function") {
-        var navigationEntries = performance.getEntriesByType("navigation");
-        var navigationEntry = navigationEntries && navigationEntries[0];
+        var entries = performance.getEntriesByType("navigation");
+        var entry = entries && entries[0];
 
-        if (navigationEntry && navigationEntry.type) {
-          return navigationEntry.type;
+        if (entry && entry.type) {
+          return entry.type;
         }
       }
 
@@ -77,9 +73,15 @@ const earlyGateScript = `
   }
 
   try {
-    removeGate();
+    /*
+     * The server-rendered HTML never starts with the gate enabled.
+     * The gate is added here only when this is a true fresh Safari session.
+     */
+    root.removeAttribute(gateAttribute);
 
+    var navigationType = getNavigationType();
     var userAgent = window.navigator.userAgent;
+
     var isSafari =
       /Safari/i.test(userAgent) &&
       !/Chrome|CriOS|FxiOS|EdgiOS|OPiOS|Android/i.test(userAgent);
@@ -88,31 +90,25 @@ const earlyGateScript = `
       window.matchMedia("(display-mode: standalone)").matches ||
       window.navigator.standalone === true;
 
-    var navigationType = getNavigationType();
-    var isFreshNavigation = navigationType === "navigate";
     var hasExistingSession =
       sessionStorage.getItem(sessionKey) === "true";
 
-    /*
-     * Mark the Safari tab/session as active regardless of whether this
-     * particular load is a reload. This prevents a later navigation in the
-     * same session from unexpectedly triggering the gate.
-     */
-    if (!hasExistingSession) {
-      sessionStorage.setItem(sessionKey, "true");
-    }
-
-    /*
-     * Only run on the first fresh document navigation of a Safari session.
-     * Reload and back/forward navigation never activate the gate.
-     */
     var shouldRun =
       (isSafari || standalone) &&
-      isFreshNavigation &&
+      navigationType === "navigate" &&
       !hasExistingSession;
 
+    /*
+     * Mark the current Safari tab/session as active. Reloads and normal
+     * navigation during this session will not run the opening gate.
+     */
+    sessionStorage.setItem(sessionKey, "true");
+
+    /*
+     * Regular reloads, back/forward navigation and normal app navigation
+     * remain completely untouched, including native scroll restoration.
+     */
     if (!shouldRun) {
-      removeGate();
       return;
     }
 
@@ -122,14 +118,14 @@ const earlyGateScript = `
     );
 
     /*
-     * Scroll restoration is changed only while the cold-start gate is
-     * actually active. Reloads remain completely unaffected.
+     * Manual restoration is used only while the fresh-session gate runs.
+     * SafariScrollGate restores this to "auto" when the gate finishes.
      */
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
   } catch (_) {
-    removeGate();
+    root.removeAttribute(gateAttribute);
   }
 })();
 `;

@@ -13,6 +13,12 @@ declare global {
   }
 }
 
+function restoreNativeScrollBehavior() {
+  if ("scrollRestoration" in window.history) {
+    window.history.scrollRestoration = "auto";
+  }
+}
+
 function forceDocumentToTop() {
   window.scrollTo({
     top: 0,
@@ -80,6 +86,10 @@ export default function SafariScrollGate() {
     const shouldRun =
       initialMode === "browser" || initialMode === "standalone";
 
+    /*
+     * On reloads and every other normal navigation, do absolutely nothing.
+     * This preserves Safari's native scroll position and restoration.
+     */
     if (!shouldRun) return;
     if (window.__edgeSafariGateRunning) return;
 
@@ -105,9 +115,19 @@ export default function SafariScrollGate() {
 
       clearScheduledWork();
       forceDocumentToTop();
+      restoreNativeScrollBehavior();
+
       root.removeAttribute(GATE_ATTRIBUTE);
       window.__edgeSafariGateRunning = false;
     };
+
+    /*
+     * This only executes when the early script has explicitly activated
+     * the gate for a fresh Safari session.
+     */
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
 
     forceDocumentToTop();
 
@@ -187,6 +207,7 @@ export default function SafariScrollGate() {
     return () => {
       cancelled = true;
       clearScheduledWork();
+      restoreNativeScrollBehavior();
       window.__edgeSafariGateRunning = false;
     };
   }, []);
