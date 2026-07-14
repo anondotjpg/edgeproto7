@@ -557,8 +557,14 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
         <span className="block text-balance break-words">{homeTeamName}</span>
       </h1>
 
-      <h1 className="mx-auto mt-3 hidden max-w-[680px] text-balance text-[42px] font-semibold leading-[0.96] tracking-tight text-white md:block">
-        {awayTeamName} vs. {homeTeamName}
+      <h1 className="mx-auto mt-3 hidden max-w-[680px] px-4 text-[36px] font-semibold leading-[0.96] tracking-tight text-white md:block lg:text-[42px]">
+        <span className="block text-balance break-words">{awayTeamName}</span>
+
+        <span className="my-2 block text-[15px] font-medium leading-none tracking-normal text-zinc-500 lg:text-[16px]">
+          vs.
+        </span>
+
+        <span className="block text-balance break-words">{homeTeamName}</span>
       </h1>
 
       <div
