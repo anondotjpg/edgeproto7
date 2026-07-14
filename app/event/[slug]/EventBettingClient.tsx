@@ -543,7 +543,7 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
         <FiArrowUpRight className="h-3.5 w-3.5" />
       </Link>
 
-      <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500 sm:text-[12px]">
+      <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500 sm:text-[12px] hidden">
         {game.sport_title}
       </div>
 

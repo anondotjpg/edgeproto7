@@ -153,88 +153,86 @@ function ChartLegend({
 }
 
 function PriceHistoryChartSkeleton() {
-  const horizontalGridLines = [0, 25, 50, 75, 100];
+  const horizontalGridLines = [
+    { value: 100, position: "1px" },
+    { value: 75, position: "25%" },
+    { value: 50, position: "50%" },
+    { value: 25, position: "75%" },
+    { value: 0, position: "calc(100% - 1px)" },
+  ];
 
   return (
     <div
       aria-hidden="true"
-      className="h-[260px] w-full min-w-0 animate-pulse overflow-visible"
+      className="relative h-[260px] w-full min-w-0 animate-pulse overflow-visible"
     >
-      <div className="relative h-[224px] w-full overflow-visible">
-        <div className="absolute bottom-[28px] left-11 right-3 top-2 overflow-visible">
-          {horizontalGridLines.map((value) => (
-            <span
-              key={value}
-              className="absolute left-0 right-0 h-px bg-white/[0.06]"
-              style={{
-                top:
-                  value === 0
-                    ? "calc(100% - 1px)"
-                    : value === 100
-                      ? "1px"
-                      : `${100 - value}%`,
-              }}
-            />
-          ))}
-
-          <svg
-            viewBox="0 0 1000 200"
-            preserveAspectRatio="none"
-            className="absolute inset-0 h-full w-full overflow-visible"
+      <div className="absolute bottom-3 left-0 top-2 w-11">
+        {horizontalGridLines.map(({ value, position }) => (
+          <span
+            key={value}
+            className="absolute right-2 -translate-y-1/2 text-[11px] font-medium text-zinc-700"
+            style={{ top: position }}
           >
-            <path
-              d="M0 128 L95 120 L185 139 L280 108 L375 116 L470 81 L565 91 L660 65 L760 75 L855 46 L1000 57"
-              fill="none"
-              stroke="rgba(244,244,245,0.32)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              vectorEffect="non-scaling-stroke"
-            />
-
-            <path
-              d="M0 71 L95 79 L185 60 L280 91 L375 83 L470 118 L565 108 L660 134 L760 124 L855 153 L1000 142"
-              fill="none"
-              stroke="rgba(113,113,122,0.42)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              vectorEffect="non-scaling-stroke"
-            />
-
-            <circle
-              cx="1000"
-              cy="57"
-              r="3.5"
-              fill="rgba(244,244,245,0.32)"
-              stroke="#09090b"
-              strokeWidth="2"
-              vectorEffect="non-scaling-stroke"
-            />
-
-            <circle
-              cx="1000"
-              cy="142"
-              r="3.5"
-              fill="rgba(113,113,122,0.42)"
-              stroke="#09090b"
-              strokeWidth="2"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-        </div>
+            {value}%
+          </span>
+        ))}
       </div>
 
-      <div className="flex h-[36px] items-end justify-center gap-4 pb-1">
-        <div className="flex items-center gap-1.5">
-          <span className="h-[2px] w-4 rounded-full bg-zinc-600/70" />
-          <span className="h-2.5 w-10 rounded-full bg-zinc-800" />
-        </div>
+      <div className="absolute bottom-3 left-11 right-3 top-2 overflow-visible">
+        {horizontalGridLines.map(({ value, position }) => (
+          <span
+            key={value}
+            className="absolute left-0 right-0 h-px bg-white/[0.06]"
+            style={{ top: position }}
+          />
+        ))}
 
-        <div className="flex items-center gap-1.5">
-          <span className="h-[2px] w-4 rounded-full bg-zinc-700" />
-          <span className="h-2.5 w-10 rounded-full bg-zinc-800" />
-        </div>
+        <svg
+          viewBox="0 0 1024 200"
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full overflow-visible"
+          style={{ overflow: "visible" }}
+        >
+          <path
+            d="M0 128 L96 120 L188 139 L284 108 L380 116 L476 81 L572 91 L668 65 L764 75 L860 46 L1008 57"
+            fill="none"
+            stroke="rgba(244,244,245,0.32)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          <path
+            d="M0 71 L96 79 L188 60 L284 91 L380 83 L476 118 L572 108 L668 134 L764 124 L860 153 L1008 142"
+            fill="none"
+            stroke="rgba(113,113,122,0.42)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          <circle
+            cx="1008"
+            cy="57"
+            r="3.5"
+            fill="rgba(244,244,245,0.32)"
+            stroke="#09090b"
+            strokeWidth="2"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          <circle
+            cx="1008"
+            cy="142"
+            r="3.5"
+            fill="rgba(113,113,122,0.42)"
+            stroke="#09090b"
+            strokeWidth="2"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
       </div>
     </div>
   );
@@ -349,7 +347,7 @@ export default function PriceHistoryChart({
         </div>
       </div>
 
-      <div className="relative w-full min-w-0 rounded-2xl">
+      <div className="relative w-full min-w-0 overflow-visible rounded-2xl">
         {showChart ? (
           <motion.div
             initial={{ opacity: 0 }}
