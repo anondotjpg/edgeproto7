@@ -602,7 +602,7 @@ export default function OwnedAccountsSection() {
                             }}
                             className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
                           >
-                            <FiEdit2 className="h-3.5 w-3.5" />
+                            <FiEdit2 className="h-4 w-4" />
                           </button>
 
                           <button
@@ -615,7 +615,7 @@ export default function OwnedAccountsSection() {
                             }}
                             className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
                           >
-                            <FiArrowUpRight className="h-3.5 w-3.5" />
+                            <FiArrowUpRight className="h-4.5 w-4.5" />
                           </button>
                         </div>
                       </div>
