@@ -76,7 +76,7 @@ export default function LeagueTabs({
                 "sm:rounded-full sm:px-4 sm:py-2",
                 isActive
                   ? "text-white"
-                  : "text-zinc-500 sm:text-zinc-300",
+                  : "text-zinc-300",
               ].join(" ")}
             >
               {isActive ? (
