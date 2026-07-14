@@ -418,7 +418,7 @@ function getPaymentSubtitle({
 
 function StatusPill({ status }: { status: DepositInvoiceStatus }) {
   return (
-    <div className="rounded-full bg-zinc-900 px-3 py-1 text-[12px] font-semibold capitalize text-zinc-300">
+    <div className="rounded-full bg-zinc-900 px-3 py-1 text-[12px] font-semibold capitalize text-zinc-300 hidden">
       {getStatusLabel(status)}
     </div>
   );
