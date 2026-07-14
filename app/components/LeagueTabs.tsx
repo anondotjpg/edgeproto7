@@ -88,7 +88,7 @@ export default function LeagueTabs({
                     damping: 34,
                     mass: 0.8,
                   }}
-                  className="absolute inset-0 m-[2px] hidden rounded-lg bg-zinc-800 sm:block"
+                  className="absolute inset-0 m-[2px] hidden rounded-lg bg-zinc-900 sm:block"
                 />
               ) : null}
 
