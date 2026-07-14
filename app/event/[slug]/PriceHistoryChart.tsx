@@ -165,18 +165,14 @@ function PriceHistoryChartSkeleton() {
       >
         <path
           d="
-            M0 126
-            L90 116
-            L180 137
-            L270 120
-            L360 142
-            L450 115
-            L540 139
-            L630 118
-            L720 145
-            L810 121
-            L900 140
-            L1000 124
+            M0 132
+            C52 129, 91 118, 148 123
+            C204 128, 239 143, 303 135
+            C362 127, 401 113, 456 121
+            C514 129, 555 141, 614 133
+            C671 125, 709 109, 767 118
+            C824 127, 861 139, 916 130
+            C953 124, 979 121, 1000 127
           "
           fill="none"
           stroke="rgba(244,244,245,0.3)"
@@ -188,18 +184,14 @@ function PriceHistoryChartSkeleton() {
 
         <path
           d="
-            M0 140
-            L90 145
-            L180 122
-            L270 141
-            L360 119
-            L450 144
-            L540 121
-            L630 143
-            L720 116
-            L810 142
-            L900 120
-            L1000 137
+            M0 139
+            C57 143, 98 135, 153 129
+            C210 123, 246 119, 304 127
+            C362 135, 401 143, 457 136
+            C515 128, 551 116, 613 124
+            C672 132, 708 142, 766 133
+            C825 124, 861 115, 916 122
+            C953 127, 980 138, 1000 135
           "
           fill="none"
           stroke="rgba(113,113,122,0.42)"
@@ -213,7 +205,7 @@ function PriceHistoryChartSkeleton() {
       <span
         className="absolute right-0 h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
         style={{
-          top: `${(124 / 260) * 100}%`,
+          top: `${(127 / 260) * 100}%`,
           backgroundColor: "#f4f4f5",
         }}
       />
@@ -221,7 +213,7 @@ function PriceHistoryChartSkeleton() {
       <span
         className="absolute right-0 h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
         style={{
-          top: `${(137 / 260) * 100}%`,
+          top: `${(135 / 260) * 100}%`,
           backgroundColor: "#71717a",
         }}
       />
