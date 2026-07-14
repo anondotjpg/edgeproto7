@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { FiArrowUpRight } from "react-icons/fi";
 import { FaLock } from "react-icons/fa";
 import BetSlipModal, {
@@ -34,6 +34,10 @@ type MarketSet = {
   overTotal?: OddsOutcome;
   underTotal?: OddsOutcome;
 };
+
+const GAME_START_COUNTDOWN_WINDOW_MS = 3 * 60 * 60 * 1000;
+const useBrowserLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 function formatGameTime(date: string) {
   const formatted = new Date(date).toLocaleString("en-US", {
@@ -180,15 +184,71 @@ function getMatchupDisplayName(game: Game) {
   )} vs. ${getTeamDisplayName(game.home_team, game.home_team_info)}`;
 }
 
-function getGameIsLive(game: Game): boolean {
-  const gameWithLiveStatus = game as GameWithLiveStatus;
+function getMillisecondsUntilGameStart(date: string, now: number) {
+  const startTimestamp = Date.parse(date);
 
-  if (typeof gameWithLiveStatus.isLive === "boolean") {
-    return gameWithLiveStatus.isLive;
+  if (!Number.isFinite(startTimestamp)) return null;
+
+  return startTimestamp - now;
+}
+
+function formatGameStartCountdown(date: string, now: number) {
+  const millisecondsUntilStart = getMillisecondsUntilGameStart(date, now);
+
+  if (
+    millisecondsUntilStart === null ||
+    millisecondsUntilStart <= 0 ||
+    millisecondsUntilStart >= GAME_START_COUNTDOWN_WINDOW_MS
+  ) {
+    return null;
   }
 
-  if (typeof gameWithLiveStatus.is_live === "boolean") {
-    return gameWithLiveStatus.is_live;
+  const totalSeconds = Math.max(1, Math.floor(millisecondsUntilStart / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${String(minutes).padStart(2, "0")}m ${String(
+      seconds,
+    ).padStart(2, "0")}s`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  }
+
+  return `${seconds}s`;
+}
+
+function useCurrentTimestamp(enabled: boolean) {
+  const [now, setNow] = useState<number | null>(null);
+
+  useBrowserLayoutEffect(() => {
+    if (!enabled) {
+      setNow(null);
+      return;
+    }
+
+    const updateNow = () => setNow(Date.now());
+
+    updateNow();
+    const intervalId = window.setInterval(updateNow, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [enabled]);
+
+  return now;
+}
+
+function getGameIsLive(game: Game, now = Date.now()): boolean {
+  const gameWithLiveStatus = game as GameWithLiveStatus;
+
+  if (
+    gameWithLiveStatus.isLive === true ||
+    gameWithLiveStatus.is_live === true
+  ) {
+    return true;
   }
 
   const startTimestamp = Date.parse(game.commence_time);
@@ -197,7 +257,7 @@ function getGameIsLive(game: Game): boolean {
     return false;
   }
 
-  return startTimestamp <= Date.now();
+  return startTimestamp <= now;
 }
 
 function getDesktopLogoClassName(sportKey: string) {
@@ -232,11 +292,17 @@ function getMobileLogoFallbackClassName(sportKey: string) {
   return "h-8 w-8 rounded-sm bg-zinc-950";
 }
 
-function getMarket(bookmaker: Game["bookmakers"][number] | undefined, key: string) {
+function getMarket(
+  bookmaker: Game["bookmakers"][number] | undefined,
+  key: string,
+) {
   return bookmaker?.markets?.find((market) => market.key === key);
 }
 
-function getOutcomeByName(outcomes: OddsOutcome[] | undefined, teamName: string) {
+function getOutcomeByName(
+  outcomes: OddsOutcome[] | undefined,
+  teamName: string,
+) {
   return outcomes?.find((outcome) => outcome.name === teamName);
 }
 
@@ -345,21 +411,25 @@ function buildBetData({
   market,
   outcome,
   teamInfo,
+  now,
 }: {
   game: Game;
   market: OddsMarket;
   outcome?: OddsOutcome;
   teamInfo?: TeamInfo;
+  now?: number | null;
 }): BetSlipDataWithTeamAlias {
   const odds = formatPrice(outcome?.price);
   const impliedPercent = formatImpliedPercent(outcome?.price);
   const selectionLabel = outcome
     ? getOutcomeSelectionLabel({ market, outcome, teamInfo })
     : "Unavailable";
-  const legacySide = market.key === "h2h" ? getLegacyH2hSide(game, outcome) : null;
+  const legacySide =
+    market.key === "h2h" ? getLegacyH2hSide(game, outcome) : null;
   const fallbackOutcomeIndex =
     legacySide === "away" ? 0 : legacySide === "home" ? 1 : null;
-  const marketMeta = market.polymarket ?? (market.key === "h2h" ? game.polymarket : undefined);
+  const marketMeta =
+    market.polymarket ?? (market.key === "h2h" ? game.polymarket : undefined);
   const outcomeIndex = outcome?.polymarketOutcomeIndex ?? fallbackOutcomeIndex;
   const tokenId =
     outcome?.tokenId ??
@@ -382,13 +452,15 @@ function buildBetData({
     market: market.key,
     odds,
     impliedPercent,
-    isLive: getGameIsLive(game),
+    isLive: getGameIsLive(game, now ?? Date.now()),
     matchup: `${getMarketDisplayLabel(market)} • ${game.away_team} vs. ${game.home_team}`,
     matchupAlias: `${getMarketDisplayLabel(market)} • ${getMatchupDisplayName(game)}`,
-    polymarketEventId: marketMeta?.event_id ?? game.polymarket?.event_id ?? null,
+    polymarketEventId:
+      marketMeta?.event_id ?? game.polymarket?.event_id ?? null,
     polymarketEventSlug:
       marketMeta?.event_slug ?? game.polymarket?.event_slug ?? null,
-    polymarketMarketId: marketMeta?.market_id ?? game.polymarket?.market_id ?? null,
+    polymarketMarketId:
+      marketMeta?.market_id ?? game.polymarket?.market_id ?? null,
     polymarketConditionId:
       marketMeta?.condition_id ?? game.polymarket?.condition_id ?? null,
     polymarketMarketSlug:
@@ -415,7 +487,13 @@ function isBetSelected(
   );
 }
 
-function EventHeader({ game }: { game: Game }) {
+function EventHeader({ game, now }: { game: Game; now: number | null }) {
+  const isLive = now !== null && getGameIsLive(game, now);
+  const countdown =
+    now === null || isLive
+      ? null
+      : formatGameStartCountdown(game.commence_time, now);
+
   return (
     <div className="relative text-center">
       <Link
@@ -436,9 +514,34 @@ function EventHeader({ game }: { game: Game }) {
         {getMatchupDisplayName(game)}
       </h1>
 
-      <p className="mt-2 text-[13px] text-zinc-400 sm:mt-3 sm:text-sm">
-        {formatGameTime(game.commence_time)}
-      </p>
+      <div
+        className={[
+          "mt-2 inline-flex h-5 items-center text-[13px] leading-none sm:mt-3 sm:text-sm",
+          now === null ? "invisible" : "",
+          isLive
+            ? "gap-1.5 font-medium text-zinc-100"
+            : countdown
+              ? "font-semibold tabular-nums text-zinc-100"
+              : "text-zinc-400",
+        ].join(" ")}
+        title={isLive ? "Live now" : formatGameTime(game.commence_time)}
+        aria-label={
+          isLive
+            ? "Live now"
+            : countdown
+              ? `Starts in ${countdown}`
+              : `Starts at ${formatGameTime(game.commence_time)}`
+        }
+      >
+        {isLive ? (
+          <>
+            <span className="h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.55)]" />
+            <span>LIVE</span>
+          </>
+        ) : (
+          (countdown ?? formatGameTime(game.commence_time))
+        )}
+      </div>
     </div>
   );
 }
@@ -546,7 +649,10 @@ function MobileMarketModalButton({
   label: string;
 }) {
   return (
-    <div className="group relative rounded-lg bg-zinc-800" style={{ paddingBottom: "4px" }}>
+    <div
+      className="group relative rounded-lg bg-zinc-800"
+      style={{ paddingBottom: "4px" }}
+    >
       <BetSlipModal
         {...betData}
         teamColor={betData.teamColor}
@@ -585,8 +691,8 @@ function MobileMatchupCard({
   homeBetData: BetSlipDataWithTeamAlias;
 }) {
   return (
-    <article className="relative rounded-xl border border-zinc-800 p-2.5 md:hidden">
-      <div className="px-0.5">
+    <article className="relative md:hidden">
+      <div>
         <MobileTeamRow
           team={game.away_team}
           info={game.away_team_info}
@@ -646,7 +752,7 @@ function MobileExtraMarketsCard({
   if (!hasSpread && !hasTotal) return null;
 
   return (
-    <article className="grid gap-3 rounded-xl border border-zinc-800 p-2.5 md:hidden">
+    <article className="grid gap-3 md:hidden">
       <div className="px-0.5 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500 hidden">
         More Markets
       </div>
@@ -708,7 +814,10 @@ function MobileExtraMarketsCard({
               betData={underTotalBetData}
               label={
                 total && underTotal
-                  ? getOutcomeButtonLabel({ market: total, outcome: underTotal })
+                  ? getOutcomeButtonLabel({
+                      market: total,
+                      outcome: underTotal,
+                    })
                   : "Under"
               }
             />
@@ -794,11 +903,7 @@ function MarketFace({
         className={[
           "flex h-[42px] w-full translate-y-[-2px] items-center overflow-hidden rounded-lg px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
           centerContent ? "justify-center gap-1.5" : "justify-between gap-1",
-          isLive
-            ? "bg-zinc-900"
-            : selected
-              ? "bg-zinc-700"
-              : "bg-zinc-900",
+          isLive ? "bg-zinc-900" : selected ? "bg-zinc-700" : "bg-zinc-900",
         ].join(" ")}
         style={faceStyle}
       >
@@ -874,7 +979,9 @@ function DesktopMarketCell({
           <div
             className={[
               "pointer-events-none absolute inset-0 flex translate-y-[-2px] items-center rounded-lg px-2.5 transition-transform duration-100 will-change-transform peer-hover:translate-y-[-1px] peer-active:translate-y-0 group-hover:translate-y-[-1px] group-active:translate-y-0",
-              centerContent ? "justify-center gap-1.5" : "justify-between gap-1",
+              centerContent
+                ? "justify-center gap-1.5"
+                : "justify-between gap-1",
               isLive ? "bg-zinc-900" : selected ? "bg-zinc-700" : "bg-zinc-900",
             ].join(" ")}
             style={faceStyle}
@@ -963,7 +1070,7 @@ function DesktopMarketsBoard({
             label={getTeamTicker(game.away_team, game.away_team_info)}
             selected={Boolean(
               betData.awayMoneyline &&
-                isBetSelected(selectedBet, betData.awayMoneyline),
+              isBetSelected(selectedBet, betData.awayMoneyline),
             )}
             onSelect={() => {
               if (betData.awayMoneyline) onSelectBet(betData.awayMoneyline);
@@ -983,7 +1090,8 @@ function DesktopMarketsBoard({
                 : "—"
             }
             selected={Boolean(
-              betData.awaySpread && isBetSelected(selectedBet, betData.awaySpread),
+              betData.awaySpread &&
+              isBetSelected(selectedBet, betData.awaySpread),
             )}
             onSelect={() => {
               if (betData.awaySpread) onSelectBet(betData.awaySpread);
@@ -1001,7 +1109,8 @@ function DesktopMarketsBoard({
                 : "—"
             }
             selected={Boolean(
-              betData.overTotal && isBetSelected(selectedBet, betData.overTotal),
+              betData.overTotal &&
+              isBetSelected(selectedBet, betData.overTotal),
             )}
             onSelect={() => {
               if (betData.overTotal) onSelectBet(betData.overTotal);
@@ -1021,7 +1130,7 @@ function DesktopMarketsBoard({
             label={getTeamTicker(game.home_team, game.home_team_info)}
             selected={Boolean(
               betData.homeMoneyline &&
-                isBetSelected(selectedBet, betData.homeMoneyline),
+              isBetSelected(selectedBet, betData.homeMoneyline),
             )}
             onSelect={() => {
               if (betData.homeMoneyline) onSelectBet(betData.homeMoneyline);
@@ -1041,7 +1150,8 @@ function DesktopMarketsBoard({
                 : "—"
             }
             selected={Boolean(
-              betData.homeSpread && isBetSelected(selectedBet, betData.homeSpread),
+              betData.homeSpread &&
+              isBetSelected(selectedBet, betData.homeSpread),
             )}
             onSelect={() => {
               if (betData.homeSpread) onSelectBet(betData.homeSpread);
@@ -1059,7 +1169,8 @@ function DesktopMarketsBoard({
                 : "—"
             }
             selected={Boolean(
-              betData.underTotal && isBetSelected(selectedBet, betData.underTotal),
+              betData.underTotal &&
+              isBetSelected(selectedBet, betData.underTotal),
             )}
             onSelect={() => {
               if (betData.underTotal) onSelectBet(betData.underTotal);
@@ -1097,6 +1208,7 @@ export default function EventBettingClient({
   game: Game;
   children?: ReactNode;
 }) {
+  const now = useCurrentTimestamp(true);
   const marketSet = useMemo(() => getMarketSet(game), [game]);
 
   const betData = useMemo(() => {
@@ -1108,6 +1220,7 @@ export default function EventBettingClient({
               market: marketSet.h2h,
               outcome: marketSet.awayMoneyline,
               teamInfo: game.away_team_info,
+              now,
             })
           : undefined,
       homeMoneyline:
@@ -1117,6 +1230,7 @@ export default function EventBettingClient({
               market: marketSet.h2h,
               outcome: marketSet.homeMoneyline,
               teamInfo: game.home_team_info,
+              now,
             })
           : undefined,
       awaySpread:
@@ -1126,6 +1240,7 @@ export default function EventBettingClient({
               market: marketSet.spread,
               outcome: marketSet.awaySpread,
               teamInfo: game.away_team_info,
+              now,
             })
           : undefined,
       homeSpread:
@@ -1135,6 +1250,7 @@ export default function EventBettingClient({
               market: marketSet.spread,
               outcome: marketSet.homeSpread,
               teamInfo: game.home_team_info,
+              now,
             })
           : undefined,
       overTotal:
@@ -1143,6 +1259,7 @@ export default function EventBettingClient({
               game,
               market: marketSet.total,
               outcome: marketSet.overTotal,
+              now,
             })
           : undefined,
       underTotal:
@@ -1151,10 +1268,11 @@ export default function EventBettingClient({
               game,
               market: marketSet.total,
               outcome: marketSet.underTotal,
+              now,
             })
           : undefined,
     };
-  }, [game, marketSet]);
+  }, [game, marketSet, now]);
 
   const firstBet = useMemo(() => getFirstAvailableBet(betData), [betData]);
 
@@ -1162,14 +1280,26 @@ export default function EventBettingClient({
     useState<BetSlipDataWithTeamAlias | null>(firstBet);
 
   useEffect(() => {
-    setSelectedBet(firstBet);
-  }, [firstBet]);
+    const availableBets = Object.values(betData).filter(
+      (bet): bet is BetSlipDataWithTeamAlias => Boolean(bet),
+    );
+
+    setSelectedBet((current) => {
+      if (!current) return firstBet;
+
+      const refreshedBet = availableBets.find((bet) =>
+        isBetSelected(current, bet),
+      );
+
+      return refreshedBet ?? firstBet;
+    });
+  }, [betData, firstBet]);
 
   return (
     <div className="mt-5 grid gap-5 md:mt-8 md:gap-6 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start xl:justify-center">
       <main className="min-w-0">
         <section className="space-y-3 md:space-y-4">
-          <EventHeader game={game} />
+          <EventHeader game={game} now={now} />
 
           {betData.awayMoneyline && betData.homeMoneyline ? (
             <MobileMatchupCard

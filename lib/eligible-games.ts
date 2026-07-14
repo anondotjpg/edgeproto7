@@ -214,6 +214,16 @@ function cleanText(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
+function formatTeamName(value: string) {
+  const cleaned = cleanText(value);
+
+  if (cleaned === "PortlandFire") {
+    return "Portland Fire";
+  }
+
+  return cleaned;
+}
+
 function normalize(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
@@ -235,8 +245,8 @@ function parseTeams(text: string): { away: string; home: string } | null {
     if (!parts[0] || !parts[1]) continue;
 
     return {
-      away: parts[0],
-      home: parts[1],
+      away: formatTeamName(parts[0]),
+      home: formatTeamName(parts[1]),
     };
   }
 
@@ -295,10 +305,13 @@ function extractSlugTokens(
 }
 
 function makeTeamInfo(team: PolymarketTeam): TeamInfo {
+  const rawName =
+    team.name || team.alias || team.abbreviation || "Unknown Team";
+
   return {
-    name: team.name || team.alias || team.abbreviation || "Unknown Team",
+    name: formatTeamName(rawName),
     abbreviation: team.abbreviation || undefined,
-    alias: team.alias || undefined,
+    alias: team.alias ? formatTeamName(team.alias) : undefined,
     record: team.record || undefined,
     logo: team.logo || undefined,
     color: team.color || undefined,
