@@ -132,6 +132,10 @@ function getBetDisplayTeamLogoAlt({
   return teamLogoAlt ?? team;
 }
 
+function formatUiTeamName(value: string) {
+  return value.replace(/\bPortlandFire\b/g, "Portland Fire");
+}
+
 function getTeamDisplayName(team: string, teamAlias?: string | null) {
   const cleanAlias = teamAlias?.trim();
 
@@ -545,13 +549,15 @@ const BetSlipHeader = memo(function BetSlipHeader({
   mobileLayout: boolean;
   panelMode: "modal" | "sidebar";
 }) {
-  const displayTeam = getTeamDisplayName(team, teamAlias);
-  const displayMatchup = getMatchupDisplayName({
-    matchup,
-    matchupAlias,
-    team,
-    teamAlias,
-  });
+  const displayTeam = formatUiTeamName(getTeamDisplayName(team, teamAlias));
+  const displayMatchup = formatUiTeamName(
+    getMatchupDisplayName({
+      matchup,
+      matchupAlias,
+      team,
+      teamAlias,
+    }),
+  );
   const isMobileDrawer = mobileLayout && panelMode === "modal";
 
   return (
@@ -570,7 +576,7 @@ const BetSlipHeader = memo(function BetSlipHeader({
         {teamLogo ? (
           <img
             src={teamLogo}
-            alt={teamLogoAlt ?? displayTeam}
+            alt={formatUiTeamName(teamLogoAlt ?? displayTeam)}
             className={[
               "shrink-0 object-contain rounded-md",
               panelMode === "sidebar" ? "h-11 w-11" : "h-13 w-13",
@@ -1876,9 +1882,8 @@ export function BetSlipPanel({
       }
 
       toast("Bet placed", {
-        description: `${formatMoney(stake)} on ${getTeamDisplayName(
-          currentBet.team,
-          currentBet.teamAlias,
+        description: `${formatMoney(stake)} on ${formatUiTeamName(
+          getTeamDisplayName(currentBet.team, currentBet.teamAlias),
         )}`,
       });
 

@@ -48,6 +48,10 @@ function formatOdds(odds: number) {
   return odds > 0 ? `+${odds}` : `${odds}`;
 }
 
+function formatUiTeamName(value: string) {
+  return value.replace(/\bPortlandFire\b/g, "Portland Fire");
+}
+
 function formatMoneyInteger(value: number | null | undefined) {
   const safeValue = Number(value ?? 0);
 
@@ -186,7 +190,7 @@ function TeamLogo({ bet }: { bet: Bet }) {
     return (
       <img
         src={bet.team_logo}
-        alt={bet.team_logo_alt || bet.selection}
+        alt={formatUiTeamName(bet.team_logo_alt || bet.selection)}
         className="h-11 w-11 shrink-0 rounded-md object-contain lg:h-9 lg:w-9"
       />
     );
@@ -204,7 +208,7 @@ function TeamCell({ bet }: { bet: Bet }) {
 
       <div className="min-w-0">
         <div className="truncate text-sm font-semibold text-zinc-100">
-          {bet.selection}
+          {formatUiTeamName(bet.selection)}
         </div>
         <Link
           href={`/accounts/${bet.account_id}`}
@@ -228,7 +232,7 @@ function MobileBetTop({ bet }: { bet: Bet }) {
 
       <div className="min-w-0 flex-1 pr-2">
         <div className="h-6 truncate text-[17px] font-semibold leading-6 text-zinc-100">
-          {bet.selection}
+          {formatUiTeamName(bet.selection)}
         </div>
 
         <Link

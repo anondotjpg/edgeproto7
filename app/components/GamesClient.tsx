@@ -269,6 +269,10 @@ function getTeamTicker(team: string, info?: TeamInfo) {
   return team.slice(0, 3).toUpperCase();
 }
 
+function formatUiTeamName(value: string) {
+  return value.replace(/\bPortlandFire\b/g, "Portland Fire");
+}
+
 function getTeamDisplayName(team: string, info?: TeamInfo) {
   const cleanAlias = info?.alias?.trim();
 
@@ -601,14 +605,14 @@ function TeamRow({
   info?: TeamInfo;
   sportKey: string;
 }) {
-  const displayName = getTeamDisplayName(team, info);
+  const displayName = formatUiTeamName(getTeamDisplayName(team, info));
 
   return (
     <div className="flex h-[42px] items-center gap-2 px-0 py-0.5 lg:h-[46px] lg:gap-2.5 lg:px-2 lg:py-1">
       {info?.logo ? (
         <img
           src={info.logo}
-          alt={info.name}
+          alt={formatUiTeamName(info.name)}
           className={getLogoClassName(sportKey)}
         />
       ) : (

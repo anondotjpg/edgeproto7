@@ -180,6 +180,10 @@ function getTeamTicker(team: string, info?: TeamInfo) {
   return team.slice(0, 3).toUpperCase();
 }
 
+function formatUiTeamName(value: string) {
+  return value.replace(/\bPortlandFire\b/g, "Portland Fire");
+}
+
 function getTeamDisplayName(team: string, info?: TeamInfo) {
   const cleanAlias = info?.alias?.trim();
 
@@ -527,7 +531,9 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
 
       <h1 className="mx-auto mt-2 max-w-[680px] text-[30px] font-semibold leading-[0.96] tracking-tight text-white md:hidden">
         <span className="block break-words">
-          {getTeamDisplayName(game.away_team, game.away_team_info)}
+          {formatUiTeamName(
+            getTeamDisplayName(game.away_team, game.away_team_info),
+          )}
         </span>
 
         <span className="my-1.5 block text-[15px] font-medium leading-none tracking-normal text-zinc-500">
@@ -535,12 +541,14 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
         </span>
 
         <span className="block break-words">
-          {getTeamDisplayName(game.home_team, game.home_team_info)}
+          {formatUiTeamName(
+            getTeamDisplayName(game.home_team, game.home_team_info),
+          )}
         </span>
       </h1>
 
       <h1 className="mx-auto mt-3 hidden max-w-[680px] text-balance text-[42px] font-semibold leading-[0.96] tracking-tight text-white md:block">
-        {getMatchupDisplayName(game)}
+        {formatUiTeamName(getMatchupDisplayName(game))}
       </h1>
 
       <div
@@ -606,7 +614,7 @@ function MobileTeamRow({
       {info?.logo ? (
         <img
           src={info.logo}
-          alt={info.name || team}
+          alt={formatUiTeamName(info.name || team)}
           className={getMobileLogoClassName(sportKey)}
         />
       ) : (
@@ -615,7 +623,7 @@ function MobileTeamRow({
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <div className="min-w-0 truncate text-[14px] font-semibold leading-tight text-zinc-100">
-          {info?.name || team}
+          {formatUiTeamName(info?.name || team)}
         </div>
 
         {info?.record ? (
@@ -896,7 +904,7 @@ function DesktopTeamCell({
       {info?.logo ? (
         <img
           src={info.logo}
-          alt={info.name || team}
+          alt={formatUiTeamName(info.name || team)}
           className={getDesktopLogoClassName(sportKey)}
         />
       ) : (
@@ -905,7 +913,7 @@ function DesktopTeamCell({
 
       <div className="flex min-w-0 flex-col justify-center">
         <div className="truncate text-[16px] font-semibold leading-tight tracking-tight text-zinc-50 md:text-[18px] xl:text-[19px]">
-          {info?.name || team}
+          {formatUiTeamName(info?.name || team)}
         </div>
 
         <div
