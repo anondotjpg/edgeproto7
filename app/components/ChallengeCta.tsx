@@ -881,7 +881,7 @@ function CheckoutContent({
                     </div>
 
                     <p className="pr-10 text-[12px] font-medium text-zinc-500">
-                      Send quoted amount
+                      Send
                     </p>
 
                     <div className="mt-1.5 flex flex-wrap items-end gap-x-2 gap-y-1 pr-10">
