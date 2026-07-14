@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { useLogin, usePrivy } from "@privy-io/react-auth";
 import { toast } from "sonner";
 import { FiCheck, FiCopy } from "react-icons/fi";
-import { MdAccountBalanceWallet } from "react-icons/md";
 import type { PlanKey } from "@/lib/plans";
 import {
   Drawer,
@@ -112,7 +111,8 @@ type PromoValidateErrorResponse = {
 };
 
 type PromoValidateResponse =
-  PromoValidateSuccessResponse | PromoValidateErrorResponse;
+  | PromoValidateSuccessResponse
+  | PromoValidateErrorResponse;
 
 function isPromoValidateSuccess(
   value: PromoValidateResponse | null,
@@ -146,6 +146,13 @@ const PLAN_FEE_CENTS: Partial<Record<PlanKey, number>> = {
   "5000": 17900,
   "2000": 8900,
   "1000": 4900,
+};
+
+const PLAN_IMAGE_SRC: Record<PlanKey, string> = {
+  "10000": "/10k.png",
+  "5000": "/5k.png",
+  "2000": "/2k.png",
+  "1000": "/1k.png",
 };
 
 const MAX_ACCOUNT_QUANTITY = 5;
@@ -287,70 +294,30 @@ function normalizePromoInput(value: string) {
   return value.toUpperCase().replace(/\s+/g, "");
 }
 
-function getAccountTitle(planKey: PlanKey) {
-  const accountSize = Number(planKey);
-
-  if (!Number.isFinite(accountSize) || accountSize <= 0) {
-    return "Account";
-  }
-
-  return `${accountSize / 1000}K Account`;
-}
-
-function getAccountIconClassName(planKey: PlanKey) {
-  if (planKey === "10000") {
-    return "text-[#d7a83a]";
-  }
-
-  if (planKey === "5000") {
-    return "text-zinc-300";
-  }
-
-  return "text-zinc-500";
-}
-
 function AccountHero({
-  accountTitle,
   feeLabel,
   planKey,
 }: {
-  accountTitle: string;
   feeLabel: string;
   planKey: PlanKey;
 }) {
   return (
-    <div className="px-0">
-      <div className="flex min-h-[48px] items-center justify-between gap-5">
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-medium uppercase leading-none tracking-[0.16em] text-zinc-600">
-            Challenge
-          </p>
-
-          <div className="mt-2 flex min-w-0 items-center gap-1.5">
-            <MdAccountBalanceWallet
-              aria-hidden="true"
-              className={[
-                "h-[19px] w-[19px] shrink-0",
-                getAccountIconClassName(planKey),
-              ].join(" ")}
-            />
-
-            <h2 className="truncate text-[17px] font-semibold leading-5 tracking-[-0.015em] text-zinc-100">
-              {accountTitle}
-            </h2>
-          </div>
-        </div>
-
-        <div className="shrink-0 text-right">
-          <p className="text-[10px] font-medium uppercase leading-none tracking-[0.16em] text-zinc-600">
-            Fee
-          </p>
-
-          <p className="mt-2 text-[24px] font-semibold leading-none tracking-[-0.03em] text-zinc-50 tabular-nums">
-            {feeLabel}
-          </p>
-        </div>
+    <div className="flex min-h-[48px] items-start justify-between gap-5">
+      <div className="flex min-w-0 flex-1 items-start">
+        <Image
+          src={PLAN_IMAGE_SRC[planKey]}
+          alt={`${Number(planKey) / 1000}K challenge`}
+          width={128}
+          height={52}
+          sizes="128px"
+          className="h-11 w-auto max-w-[132px] object-contain object-left"
+          priority
+        />
       </div>
+
+      <p className="shrink-0 self-start text-right text-[24px] font-semibold leading-none tracking-[-0.03em] text-zinc-50 tabular-nums">
+        {feeLabel}
+      </p>
     </div>
   );
 }
@@ -631,12 +598,12 @@ function QuantitySelector({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center rounded-2xl bg-zinc-900/70 p-1">
+        <div className="flex shrink-0 items-center">
           <button
             type="button"
             onClick={() => adjustQuantity(-1)}
             disabled={disabled || safeQuantity <= 1}
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-xl text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
+            className="grid h-8 w-8 cursor-pointer place-items-center bg-transparent text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Decrease account quantity"
           >
             −
@@ -650,7 +617,7 @@ function QuantitySelector({
             type="button"
             onClick={() => adjustQuantity(1)}
             disabled={disabled || safeQuantity >= MAX_ACCOUNT_QUANTITY}
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-xl text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
+            className="grid h-8 w-8 cursor-pointer place-items-center bg-transparent text-[18px] font-semibold leading-none text-zinc-300 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Increase account quantity"
           >
             +
@@ -662,7 +629,6 @@ function QuantitySelector({
 }
 
 function CheckoutContent({
-  accountTitle,
   feeLabel,
   planKey,
   accountQuantity,
@@ -682,7 +648,6 @@ function CheckoutContent({
   onPromoCodeChange,
   applyPromoCode,
 }: {
-  accountTitle: string;
   feeLabel: string;
   planKey: PlanKey;
   accountQuantity: number;
@@ -721,11 +686,7 @@ function CheckoutContent({
       transition={CHECKOUT_LAYOUT_TRANSITION}
       className="overflow-hidden"
     >
-      <AccountHero
-        accountTitle={accountTitle}
-        feeLabel={displayFeeLabel}
-        planKey={planKey}
-      />
+      <AccountHero feeLabel={displayFeeLabel} planKey={planKey} />
 
       <motion.div
         layout="size"
@@ -1067,7 +1028,6 @@ export default function ChallengeCta({
       : internalAccountQuantity,
   );
 
-  const accountTitle = getAccountTitle(planKey);
   const feeLabel = getPlanFeeLabel(planKey);
   const displayFeeLabel = getDiscountedFeeLabel({
     feeLabel,
@@ -1423,7 +1383,6 @@ export default function ChallengeCta({
 
   const checkoutContent = (
     <CheckoutContent
-      accountTitle={accountTitle}
       feeLabel={feeLabel}
       planKey={planKey}
       accountQuantity={accountQuantity}
