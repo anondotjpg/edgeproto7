@@ -135,7 +135,7 @@ function MobileQuantitySelector({
 }) {
   return (
     <div
-      className="flex h-[46px] shrink-0 items-center rounded-2xl bg-zinc-900/70 p-[1px]"
+      className="flex h-[46px] shrink-0 items-center rounded-2xl p-[1px]"
       aria-label="Account quantity"
     >
       <div className="flex h-full items-center">
