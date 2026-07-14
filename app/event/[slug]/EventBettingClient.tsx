@@ -525,7 +525,21 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
         {game.sport_title}
       </div>
 
-      <h1 className="mx-auto mt-2 max-w-[680px] text-balance text-[30px] font-semibold leading-[0.96] tracking-tight text-white sm:mt-3 sm:text-[38px] md:text-[42px]">
+      <h1 className="mx-auto mt-2 max-w-[680px] text-[30px] font-semibold leading-[0.96] tracking-tight text-white md:hidden">
+        <span className="block break-words">
+          {getTeamDisplayName(game.away_team, game.away_team_info)}
+        </span>
+
+        <span className="my-1.5 block text-[15px] font-medium leading-none tracking-normal text-zinc-500">
+          vs.
+        </span>
+
+        <span className="block break-words">
+          {getTeamDisplayName(game.home_team, game.home_team_info)}
+        </span>
+      </h1>
+
+      <h1 className="mx-auto mt-3 hidden max-w-[680px] text-balance text-[42px] font-semibold leading-[0.96] tracking-tight text-white md:block">
         {getMatchupDisplayName(game)}
       </h1>
 
