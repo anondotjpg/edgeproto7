@@ -390,30 +390,30 @@ function getPaymentSubtitle({
   isPromoInvoice: boolean;
 }) {
   if (isPromoInvoice) {
-    return "Your promo code covered the full evaluation fee.";
+    return "Your promo code covered the full evaluation fee";
   }
 
   if (invoice.status === "paid") {
-    return "Payment complete. Your account is ready.";
+    return "Payment complete";
   }
 
   if (invoice.status === "underpaid") {
-    return "Payment settled below the minimum accepted amount.";
+    return "Payment settled below the minimum accepted amount";
   }
 
   if (invoice.status === "expired") {
-    return "This deposit quote expired before payment was detected.";
+    return "This deposit quote expired before payment was detected";
   }
 
   if (invoice.status === "refunded") {
-    return "Relay refunded this payment.";
+    return "Relay refunded this payment";
   }
 
   if (invoice.status === "failed" || invoice.status === "invalid") {
-    return "This payment could not be completed.";
+    return "This payment could not be completed";
   }
 
-  return "Send the quoted amount.";
+  return "Send the quoted amount";
 }
 
 function StatusPill({ status }: { status: DepositInvoiceStatus }) {
