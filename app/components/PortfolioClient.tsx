@@ -700,7 +700,7 @@ export default function PortfolioClient() {
         <PortfolioSkeleton />
       ) : !authenticated ? (
         <EmptyState
-          title="Sign in to view your portfolio"
+          title="Sign in to view"
           description="Open and past positions will appear here."
           action={
             <button

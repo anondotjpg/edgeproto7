@@ -427,7 +427,7 @@ export default function PayoutsPage() {
     return (
       <PageLayout>
         <EmptyState
-          title="Sign in to view funded payouts"
+          title="Sign in to view"
           description="Funded account balances and payout performance will appear here."
           action={
             <button

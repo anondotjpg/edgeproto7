@@ -1244,7 +1244,7 @@ export default function DepositsPage() {
           <DepositsSkeleton />
         ) : !authenticated ? (
           <EmptyState
-            title="Sign in to view your deposits"
+            title="Sign in to view"
             description="Open and past crypto deposits will appear here."
             action={
               <button
