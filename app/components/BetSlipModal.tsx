@@ -90,11 +90,13 @@ export type BetSlipData = {
 
 type BetSlipModalProps = BetSlipData & {
   colorsEnabled?: boolean;
+  goldEnabled?: boolean;
   triggerClassName?: string;
   triggerContentClassName?: string;
 };
 
 const TOTAL_BET_LOGO_SRC = "/over.png";
+const GOLD_MARKET_COLOR = "#cfa13a";
 
 function isTotalBetMarket(market?: string | null) {
   const normalizedMarket = String(market ?? "").toLowerCase();
@@ -675,6 +677,7 @@ function OffsetPlaceBetButton({
   holdProgress,
   panelMode,
   teamColor,
+  darkText = false,
   onPlaceBet,
   onPointerDown,
   onPointerUp,
@@ -688,6 +691,7 @@ function OffsetPlaceBetButton({
   holdProgress: number;
   panelMode: "modal" | "sidebar";
   teamColor?: string | null;
+  darkText?: boolean;
   onPlaceBet: () => void;
   onPointerDown: (event: PointerEvent<HTMLButtonElement>) => void;
   onPointerUp: () => void;
@@ -732,7 +736,10 @@ function OffsetPlaceBetButton({
           onPointerLeave={onPointerLeave}
           onPointerCancel={onPointerCancel}
           disabled={disabled}
-          className="relative h-16 w-full cursor-pointer select-none overflow-hidden rounded-xl bg-zinc-900 text-[16px] font-semibold text-zinc-100 disabled:cursor-not-allowed"
+          className={[
+            "relative h-16 w-full cursor-pointer select-none overflow-hidden rounded-xl bg-zinc-900 text-[16px] font-semibold disabled:cursor-not-allowed",
+            darkText ? "text-[#120d02]" : "text-zinc-100",
+          ].join(" ")}
           style={faceStyle}
         >
           <span
@@ -778,7 +785,8 @@ function OffsetPlaceBetButton({
         onPointerCancel={onPointerCancel}
         disabled={disabled}
         className={[
-          "relative w-full translate-y-[-2px] cursor-pointer select-none overflow-hidden rounded-xl bg-zinc-900 font-semibold text-zinc-100 transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed",
+          "relative w-full translate-y-[-2px] cursor-pointer select-none overflow-hidden rounded-xl bg-zinc-900 font-semibold transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed",
+          darkText ? "text-[#120d02]" : "text-zinc-100",
           panelMode === "sidebar" ? "h-12 text-[15px]" : "h-12 text-[15px]",
         ].join(" ")}
         style={faceStyle}
@@ -1071,6 +1079,7 @@ function BetSlipControls({
   mobileLayout,
   panelMode,
   teamColor,
+  darkText,
   onToggleAccount,
   onAmountChange,
   onQuickAmount,
@@ -1094,6 +1103,7 @@ function BetSlipControls({
   mobileLayout: boolean;
   panelMode: "modal" | "sidebar";
   teamColor?: string | null;
+  darkText: boolean;
   onToggleAccount: (accountId: string) => void;
   onAmountChange: (value: number | readonly number[]) => void;
   onQuickAmount: (percent: number) => void;
@@ -1397,6 +1407,7 @@ function BetSlipControls({
         holdProgress={holdProgress}
         panelMode={panelMode}
         teamColor={teamColor}
+        darkText={darkText}
         onPlaceBet={onPlaceBet}
         onPointerDown={beginHoldToPlace}
         onPointerUp={cancelHoldToPlace}
@@ -1427,6 +1438,7 @@ const MemoBetSlipControls = memo(BetSlipControls, (prev, next) => {
     prev.mobileLayout === next.mobileLayout &&
     prev.panelMode === next.panelMode &&
     prev.teamColor === next.teamColor &&
+    prev.darkText === next.darkText &&
     prev.onToggleAccount === next.onToggleAccount &&
     prev.onAmountChange === next.onAmountChange &&
     prev.onQuickAmount === next.onQuickAmount &&
@@ -1461,6 +1473,7 @@ function BetSlipContent({
   mobileLayout,
   panelMode,
   teamColor,
+  darkText,
   onToggleAccount,
   onAmountChange,
   onQuickAmount,
@@ -1493,6 +1506,7 @@ function BetSlipContent({
   mobileLayout: boolean;
   panelMode: "modal" | "sidebar";
   teamColor?: string | null;
+  darkText: boolean;
   onToggleAccount: (accountId: string) => void;
   onAmountChange: (value: number | readonly number[]) => void;
   onQuickAmount: (percent: number) => void;
@@ -1533,6 +1547,7 @@ function BetSlipContent({
         mobileLayout={mobileLayout}
         panelMode={panelMode}
         teamColor={teamColor}
+        darkText={darkText}
         onToggleAccount={onToggleAccount}
         onAmountChange={onAmountChange}
         onQuickAmount={onQuickAmount}
@@ -1546,11 +1561,13 @@ export function BetSlipPanel({
   enabled = true,
   panelMode = "modal",
   colorsEnabled = true,
+  goldEnabled = false,
   onPlaced,
   ...bet
 }: BetSlipData & {
   enabled?: boolean;
   colorsEnabled?: boolean;
+  goldEnabled?: boolean;
   panelMode?: "modal" | "sidebar";
   onPlaced?: () => void;
 }) {
@@ -1569,6 +1586,9 @@ export function BetSlipPanel({
   const stake = Number(amount);
   const amountValue = Number.isFinite(stake) ? stake : 0;
   const isGameStarted = Boolean(bet.isLive);
+  const isGoldMoneyline = Boolean(
+    goldEnabled && bet.market === "h2h" && !isGameStarted,
+  );
 
   useEffect(() => {
     betRef.current = bet;
@@ -1947,7 +1967,14 @@ export function BetSlipPanel({
       ruleWarning={ruleWarning}
       mobileLayout={isMobile}
       panelMode={panelMode}
-      teamColor={colorsEnabled ? bet.teamColor : null}
+      teamColor={
+        isGoldMoneyline
+          ? GOLD_MARKET_COLOR
+          : colorsEnabled
+            ? bet.teamColor
+            : null
+      }
+      darkText={isGoldMoneyline}
       onToggleAccount={toggleAccount}
       onAmountChange={handleSliderAmountChange}
       onQuickAmount={handleQuickAmount}
@@ -1970,6 +1997,7 @@ export default function BetSlipModal({
   triggerClassName,
   triggerContentClassName,
   colorsEnabled = true,
+  goldEnabled = false,
   ...bet
 }: BetSlipModalProps) {
   const isMobile = useIsMobile();
@@ -2038,6 +2066,7 @@ export default function BetSlipModal({
                   {...bet}
                   enabled={open}
                   colorsEnabled={colorsEnabled}
+                  goldEnabled={goldEnabled}
                   panelMode="modal"
                   onPlaced={closeBetSlip}
                 />
@@ -2059,6 +2088,7 @@ export default function BetSlipModal({
               {...bet}
               enabled={open}
               colorsEnabled={colorsEnabled}
+              goldEnabled={goldEnabled}
               panelMode="modal"
               onPlaced={closeBetSlip}
             />

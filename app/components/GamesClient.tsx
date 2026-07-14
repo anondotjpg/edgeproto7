@@ -86,6 +86,8 @@ type GameWithLiveStatus = Game & {
 
 const HIDE_LIVE_GAMES_STORAGE_KEY = "edge:hide-live-games";
 const MARKET_COLORS_STORAGE_KEY = "edge:market-colors-enabled";
+const GOLD_MARKETS_STORAGE_KEY = "edge:gold-markets-enabled";
+const GOLD_MARKET_COLOR = "#cfa13a";
 const GAME_START_COUNTDOWN_WINDOW_MS = 3 * 60 * 60 * 1000;
 const useBrowserLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
@@ -129,6 +131,29 @@ function writeStoredMarketColorsEnabled(value: boolean) {
   try {
     window.localStorage.setItem(
       MARKET_COLORS_STORAGE_KEY,
+      value ? "true" : "false",
+    );
+  } catch {
+    // Ignore storage failures so the toggle still works in-memory.
+  }
+}
+
+function readStoredGoldMarketsEnabled() {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return window.localStorage.getItem(GOLD_MARKETS_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function writeStoredGoldMarketsEnabled(value: boolean) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(
+      GOLD_MARKETS_STORAGE_KEY,
       value ? "true" : "false",
     );
   } catch {
@@ -642,6 +667,8 @@ function MarketFace({
   odds,
   centered = false,
   colorsEnabled = true,
+  goldEnabled = false,
+  isMoneyline = false,
   children,
 }: {
   selected: boolean;
@@ -651,9 +678,16 @@ function MarketFace({
   odds?: string;
   centered?: boolean;
   colorsEnabled?: boolean;
+  goldEnabled?: boolean;
+  isMoneyline?: boolean;
   children?: ReactNode;
 }) {
-  const displayTeamColor = colorsEnabled ? teamColor : null;
+  const isGoldMarket = Boolean(goldEnabled && isMoneyline && !isLive);
+  const displayTeamColor = isGoldMarket
+    ? GOLD_MARKET_COLOR
+    : colorsEnabled
+      ? teamColor
+      : null;
   const { shellStyle, faceStyle } = getTeamColorStyles({
     color: displayTeamColor,
     selected,
@@ -688,18 +722,20 @@ function MarketFace({
             <>
               <span
                 className={[
-                  "font-bold leading-none text-zinc-300",
+                  "font-bold leading-none",
                   centered
                     ? "text-[11px] tracking-[0.06em]"
                     : "min-w-0 truncate text-[11px] tracking-[0.06em]",
+                  isGoldMarket ? "text-[#120d02]" : "text-zinc-300",
                 ].join(" ")}
               >
                 {label}
               </span>
               <span
                 className={[
-                  "shrink-0 font-bold leading-none tracking-tight text-zinc-100",
+                  "shrink-0 font-bold leading-none tracking-tight",
                   centered ? "text-[13px]" : "text-[13px]",
+                  isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
                 ].join(" ")}
               >
                 {odds}
@@ -721,6 +757,7 @@ function DesktopMarketCell({
   onSelect,
   now,
   colorsEnabled,
+  goldEnabled,
 }: {
   game: Game;
   market?: OddsMarket;
@@ -731,6 +768,7 @@ function DesktopMarketCell({
   onSelect: (data: BetSlipDataWithTeamAlias) => void;
   now: number | null;
   colorsEnabled: boolean;
+  goldEnabled: boolean;
 }) {
   if (!market || !outcome) {
     return (
@@ -748,7 +786,14 @@ function DesktopMarketCell({
     selectedBet.polymarketTokenId === betData.polymarketTokenId;
   const centered = market.key === "h2h";
   const label = getOutcomeButtonLabel({ market, outcome, team, teamInfo });
-  const displayTeamColor = colorsEnabled ? betData.teamColor : null;
+  const isGoldMarket = Boolean(
+    goldEnabled && market.key === "h2h" && !isLive,
+  );
+  const displayTeamColor = isGoldMarket
+    ? GOLD_MARKET_COLOR
+    : colorsEnabled
+      ? betData.teamColor
+      : null;
   const { shellStyle, faceStyle } = getTeamColorStyles({
     color: displayTeamColor,
     selected,
@@ -771,6 +816,7 @@ function DesktopMarketCell({
           <BetSlipModal
             {...betData}
             colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
             teamColor={betData.teamColor}
             triggerClassName={[
               "peer flex h-[42px] w-full translate-y-[-2px] cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2.5 text-center transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0",
@@ -795,7 +841,8 @@ function DesktopMarketCell({
               <>
                 <span
                   className={[
-                    "font-bold leading-none text-zinc-300",
+                    "font-bold leading-none",
+                    isGoldMarket ? "text-[#120d02]" : "text-zinc-300",
                     centered
                       ? "text-[11px] tracking-[0.06em]"
                       : "min-w-0 truncate text-[11px] tracking-[0.06em]",
@@ -804,7 +851,12 @@ function DesktopMarketCell({
                   {label}
                 </span>
 
-                <span className="shrink-0 text-[13px] font-bold leading-none tracking-tight text-zinc-100">
+                <span
+                  className={[
+                    "shrink-0 text-[13px] font-bold leading-none tracking-tight",
+                    isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
+                  ].join(" ")}
+                >
                   {betData.odds}
                 </span>
               </>
@@ -826,6 +878,8 @@ function DesktopMarketCell({
           odds={betData.odds}
           centered={centered}
           colorsEnabled={colorsEnabled}
+          goldEnabled={goldEnabled}
+          isMoneyline={market.key === "h2h"}
         />
       </button>
     </div>
@@ -840,6 +894,7 @@ function MobileMarketModalButton({
   teamInfo,
   now,
   colorsEnabled,
+  goldEnabled,
 }: {
   game: Game;
   market?: OddsMarket;
@@ -848,6 +903,7 @@ function MobileMarketModalButton({
   teamInfo?: TeamInfo;
   now: number | null;
   colorsEnabled: boolean;
+  goldEnabled: boolean;
 }) {
   if (!market || !outcome) {
     return (
@@ -860,7 +916,14 @@ function MobileMarketModalButton({
   }
 
   const betData = buildBetData({ game, market, outcome, teamInfo, now });
-  const displayTeamColor = colorsEnabled ? betData.teamColor : null;
+  const isGoldMarket = Boolean(
+    goldEnabled && market.key === "h2h" && !betData.isLive,
+  );
+  const displayTeamColor = isGoldMarket
+    ? GOLD_MARKET_COLOR
+    : colorsEnabled
+      ? betData.teamColor
+      : null;
   const { shellStyle, faceStyle } = getTeamColorStyles({
     color: displayTeamColor,
     selected: false,
@@ -877,6 +940,7 @@ function MobileMarketModalButton({
     >
       <BetSlipModal
         colorsEnabled={colorsEnabled}
+        goldEnabled={goldEnabled}
         team={betData.team}
         teamAlias={betData.teamAlias}
         gameId={betData.gameId}
@@ -916,11 +980,21 @@ function MobileMarketModalButton({
           <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
         ) : (
           <>
-            <span className="text-[12px] font-bold leading-none tracking-[0.12em] text-zinc-200">
+            <span
+              className={[
+                "text-[12px] font-bold leading-none tracking-[0.12em]",
+                isGoldMarket ? "text-[#120d02]" : "text-zinc-200",
+              ].join(" ")}
+            >
               {getOutcomeButtonLabel({ market, outcome, team, teamInfo })}
             </span>
 
-            <span className="text-[15.6px] font-semibold leading-none tracking-tight text-zinc-100">
+            <span
+              className={[
+                "text-[15.6px] font-semibold leading-none tracking-tight",
+                isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
+              ].join(" ")}
+            >
               {betData.odds}
             </span>
           </>
@@ -932,10 +1006,14 @@ function MobileMarketModalButton({
 
 function MarketSettingsDropdown({
   colorsEnabled,
+  goldEnabled,
   onToggleColors,
+  onToggleGold,
 }: {
   colorsEnabled: boolean;
+  goldEnabled: boolean;
   onToggleColors: () => void;
+  onToggleGold: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -1011,6 +1089,31 @@ function MarketSettingsDropdown({
               >
                 <motion.span
                   animate={{ x: colorsEnabled ? 19 : 0 }}
+                  transition={{ type: "spring", stiffness: 520, damping: 34 }}
+                  className="block h-3.5 w-3.5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+                />
+              </span>
+            </button>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={goldEnabled}
+              onClick={onToggleGold}
+              className="flex h-10 w-full cursor-pointer items-center justify-between rounded-lg px-2.5 text-left transition-colors hover:bg-zinc-900"
+            >
+              <span className="text-[14px] font-medium text-zinc-200">
+                Gold
+              </span>
+
+              <span
+                className={[
+                  "relative h-[19px] w-[38px] shrink-0 rounded-full p-[2.5px] transition-colors duration-200",
+                  goldEnabled ? "bg-[#cfa13a]" : "bg-zinc-800",
+                ].join(" ")}
+              >
+                <motion.span
+                  animate={{ x: goldEnabled ? 19 : 0 }}
                   transition={{ type: "spring", stiffness: 520, damping: 34 }}
                   className="block h-3.5 w-3.5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
                 />
@@ -1188,6 +1291,7 @@ function GameCard({
   shouldAutoScrollOnMoreBetsOpen = false,
   now,
   colorsEnabled,
+  goldEnabled,
 }: {
   game: Game;
   selectedBet: BetSlipDataWithTeamAlias | null;
@@ -1195,6 +1299,7 @@ function GameCard({
   shouldAutoScrollOnMoreBetsOpen?: boolean;
   now: number | null;
   colorsEnabled: boolean;
+  goldEnabled: boolean;
 }) {
   const bookmaker = game.bookmakers[0];
   const h2h = getMarket(bookmaker, "h2h");
@@ -1268,6 +1373,7 @@ function GameCard({
             teamInfo={game.away_team_info}
             now={now}
             colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
           />
 
           <MobileMarketModalButton
@@ -1278,6 +1384,7 @@ function GameCard({
             teamInfo={game.home_team_info}
             now={now}
             colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
           />
         </div>
 
@@ -1332,6 +1439,7 @@ function GameCard({
                             teamInfo={game.away_team_info}
                             now={now}
                             colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
                           />
 
                           <MobileMarketModalButton
@@ -1342,6 +1450,7 @@ function GameCard({
                             teamInfo={game.home_team_info}
                             now={now}
                             colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
                           />
                         </div>
                       </div>
@@ -1360,6 +1469,7 @@ function GameCard({
                             outcome={overTotal}
                             now={now}
                             colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
                           />
 
                           <MobileMarketModalButton
@@ -1368,6 +1478,7 @@ function GameCard({
                             outcome={underTotal}
                             now={now}
                             colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
                           />
                         </div>
                       </div>
@@ -1409,6 +1520,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
             />
 
             <DesktopMarketCell
@@ -1421,6 +1533,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
             />
           </div>
 
@@ -1435,6 +1548,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
             />
 
             <DesktopMarketCell
@@ -1447,6 +1561,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
             />
           </div>
 
@@ -1459,6 +1574,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
             />
 
             <DesktopMarketCell
@@ -1469,6 +1585,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
+            goldEnabled={goldEnabled}
             />
           </div>
         </div>
@@ -1555,12 +1672,25 @@ export default function GamesClient({
   const [hideLiveGamesLoaded, setHideLiveGamesLoaded] = useState(false);
   const [marketColorsEnabled, setMarketColorsEnabled] = useState(true);
   const [marketColorsLoaded, setMarketColorsLoaded] = useState(false);
+  const [goldMarketsEnabled, setGoldMarketsEnabled] = useState(false);
+  const [goldMarketsLoaded, setGoldMarketsLoaded] = useState(false);
 
   useBrowserLayoutEffect(() => {
+    const storedGoldMarketsEnabled = readStoredGoldMarketsEnabled();
+    const storedMarketColorsEnabled = storedGoldMarketsEnabled
+      ? false
+      : readStoredMarketColorsEnabled();
+
     setHideLiveGames(readStoredHideLiveGames());
-    setMarketColorsEnabled(readStoredMarketColorsEnabled());
+    setMarketColorsEnabled(storedMarketColorsEnabled);
+    setGoldMarketsEnabled(storedGoldMarketsEnabled);
     setHideLiveGamesLoaded(true);
     setMarketColorsLoaded(true);
+    setGoldMarketsLoaded(true);
+
+    if (storedGoldMarketsEnabled) {
+      writeStoredMarketColorsEnabled(false);
+    }
   }, []);
 
   const visibleGames = useMemo(() => {
@@ -1573,7 +1703,10 @@ export default function GamesClient({
   }, [allGames, hideLiveGames, hideLiveGamesLoaded, now]);
 
   const initialGameStateReady =
-    hideLiveGamesLoaded && marketColorsLoaded && now !== null;
+    hideLiveGamesLoaded &&
+    marketColorsLoaded &&
+    goldMarketsLoaded &&
+    now !== null;
   const totalGames = visibleGames.length;
 
   const visibleFirstBet = useMemo(
@@ -1596,6 +1729,26 @@ export default function GamesClient({
     setMarketColorsEnabled((current) => {
       const nextValue = !current;
       writeStoredMarketColorsEnabled(nextValue);
+
+      if (nextValue) {
+        setGoldMarketsEnabled(false);
+        writeStoredGoldMarketsEnabled(false);
+      }
+
+      return nextValue;
+    });
+  }
+
+  function toggleGoldMarkets() {
+    setGoldMarketsEnabled((current) => {
+      const nextValue = !current;
+      writeStoredGoldMarketsEnabled(nextValue);
+
+      if (nextValue) {
+        setMarketColorsEnabled(false);
+        writeStoredMarketColorsEnabled(false);
+      }
+
       return nextValue;
     });
   }
@@ -1607,7 +1760,9 @@ export default function GamesClient({
       <div className="inline-flex h-[29px] items-center gap-1.5">
         <MarketSettingsDropdown
           colorsEnabled={marketColorsEnabled}
+          goldEnabled={goldMarketsEnabled}
           onToggleColors={toggleMarketColors}
+          onToggleGold={toggleGoldMarkets}
         />
 
         {showHideLiveToggle ? (
@@ -1769,6 +1924,7 @@ export default function GamesClient({
                                 }
                                 now={now}
                                 colorsEnabled={marketColorsEnabled}
+                                goldEnabled={goldMarketsEnabled}
                               />
                             </div>
                           );
@@ -1814,6 +1970,7 @@ export default function GamesClient({
                   teamLogoAlt={selectedBet.teamLogoAlt}
                   teamColor={selectedBet.teamColor}
                   colorsEnabled={marketColorsEnabled}
+                  goldEnabled={goldMarketsEnabled}
                   enabled
                   panelMode="sidebar"
                 />
