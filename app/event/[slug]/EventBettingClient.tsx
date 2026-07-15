@@ -196,6 +196,32 @@ function formatUiTeamName(value: string) {
   return value.replace(/\bPortlandFire\b/g, "Portland Fire");
 }
 
+function splitTeamNameIntoTwoLines(value: string): [string, string] {
+  const words = value.trim().split(/\s+/).filter(Boolean);
+
+  if (words.length === 0) return ["", "\u00a0"];
+  if (words.length === 1) return [words[0], "\u00a0"];
+
+  let bestSplitIndex = 1;
+  let smallestLengthDifference = Number.POSITIVE_INFINITY;
+
+  for (let index = 1; index < words.length; index += 1) {
+    const firstLine = words.slice(0, index).join(" ");
+    const secondLine = words.slice(index).join(" ");
+    const lengthDifference = Math.abs(firstLine.length - secondLine.length);
+
+    if (lengthDifference < smallestLengthDifference) {
+      smallestLengthDifference = lengthDifference;
+      bestSplitIndex = index;
+    }
+  }
+
+  return [
+    words.slice(0, bestSplitIndex).join(" "),
+    words.slice(bestSplitIndex).join(" "),
+  ];
+}
+
 function getTeamDisplayName(team: string, info?: TeamInfo) {
   const cleanAlias = info?.alias?.trim();
 
@@ -530,6 +556,10 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
   const homeTeamName = formatUiTeamName(
     game.home_team_info?.name?.trim() || game.home_team,
   );
+  const [awayTeamLineOne, awayTeamLineTwo] =
+    splitTeamNameIntoTwoLines(awayTeamName);
+  const [homeTeamLineOne, homeTeamLineTwo] =
+    splitTeamNameIntoTwoLines(homeTeamName);
 
   return (
     <div className="relative text-center">
@@ -547,24 +577,36 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
         {game.sport_title}
       </div>
 
-      <h1 className="mx-auto mt-2 max-w-[92vw] px-2 text-[20px] font-semibold leading-[1.05] tracking-[-0.025em] text-white sm:text-[24px] md:hidden">
-        <span className="block text-balance break-words">{awayTeamName}</span>
+      <h1 className="mx-auto mt-2 grid w-full max-w-[94vw] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-1 text-[20px] font-semibold leading-[1.05] tracking-[-0.025em] text-white sm:gap-4 sm:px-2 sm:text-[24px] md:hidden">
+        <span className="grid min-w-0 grid-rows-2 text-left">
+          <span className="block min-w-0 truncate">{awayTeamLineOne}</span>
+          <span className="block min-w-0 truncate">{awayTeamLineTwo}</span>
+        </span>
 
-        <span className="my-1.5 block text-[13px] font-medium leading-none tracking-normal text-zinc-500">
+        <span className="text-[13px] font-medium leading-none tracking-normal text-zinc-500">
           vs.
         </span>
 
-        <span className="block text-balance break-words">{homeTeamName}</span>
+        <span className="grid min-w-0 grid-rows-2 text-right">
+          <span className="block min-w-0 truncate">{homeTeamLineOne}</span>
+          <span className="block min-w-0 truncate">{homeTeamLineTwo}</span>
+        </span>
       </h1>
 
-      <h1 className="mx-auto mt-3 hidden max-w-[680px] px-4 text-[32px] font-semibold leading-[0.96] tracking-tight text-white md:block lg:text-[36px]">
-        <span className="block text-balance break-words">{awayTeamName}</span>
+      <h1 className="mx-auto mt-3 hidden w-full max-w-[760px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6 px-4 text-[32px] font-semibold leading-[0.98] tracking-tight text-white md:grid lg:gap-8 lg:text-[36px]">
+        <span className="grid min-w-0 grid-rows-2 text-left">
+          <span className="block min-w-0 truncate">{awayTeamLineOne}</span>
+          <span className="block min-w-0 truncate">{awayTeamLineTwo}</span>
+        </span>
 
-        <span className="my-2 block text-[15px] font-medium leading-none tracking-normal text-zinc-500 lg:text-[16px]">
+        <span className="text-[15px] font-medium leading-none tracking-normal text-zinc-500 lg:text-[16px]">
           vs.
         </span>
 
-        <span className="block text-balance break-words">{homeTeamName}</span>
+        <span className="grid min-w-0 grid-rows-2 text-right">
+          <span className="block min-w-0 truncate">{homeTeamLineOne}</span>
+          <span className="block min-w-0 truncate">{homeTeamLineTwo}</span>
+        </span>
       </h1>
 
       <div
