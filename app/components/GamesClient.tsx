@@ -991,7 +991,7 @@ function MobileProMarketSelection({
             ? "bg-zinc-950"
             : displayTeamColor
               ? ""
-              : "bg-zinc-900/80 peer-hover:bg-zinc-800/90 group-hover:bg-zinc-800/90",
+              : "bg-zinc-950/70 peer-hover:bg-zinc-900/80 group-hover:bg-zinc-900/80",
         ].join(" ")}
         style={faceStyle}
       >
@@ -1001,7 +1001,7 @@ function MobileProMarketSelection({
           <>
             <span
               className={[
-                "max-w-full truncate text-[10px] font-bold leading-none tracking-[0.035em] sm:text-[11px]",
+                "max-w-full truncate text-[9.5px] font-bold leading-none tracking-[0.03em] sm:text-[10.5px]",
                 isGoldMarket ? "text-[#120d02]" : "text-zinc-300",
               ].join(" ")}
             >
