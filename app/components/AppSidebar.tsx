@@ -4,36 +4,43 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { GoHomeFill } from "react-icons/go";
-import { MdAccountBalanceWallet } from "react-icons/md";
-import { IoStatsChart } from "react-icons/io5";
+import { GoHome, GoHomeFill } from "react-icons/go";
+import {
+  MdAccountBalanceWallet,
+  MdOutlineAccountBalanceWallet,
+} from "react-icons/md";
+import { IoStatsChart, IoStatsChartOutline } from "react-icons/io5";
 import { SiCashapp } from "react-icons/si";
-import { BiSolidPurchaseTag } from "react-icons/bi";
+import { BiPurchaseTag, BiSolidPurchaseTag } from "react-icons/bi";
 
 const MAIN_NAV_LINKS = [
   {
     label: "Dash",
     href: "/",
-    Icon: GoHomeFill,
-    mobileIconClassName: "h-[28px] w-[28px]",
+    ActiveIcon: GoHomeFill,
+    InactiveIcon: GoHome,
+    mobileIconClassName: "h-[30.8px] w-[30.8px]",
   },
   {
     label: "Accounts",
     href: "/accounts",
-    Icon: MdAccountBalanceWallet,
-    mobileIconClassName: "h-[28px] w-[28px]",
+    ActiveIcon: MdAccountBalanceWallet,
+    InactiveIcon: MdOutlineAccountBalanceWallet,
+    mobileIconClassName: "h-[30.8px] w-[30.8px]",
   },
   {
     label: "Portfolio",
     href: "/portfolio",
-    Icon: IoStatsChart,
-    mobileIconClassName: "h-[29px] w-[29px]",
+    ActiveIcon: IoStatsChart,
+    InactiveIcon: IoStatsChartOutline,
+    mobileIconClassName: "h-[31.9px] w-[31.9px]",
   },
   {
     label: "Payouts",
     href: "/payouts",
-    Icon: SiCashapp,
-    mobileIconClassName: "h-[23px] w-[23px]",
+    ActiveIcon: SiCashapp,
+    InactiveIcon: SiCashapp,
+    mobileIconClassName: "h-[25.3px] w-[25.3px]",
   },
 ] as const;
 
@@ -41,8 +48,9 @@ const SECONDARY_NAV_LINKS = [
   {
     label: "Deposits",
     href: "/deposits",
-    Icon: BiSolidPurchaseTag,
-    mobileIconClassName: "h-[29px] w-[29px]",
+    ActiveIcon: BiSolidPurchaseTag,
+    InactiveIcon: BiPurchaseTag,
+    mobileIconClassName: "h-[31.9px] w-[31.9px]",
   },
 ] as const;
 
@@ -161,7 +169,7 @@ export default function AppSidebar() {
           <div className="relative z-10 grid h-full grid-cols-5">
             {MOBILE_NAV_LINKS.map((item) => {
               const isActive = isActivePath(pathname, item.href);
-              const Icon = item.Icon;
+              const Icon = isActive ? item.ActiveIcon : item.InactiveIcon;
 
               return (
                 <Link

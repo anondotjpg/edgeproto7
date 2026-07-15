@@ -21,7 +21,7 @@ type PlanDetail = {
   value: string;
   accent?: boolean;
 };
-
+ 
 type ButtonStyle = "gold" | "silver" | "default";
 
 const ACCOUNT_PLANS: AccountPlan[] = [
