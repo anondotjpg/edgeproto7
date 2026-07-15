@@ -12,7 +12,7 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
 import NumberFlow from "@number-flow/react";
 import { toast } from "sonner";
 import { usePrivy } from "@privy-io/react-auth";
@@ -498,7 +498,7 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-zinc-900 ${className}`} />;
 }
 
-function AccountOptionSkeleton() {
+function AccountOptionSkeleton({ hideMax = false }: { hideMax?: boolean }) {
   return (
     <div
       data-account-card=""
@@ -511,16 +511,23 @@ function AccountOptionSkeleton() {
         </div>
       </div>
 
-      <div className="mt-2 space-y-0.5 text-[12px] leading-4">
+      <div
+        className={[
+          "text-[12px] leading-4",
+          hideMax ? "mt-3" : "mt-2 space-y-0.5",
+        ].join(" ")}
+      >
         <div className="flex h-4 items-center justify-between gap-2">
           <SkeletonBlock className="h-3 w-8" />
           <SkeletonBlock className="h-3 w-10" />
         </div>
 
-        <div className="flex h-4 items-center justify-between gap-2">
-          <SkeletonBlock className="h-3 w-6" />
-          <SkeletonBlock className="h-3 w-10" />
-        </div>
+        {!hideMax ? (
+          <div className="flex h-4 items-center justify-between gap-2">
+            <SkeletonBlock className="h-3 w-6" />
+            <SkeletonBlock className="h-3 w-10" />
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -827,6 +834,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
   const selectableAccounts = useMemo(() => {
     return accounts.filter((account) => accountIsSelectable(account));
   }, [accounts]);
+  const isMobileDrawer = mobileLayout && panelMode === "modal";
 
   function getAccountScrollMetrics(row: HTMLDivElement) {
     const firstCard = row.querySelector<HTMLElement>("[data-account-card]");
@@ -977,7 +985,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
         {!ready || isLoadingAccounts ? (
           <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
             {Array.from({ length: 3 }).map((_, index) => (
-              <AccountOptionSkeleton key={index} />
+              <AccountOptionSkeleton key={index} hideMax={isMobileDrawer} />
             ))}
           </div>
         ) : !authenticated ? (
@@ -1027,7 +1035,12 @@ const AccountSelectSection = memo(function AccountSelectSection({
                     </div>
                   </div>
 
-                  <div className="mt-2 space-y-0.5 text-[12px] leading-4">
+                  <div
+                    className={[
+                      "text-[12px] leading-4",
+                      isMobileDrawer ? "mt-3" : "mt-2 space-y-0.5",
+                    ].join(" ")}
+                  >
                     <div className="flex h-4 items-center justify-between gap-2">
                       <span className="text-zinc-500">Avail</span>
                       <span className="font-medium text-zinc-300">
@@ -1037,12 +1050,14 @@ const AccountSelectSection = memo(function AccountSelectSection({
                       </span>
                     </div>
 
-                    <div className="flex h-4 items-center justify-between gap-2">
-                      <span className="text-zinc-500">Max</span>
-                      <span className="font-medium text-zinc-300">
-                        <CompactMoneyFlow value={maxRiskAmount} />
-                      </span>
-                    </div>
+                    {!isMobileDrawer ? (
+                      <div className="flex h-4 items-center justify-between gap-2">
+                        <span className="text-zinc-500">Max</span>
+                        <span className="font-medium text-zinc-300">
+                          <CompactMoneyFlow value={maxRiskAmount} />
+                        </span>
+                      </div>
+                    ) : null}
                   </div>
                 </button>
               );
@@ -1061,6 +1076,46 @@ const AccountSelectSection = memo(function AccountSelectSection({
     </div>
   );
 });
+
+function MobileNumberKey({
+  digit,
+  disabled,
+  onPress,
+}: {
+  digit: string;
+  disabled: boolean;
+  onPress: (digit: string) => void;
+}) {
+  const controls = useAnimationControls();
+
+  function animatePress() {
+    if (disabled) return;
+
+    controls.stop();
+    controls.set({ scale: 1 });
+    void controls.start({
+      scale: [1, 1.13, 1],
+      transition: {
+        duration: 0.2,
+        times: [0, 0.42, 1],
+        ease: [0.22, 1, 0.36, 1],
+      },
+    });
+  }
+
+  return (
+    <motion.button
+      type="button"
+      animate={controls}
+      onPointerDown={animatePress}
+      onClick={() => onPress(digit)}
+      disabled={disabled}
+      className="flex h-[54px] cursor-pointer items-center justify-center bg-transparent text-[27px] font-medium text-zinc-100 outline-none disabled:cursor-not-allowed disabled:text-zinc-700"
+    >
+      {digit}
+    </motion.button>
+  );
+}
 
 function BetSlipControls({
   ready,
@@ -1215,11 +1270,6 @@ function BetSlipControls({
       return;
     }
 
-    if (key === "max") {
-      onAmountChange(maxBetAmount);
-      return;
-    }
-
     const currentDigits =
       amountValue > 0 ? String(Math.max(0, Math.floor(amountValue))) : "";
     const nextDigits = `${currentDigits}${key}`.replace(/^0+(?=\d)/, "");
@@ -1318,17 +1368,13 @@ function BetSlipControls({
           </div>
         ) : isMobileDrawer ? (
           <div className="flex flex-col items-center text-center">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
-              Amount
-            </div>
-
             <motion.div
               key={amountShakeKey}
               animate={
                 amountShakeKey > 0 ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
               }
               transition={{ duration: 0.28, ease: "easeOut" }}
-              className="mt-1 flex min-h-[70px] max-w-full items-center justify-center overflow-hidden px-2 text-[58px] font-semibold leading-none tracking-[-0.055em] text-white"
+              className="flex min-h-[70px] max-w-full items-center justify-center overflow-hidden px-2 text-[58px] font-semibold leading-none tracking-[-0.055em] text-white"
             >
               <MoneyFlow value={amountValue} />
             </motion.div>
@@ -1346,9 +1392,6 @@ function BetSlipControls({
               </span>
             </div>
 
-            <div className="mt-0.5 text-[11px] font-medium text-zinc-600">
-              Max {formatMoney(maxBetAmount)}
-            </div>
           </div>
         ) : (
           <div className="flex items-start justify-between gap-4">
@@ -1429,65 +1472,37 @@ function BetSlipControls({
             onTouchStart={(event) => event.stopPropagation()}
           >
             {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((key) => (
-              <motion.button
+              <MobileNumberKey
                 key={key}
-                type="button"
-                whileTap={{ scale: 0.88 }}
-                onClick={() => handleMobileKeypadPress(key)}
+                digit={key}
                 disabled={amountInputDisabled}
-                className="flex h-[54px] cursor-pointer items-center justify-center rounded-full text-[27px] font-medium text-zinc-100 transition-colors hover:bg-zinc-900 active:bg-zinc-900 disabled:cursor-not-allowed disabled:text-zinc-700"
-              >
-                {key}
-              </motion.button>
+                onPress={handleMobileKeypadPress}
+              />
             ))}
 
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.88 }}
-              onClick={() => handleMobileKeypadPress("max")}
-              disabled={amountInputDisabled}
-              className="flex h-[54px] cursor-pointer items-center justify-center rounded-full text-[13px] font-bold uppercase tracking-[0.08em] text-zinc-400 transition-colors hover:bg-zinc-900 active:bg-zinc-900 disabled:cursor-not-allowed disabled:text-zinc-700"
-            >
-              Max
-            </motion.button>
+            <div aria-hidden="true" className="h-[54px]" />
 
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.88 }}
-              onClick={() => handleMobileKeypadPress("0")}
+            <MobileNumberKey
+              digit="0"
               disabled={amountInputDisabled}
-              className="flex h-[54px] cursor-pointer items-center justify-center rounded-full text-[27px] font-medium text-zinc-100 transition-colors hover:bg-zinc-900 active:bg-zinc-900 disabled:cursor-not-allowed disabled:text-zinc-700"
-            >
-              0
-            </motion.button>
+              onPress={handleMobileKeypadPress}
+            />
 
             <motion.button
               type="button"
               aria-label="Delete last digit"
-              whileTap={{ scale: 0.88 }}
+              whileTap={{ scale: 0.84 }}
+              transition={{
+                type: "spring",
+                stiffness: 500,
+                damping: 28,
+                mass: 0.4,
+              }}
               onClick={() => handleMobileKeypadPress("backspace")}
               disabled={amountInputDisabled || amountValue <= 0}
-              className="flex h-[54px] cursor-pointer items-center justify-center rounded-full text-zinc-300 transition-colors hover:bg-zinc-900 active:bg-zinc-900 disabled:cursor-not-allowed disabled:text-zinc-700"
+              className="flex h-[54px] cursor-pointer items-center justify-center bg-transparent text-zinc-300 outline-none disabled:cursor-not-allowed disabled:text-zinc-700"
             >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-6 w-6"
-              >
-                <path
-                  d="M9.25 5.5h9.25a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9.25a2 2 0 0 1-1.55-.74L3 12l4.7-5.76A2 2 0 0 1 9.25 5.5Z"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="m12 9.25 5.5 5.5m0-5.5-5.5 5.5"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <FaChevronLeft aria-hidden="true" className="h-5 w-5" />
             </motion.button>
           </div>
         ) : panelMode !== "sidebar" ? (
