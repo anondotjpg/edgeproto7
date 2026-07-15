@@ -54,7 +54,7 @@ export default function LeagueTabs({
                   href={`/?league=${item.league}`}
                   aria-current={isActive ? "page" : undefined}
                   className={[
-                    "relative flex h-[42px] min-w-[78px] shrink-0 scroll-mx-0 items-center justify-center px-3 text-[14.5px] leading-none transition-colors duration-150",
+                    "relative flex h-[42px] min-w-[78px] shrink-0 scroll-mx-0 items-center justify-center px-3 text-[15.5px] leading-none transition-colors duration-150",
                     isActive ? "text-zinc-100" : "text-zinc-500",
                   ].join(" ")}
                 >
