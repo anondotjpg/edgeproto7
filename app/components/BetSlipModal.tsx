@@ -731,7 +731,7 @@ function OffsetPlaceBetButton({
   if (mobileLayout) {
     return (
       <div
-        className="mt-3 mb-4 rounded-xl bg-zinc-800"
+        className="mt-3 mb-2 rounded-xl bg-zinc-800"
         style={{
           paddingBottom: "2px",
           ...shellStyle,
