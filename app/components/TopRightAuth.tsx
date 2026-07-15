@@ -75,7 +75,7 @@ export default function TopRightAuth() {
   const avatarColors = ["#18181b", "#52525b"];
 
   const accountMenuItemClassName =
-    "flex h-10 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-left text-[14px] font-medium transition-colors hover:bg-zinc-900 active:bg-zinc-900";
+    "flex h-8 w-full cursor-pointer items-center gap-2 rounded-md pl-2 pr-3 text-left text-[13px] font-medium transition-colors hover:bg-zinc-900 active:bg-zinc-900";
 
   const desktopAvatarButton = (
     <button
@@ -156,15 +156,15 @@ export default function TopRightAuth() {
                 ease: [0.16, 1, 0.3, 1],
               }}
               style={{ transformOrigin: "top right" }}
-              className="absolute right-0 top-full z-[220] hidden pt-2 lg:block"
+              className="absolute right-0 top-[calc(100%+6px)] z-[220] hidden lg:block"
             >
-              <div className="w-[176px] whitespace-nowrap rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl">
+              <div className="w-[148px] whitespace-nowrap rounded-xl border border-zinc-800 bg-zinc-950 p-1 shadow-2xl">
                 <Link
                   href="/accounts"
                   onClick={() => setMenuOpen(false)}
                   className={`${accountMenuItemClassName} text-zinc-200`}
                 >
-                  <RiUserFill className="h-4 w-4 text-current" />
+                  <RiUserFill className="h-3.5 w-3.5 text-current" />
                   <span>Accounts</span>
                 </Link>
 
@@ -176,7 +176,7 @@ export default function TopRightAuth() {
                   }}
                   className={`${accountMenuItemClassName} text-red-400`}
                 >
-                  <FiLogOut className="h-4 w-4 text-current" />
+                  <FiLogOut className="h-3.5 w-3.5 text-current" />
                   <span>Sign out</span>
                 </button>
               </div>
@@ -300,14 +300,14 @@ export default function TopRightAuth() {
                 duration: 0.16,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="fixed left-4 top-[calc(72px+env(safe-area-inset-top))] z-[210] w-[176px] origin-top-left whitespace-nowrap rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl sm:left-auto sm:right-6 sm:origin-top-right lg:hidden"
+              className="fixed left-4 top-[calc(72px+env(safe-area-inset-top))] z-[210] w-[148px] origin-top-left whitespace-nowrap rounded-xl border border-zinc-800 bg-zinc-950 p-1 shadow-2xl sm:left-auto sm:right-6 sm:origin-top-right lg:hidden"
             >
               <Link
                 href="/accounts"
                 onClick={() => setMenuOpen(false)}
                 className={`${accountMenuItemClassName} text-zinc-200`}
               >
-                <RiUserFill className="h-4 w-4 text-current" />
+                <RiUserFill className="h-3.5 w-3.5 text-current" />
                 <span>Accounts</span>
               </Link>
 
@@ -319,7 +319,7 @@ export default function TopRightAuth() {
                 }}
                 className={`${accountMenuItemClassName} text-red-400`}
               >
-                <FiLogOut className="h-4 w-4 text-current" />
+                <FiLogOut className="h-3.5 w-3.5 text-current" />
                 <span>Sign out</span>
               </button>
             </motion.div>
