@@ -5,14 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { GoHome, GoHomeFill } from "react-icons/go";
-import {
-  MdAccountBalanceWallet,
-  MdOutlineAccountBalanceWallet,
-} from "react-icons/md";
-import { BiSolidWalletAlt } from "react-icons/bi";
-import { BiWalletAlt } from "react-icons/bi";
-import { HiWallet } from "react-icons/hi2";
-import { HiOutlineWallet } from "react-icons/hi2";
+import { HiWallet, HiOutlineWallet } from "react-icons/hi2";
 import { IoStatsChart, IoStatsChartOutline } from "react-icons/io5";
 import { SiCashapp } from "react-icons/si";
 import { BiPurchaseTag, BiSolidPurchaseTag } from "react-icons/bi";
