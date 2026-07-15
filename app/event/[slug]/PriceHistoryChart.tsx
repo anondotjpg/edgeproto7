@@ -155,75 +155,31 @@ function ChartLegend({
 }
 
 function PriceHistoryChartSkeleton() {
+  const awayEndY = 84;
+  const homeEndY = 176;
+
   return (
     <div
       aria-hidden="true"
       className="relative -mt-3 h-[220px] w-full min-w-0 animate-pulse overflow-visible sm:mt-0 sm:h-[260px]"
     >
       <div className="pointer-events-none absolute inset-y-0 left-2 right-3 overflow-visible">
-        {/* Mobile */}
-        <svg
-          viewBox="0 0 1000 220"
-          preserveAspectRatio="none"
-          className="absolute inset-0 h-full w-full overflow-visible sm:hidden"
-          style={{ overflow: "visible" }}
-        >
-          <path
-            d="
-              M0 112
-              C45 97, 91 55, 148 48
-              C205 42, 247 93, 304 151
-              C361 182, 405 173, 460 118
-              C516 63, 555 38, 616 52
-              C677 68, 714 135, 770 174
-              C827 188, 869 142, 920 82
-              C956 50, 981 58, 1000 72
-            "
-            fill="none"
-            stroke="rgba(244,244,245,0.3)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-
-          <path
-            d="
-              M0 138
-              C51 158, 96 181, 153 171
-              C210 159, 249 101, 305 55
-              C363 37, 404 53, 460 108
-              C518 164, 554 184, 614 166
-              C674 148, 712 80, 770 46
-              C828 34, 867 75, 920 139
-              C957 174, 981 164, 1000 148
-            "
-            fill="none"
-            stroke="rgba(113,113,122,0.42)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
-
-        {/* Desktop */}
         <svg
           viewBox="0 0 1000 260"
           preserveAspectRatio="none"
-          className="absolute inset-0 hidden h-full w-full overflow-visible sm:block"
+          className="absolute inset-0 h-full w-full overflow-visible"
           style={{ overflow: "visible" }}
         >
           <path
             d="
               M0 132
-              C45 114, 91 65, 148 57
-              C205 49, 247 110, 304 179
-              C361 215, 405 204, 460 139
-              C516 74, 555 45, 616 61
-              C677 80, 714 160, 770 206
-              C827 222, 869 168, 920 97
-              C956 59, 981 69, 1000 85
+              C25 118.7, 98.3 41, 150 52
+              C201.7 63, 256.7 195, 310 198
+              C363.3 201, 415.8 68, 470 70
+              C524.2 72, 581.7 213.7, 635 210
+              C688.3 206.3, 742.5 54.7, 790 48
+              C837.5 41.3, 885 164, 920 170
+              C955 176, 986.7 98.3, 1000 84
             "
             fill="none"
             stroke="rgba(244,244,245,0.3)"
@@ -235,14 +191,14 @@ function PriceHistoryChartSkeleton() {
 
           <path
             d="
-              M0 163
-              C51 187, 96 214, 153 202
-              C210 188, 249 119, 305 65
-              C363 44, 404 63, 460 128
-              C518 194, 554 217, 614 196
-              C674 175, 712 94, 770 54
-              C828 40, 867 89, 920 164
-              C957 205, 981 193, 1000 175
+              M0 164
+              C25 171.3, 98.3 224.3, 150 208
+              C201.7 191.7, 256.7 69, 310 66
+              C363.3 63, 415.8 192, 470 190
+              C524.2 188, 581.7 50.3, 635 54
+              C688.3 57.7, 742.5 205.7, 790 212
+              C837.5 218.3, 885 98, 920 92
+              C955 86, 986.7 162, 1000 176
             "
             fill="none"
             stroke="rgba(113,113,122,0.42)"
@@ -253,40 +209,20 @@ function PriceHistoryChartSkeleton() {
           />
         </svg>
 
-        {/* Mobile dots */}
         <span
-          className="absolute h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b] sm:hidden"
+          className="absolute h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
           style={{
             right: "-4.5px",
-            top: `${(72 / 220) * 100}%`,
+            top: `${(awayEndY / 260) * 100}%`,
             backgroundColor: "#f4f4f5",
           }}
         />
 
         <span
-          className="absolute h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b] sm:hidden"
+          className="absolute h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
           style={{
             right: "-4.5px",
-            top: `${(148 / 220) * 100}%`,
-            backgroundColor: "#71717a",
-          }}
-        />
-
-        {/* Desktop dots */}
-        <span
-          className="absolute hidden h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b] sm:block"
-          style={{
-            right: "-4.5px",
-            top: `${(85 / 260) * 100}%`,
-            backgroundColor: "#f4f4f5",
-          }}
-        />
-
-        <span
-          className="absolute hidden h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b] sm:block"
-          style={{
-            right: "-4.5px",
-            top: `${(175 / 260) * 100}%`,
+            top: `${(homeEndY / 260) * 100}%`,
             backgroundColor: "#71717a",
           }}
         />
