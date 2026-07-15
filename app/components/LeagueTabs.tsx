@@ -69,7 +69,7 @@ export default function LeagueTabs({
                     <span
                       className={[
                         "col-start-1 row-start-1",
-                        isActive ? "font-extrabold" : "font-bold",
+                        isActive ? "font-bold" : "font-bold",
                       ].join(" ")}
                     >
                       {item.label}
