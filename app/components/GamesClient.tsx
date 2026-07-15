@@ -87,6 +87,9 @@ type GameWithLiveStatus = Game & {
 const HIDE_LIVE_GAMES_STORAGE_KEY = "edge:hide-live-games";
 const MARKET_COLORS_STORAGE_KEY = "edge:market-colors-enabled";
 const GOLD_MARKETS_STORAGE_KEY = "edge:gold-markets-enabled";
+const PRO_MARKETS_STORAGE_KEY = "edge:pro-markets-enabled";
+const MARKET_DISPLAY_DEFAULTS_STORAGE_KEY =
+  "edge:market-display-defaults-v2";
 const GOLD_MARKET_COLOR = "#cfa13a";
 const GAME_START_COUNTDOWN_WINDOW_MS = 3 * 60 * 60 * 1000;
 const useBrowserLayoutEffect =
@@ -116,12 +119,12 @@ function writeStoredHideLiveGames(value: boolean) {
 }
 
 function readStoredMarketColorsEnabled() {
-  if (typeof window === "undefined") return true;
+  if (typeof window === "undefined") return false;
 
   try {
-    return window.localStorage.getItem(MARKET_COLORS_STORAGE_KEY) !== "false";
+    return window.localStorage.getItem(MARKET_COLORS_STORAGE_KEY) === "true";
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -154,6 +157,29 @@ function writeStoredGoldMarketsEnabled(value: boolean) {
   try {
     window.localStorage.setItem(
       GOLD_MARKETS_STORAGE_KEY,
+      value ? "true" : "false",
+    );
+  } catch {
+    // Ignore storage failures so the toggle still works in-memory.
+  }
+}
+
+function readStoredProMarketsEnabled() {
+  if (typeof window === "undefined") return true;
+
+  try {
+    return window.localStorage.getItem(PRO_MARKETS_STORAGE_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
+
+function writeStoredProMarketsEnabled(value: boolean) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(
+      PRO_MARKETS_STORAGE_KEY,
       value ? "true" : "false",
     );
   } catch {
@@ -786,9 +812,7 @@ function DesktopMarketCell({
     selectedBet.polymarketTokenId === betData.polymarketTokenId;
   const centered = market.key === "h2h";
   const label = getOutcomeButtonLabel({ market, outcome, team, teamInfo });
-  const isGoldMarket = Boolean(
-    goldEnabled && market.key === "h2h" && !isLive,
-  );
+  const isGoldMarket = Boolean(goldEnabled && market.key === "h2h" && !isLive);
   const displayTeamColor = isGoldMarket
     ? GOLD_MARKET_COLOR
     : colorsEnabled
@@ -882,6 +906,225 @@ function DesktopMarketCell({
           isMoneyline={market.key === "h2h"}
         />
       </button>
+    </div>
+  );
+}
+
+function MobileProMarketSelection({
+  game,
+  market,
+  outcome,
+  team,
+  teamInfo,
+  now,
+  colorsEnabled,
+  goldEnabled,
+  divided = false,
+}: {
+  game: Game;
+  market?: OddsMarket;
+  outcome?: OddsOutcome;
+  team?: string;
+  teamInfo?: TeamInfo;
+  now: number | null;
+  colorsEnabled: boolean;
+  goldEnabled: boolean;
+  divided?: boolean;
+}) {
+  const dividerClassName = divided ? "border-l border-zinc-800" : "";
+
+  if (!market || !outcome) {
+    return (
+      <div
+        className={[
+          "flex h-[52px] min-w-0 items-center justify-center bg-zinc-950 text-[13px] font-semibold text-zinc-700",
+          dividerClassName,
+        ].join(" ")}
+      >
+        —
+      </div>
+    );
+  }
+
+  const betData = buildBetData({ game, market, outcome, teamInfo, now });
+  const isLive = Boolean(betData.isLive);
+  const isGoldMarket = Boolean(
+    goldEnabled && market.key === "h2h" && !isLive,
+  );
+  const displayTeamColor = isGoldMarket
+    ? GOLD_MARKET_COLOR
+    : colorsEnabled
+      ? betData.teamColor
+      : null;
+  const { faceStyle } = getTeamColorStyles({
+    color: displayTeamColor,
+    selected: false,
+    isLive,
+  });
+  const compactLabel = getOutcomeButtonLabel({
+    market,
+    outcome,
+    team,
+    teamInfo,
+  });
+
+  return (
+    <div
+      className={[
+        "group relative h-[52px] min-w-0 overflow-hidden",
+        dividerClassName,
+      ].join(" ")}
+    >
+      <BetSlipModal
+        {...betData}
+        colorsEnabled={colorsEnabled}
+        goldEnabled={goldEnabled}
+        teamColor={betData.teamColor}
+        triggerClassName="peer block h-[52px] w-full cursor-pointer bg-transparent"
+        triggerContentClassName="sr-only"
+      />
+
+      <div
+        className={[
+          "pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 px-1.5 text-center transition-colors duration-150",
+          isLive
+            ? "bg-zinc-950"
+            : displayTeamColor
+              ? ""
+              : "bg-zinc-900/80 peer-hover:bg-zinc-800/90 group-hover:bg-zinc-800/90",
+        ].join(" ")}
+        style={faceStyle}
+      >
+        {isLive ? (
+          <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+        ) : (
+          <>
+            <span
+              className={[
+                "max-w-full truncate text-[10px] font-bold leading-none tracking-[0.035em] sm:text-[11px]",
+                isGoldMarket ? "text-[#120d02]" : "text-zinc-300",
+              ].join(" ")}
+            >
+              {compactLabel}
+            </span>
+
+            <span
+              className={[
+                "text-[12px] font-bold leading-none tracking-tight sm:text-[13px]",
+                isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
+              ].join(" ")}
+            >
+              {betData.odds}
+            </span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MobileProTeamRow({
+  game,
+  team,
+  teamInfo,
+  sportKey,
+  moneylineMarket,
+  moneylineOutcome,
+  spreadMarket,
+  spreadOutcome,
+  totalMarket,
+  totalOutcome,
+  now,
+  colorsEnabled,
+  goldEnabled,
+  rowPosition,
+}: {
+  game: Game;
+  team: string;
+  teamInfo?: TeamInfo;
+  sportKey: string;
+  moneylineMarket?: OddsMarket;
+  moneylineOutcome?: OddsOutcome;
+  spreadMarket?: OddsMarket;
+  spreadOutcome?: OddsOutcome;
+  totalMarket?: OddsMarket;
+  totalOutcome?: OddsOutcome;
+  now: number | null;
+  colorsEnabled: boolean;
+  goldEnabled: boolean;
+  rowPosition: "top" | "bottom";
+}) {
+  const displayName = formatUiTeamName(getTeamDisplayName(team, teamInfo));
+  const marketShellClassName =
+    rowPosition === "top"
+      ? "rounded-t-2xl border-x border-t border-zinc-800"
+      : "rounded-b-2xl border border-zinc-800";
+
+  return (
+    <div className="flex min-w-0 items-center gap-2.5">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        {teamInfo?.logo ? (
+          <img
+            src={teamInfo.logo}
+            alt={formatUiTeamName(teamInfo.name)}
+            className={getLogoClassName(sportKey)}
+          />
+        ) : (
+          <div className={getLogoFallbackClassName(sportKey)} />
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[14px] font-semibold leading-tight text-zinc-100 sm:text-[15px]">
+            {displayName}
+          </div>
+
+          {teamInfo?.record ? (
+            <div className="mt-0.5 truncate text-[11px] font-medium leading-none text-zinc-500 sm:text-[12px]">
+              {teamInfo.record}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div
+        className={[
+          "grid w-[186px] shrink-0 grid-cols-3 overflow-hidden bg-zinc-950 sm:w-[228px]",
+          marketShellClassName,
+        ].join(" ")}
+      >
+        <MobileProMarketSelection
+          game={game}
+          market={moneylineMarket}
+          outcome={moneylineOutcome}
+          team={team}
+          teamInfo={teamInfo}
+          now={now}
+          colorsEnabled={colorsEnabled}
+          goldEnabled={goldEnabled}
+        />
+
+        <MobileProMarketSelection
+          game={game}
+          market={spreadMarket}
+          outcome={spreadOutcome}
+          team={team}
+          teamInfo={teamInfo}
+          now={now}
+          colorsEnabled={colorsEnabled}
+          goldEnabled={goldEnabled}
+          divided
+        />
+
+        <MobileProMarketSelection
+          game={game}
+          market={totalMarket}
+          outcome={totalOutcome}
+          now={now}
+          colorsEnabled={colorsEnabled}
+          goldEnabled={goldEnabled}
+          divided
+        />
+      </div>
     </div>
   );
 }
@@ -1005,13 +1248,17 @@ function MobileMarketModalButton({
 }
 
 function MarketSettingsDropdown({
+  proEnabled,
   colorsEnabled,
   goldEnabled,
+  onTogglePro,
   onToggleColors,
   onToggleGold,
 }: {
+  proEnabled: boolean;
   colorsEnabled: boolean;
   goldEnabled: boolean;
+  onTogglePro: () => void;
   onToggleColors: () => void;
   onToggleGold: () => void;
 }) {
@@ -1068,29 +1315,52 @@ function MarketSettingsDropdown({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -5, scale: 0.98 }}
             transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute right-0 top-[calc(100%+8px)] z-50 w-[176px] origin-top-right rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl"
+            className="absolute right-0 top-[calc(100%+6px)] z-50 w-[148px] origin-top-right rounded-xl border border-zinc-800 bg-zinc-950 p-1 shadow-2xl"
           >
+            <button
+              type="button"
+              role="switch"
+              aria-checked={proEnabled}
+              onClick={onTogglePro}
+              className="flex h-8 w-full cursor-pointer items-center justify-between rounded-md px-2 text-left transition-colors hover:bg-zinc-900"
+            >
+              <span className="text-[13px] font-medium text-zinc-200">Pro</span>
+
+              <span
+                className={[
+                  "relative h-[17px] w-[34px] shrink-0 rounded-full p-0.5 transition-colors duration-200",
+                  proEnabled ? "bg-[#cfa13a]" : "bg-zinc-800",
+                ].join(" ")}
+              >
+                <motion.span
+                  animate={{ x: proEnabled ? 17 : 0 }}
+                  transition={{ type: "spring", stiffness: 520, damping: 34 }}
+                  className="block h-[13px] w-[13px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+                />
+              </span>
+            </button>
+
             <button
               type="button"
               role="switch"
               aria-checked={colorsEnabled}
               onClick={onToggleColors}
-              className="flex h-10 w-full cursor-pointer items-center justify-between rounded-lg px-2.5 text-left transition-colors hover:bg-zinc-900"
+              className="flex h-8 w-full cursor-pointer items-center justify-between rounded-md px-2 text-left transition-colors hover:bg-zinc-900"
             >
-              <span className="text-[14px] font-medium text-zinc-200">
+              <span className="text-[13px] font-medium text-zinc-200">
                 Colors
               </span>
 
               <span
                 className={[
-                  "relative h-[19px] w-[38px] shrink-0 rounded-full p-[2.5px] transition-colors duration-200",
+                  "relative h-[17px] w-[34px] shrink-0 rounded-full p-0.5 transition-colors duration-200",
                   colorsEnabled ? "bg-emerald-500" : "bg-zinc-800",
                 ].join(" ")}
               >
                 <motion.span
-                  animate={{ x: colorsEnabled ? 19 : 0 }}
+                  animate={{ x: colorsEnabled ? 17 : 0 }}
                   transition={{ type: "spring", stiffness: 520, damping: 34 }}
-                  className="block h-3.5 w-3.5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+                  className="block h-[13px] w-[13px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
                 />
               </span>
             </button>
@@ -1100,22 +1370,22 @@ function MarketSettingsDropdown({
               role="switch"
               aria-checked={goldEnabled}
               onClick={onToggleGold}
-              className="flex h-10 w-full cursor-pointer items-center justify-between rounded-lg px-2.5 text-left transition-colors hover:bg-zinc-900"
+              className="flex h-8 w-full cursor-pointer items-center justify-between rounded-md px-2 text-left transition-colors hover:bg-zinc-900"
             >
-              <span className="text-[14px] font-medium text-zinc-200">
+              <span className="text-[13px] font-medium text-zinc-200">
                 Gold
               </span>
 
               <span
                 className={[
-                  "relative h-[19px] w-[38px] shrink-0 rounded-full p-[2.5px] transition-colors duration-200",
+                  "relative h-[17px] w-[34px] shrink-0 rounded-full p-0.5 transition-colors duration-200",
                   goldEnabled ? "bg-[#cfa13a]" : "bg-zinc-800",
                 ].join(" ")}
               >
                 <motion.span
-                  animate={{ x: goldEnabled ? 19 : 0 }}
+                  animate={{ x: goldEnabled ? 17 : 0 }}
                   transition={{ type: "spring", stiffness: 520, damping: 34 }}
-                  className="block h-3.5 w-3.5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+                  className="block h-[13px] w-[13px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
                 />
               </span>
             </button>
@@ -1148,14 +1418,14 @@ function HideLiveToggle({
 
       <span
         className={[
-          "relative h-[19px] w-[38px] shrink-0 rounded-full p-[2.5px] transition-colors duration-200",
+          "relative h-[17px] w-[34px] shrink-0 rounded-full p-0.5 transition-colors duration-200",
           enabled ? "bg-emerald-500" : "bg-zinc-800",
         ].join(" ")}
       >
         <motion.span
           animate={{ x: enabled ? 19 : 0 }}
           transition={{ type: "spring", stiffness: 520, damping: 34 }}
-          className="block h-3.5 w-3.5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+          className="block h-[13px] w-[13px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
         />
       </span>
     </button>
@@ -1292,6 +1562,7 @@ function GameCard({
   now,
   colorsEnabled,
   goldEnabled,
+  proEnabled,
 }: {
   game: Game;
   selectedBet: BetSlipDataWithTeamAlias | null;
@@ -1300,6 +1571,7 @@ function GameCard({
   now: number | null;
   colorsEnabled: boolean;
   goldEnabled: boolean;
+  proEnabled: boolean;
 }) {
   const bookmaker = game.bookmakers[0];
   const h2h = getMarket(bookmaker, "h2h");
@@ -1350,145 +1622,185 @@ function GameCard({
       <article className="relative overflow-hidden lg:hidden">
         <GameCardHeader game={game} eventHref={eventHref} now={now} />
 
-        <div>
-          <TeamRow
-            team={game.away_team}
-            info={game.away_team_info}
-            sportKey={game.sport_key}
-          />
+        {proEnabled ? (
+          <div className="grid gap-0">
+            <MobileProTeamRow
+              game={game}
+              team={game.away_team}
+              teamInfo={game.away_team_info}
+              sportKey={game.sport_key}
+              moneylineMarket={h2h}
+              moneylineOutcome={awayMoneyline}
+              spreadMarket={spread}
+              spreadOutcome={awaySpread}
+              totalMarket={total}
+              totalOutcome={overTotal}
+              now={now}
+              colorsEnabled={colorsEnabled}
+              goldEnabled={goldEnabled}
+              rowPosition="top"
+            />
 
-          <TeamRow
-            team={game.home_team}
-            info={game.home_team_info}
-            sportKey={game.sport_key}
-          />
-        </div>
-
-        <div className="mt-1.5 grid grid-cols-2 gap-2.5 md:gap-3">
-          <MobileMarketModalButton
-            game={game}
-            market={h2h}
-            outcome={awayMoneyline}
-            team={game.away_team}
-            teamInfo={game.away_team_info}
-            now={now}
-            colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
-          />
-
-          <MobileMarketModalButton
-            game={game}
-            market={h2h}
-            outcome={homeMoneyline}
-            team={game.home_team}
-            teamInfo={game.home_team_info}
-            now={now}
-            colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
-          />
-        </div>
-
-        {hasMoreBets ? (
-          <div className="mt-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                setMoreBetsOpen((current) => {
-                  const nextValue = !current;
-                  moreBetsOpenedByUserRef.current = nextValue;
-                  return nextValue;
-                });
-              }}
-              className="mt-2 inline-flex items-center gap-1.5 text-[14px] font-medium text-zinc-300 transition-colors hover:text-zinc-500"
-            >
-              <span>More Bets</span>
-
-              <motion.span
-                animate={{ rotate: moreBetsOpen ? 180 : 0 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="grid place-items-center text-zinc-100"
-              >
-                <FiChevronDown className="h-3 w-3" />
-              </motion.span>
-            </button>
-
-            <AnimatePresence initial={false}>
-              {moreBetsOpen ? (
-                <motion.div
-                  key="mobile-more-bets"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-                  onAnimationComplete={scrollToBottomAfterMoreBetsRender}
-                  className="overflow-hidden"
-                >
-                  <div className="grid gap-3 pt-1 md:gap-3.5">
-                    {hasSpread ? (
-                      <div className="grid gap-2">
-                        <div className="px-0.5 text-[12px] font-medium leading-none text-zinc-400">
-                          {spread?.label ?? "Spread"}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
-                          <MobileMarketModalButton
-                            game={game}
-                            market={spread}
-                            outcome={awaySpread}
-                            team={game.away_team}
-                            teamInfo={game.away_team_info}
-                            now={now}
-                            colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
-                          />
-
-                          <MobileMarketModalButton
-                            game={game}
-                            market={spread}
-                            outcome={homeSpread}
-                            team={game.home_team}
-                            teamInfo={game.home_team_info}
-                            now={now}
-                            colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
-                          />
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {hasTotal ? (
-                      <div className="grid gap-2">
-                        <div className="px-0.5 text-[12px] font-medium leading-none text-zinc-400">
-                          {total?.label ?? "Total"}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
-                          <MobileMarketModalButton
-                            game={game}
-                            market={total}
-                            outcome={overTotal}
-                            now={now}
-                            colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
-                          />
-
-                          <MobileMarketModalButton
-                            game={game}
-                            market={total}
-                            outcome={underTotal}
-                            now={now}
-                            colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
-                          />
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
+            <MobileProTeamRow
+              game={game}
+              team={game.home_team}
+              teamInfo={game.home_team_info}
+              sportKey={game.sport_key}
+              moneylineMarket={h2h}
+              moneylineOutcome={homeMoneyline}
+              spreadMarket={spread}
+              spreadOutcome={homeSpread}
+              totalMarket={total}
+              totalOutcome={underTotal}
+              now={now}
+              colorsEnabled={colorsEnabled}
+              goldEnabled={goldEnabled}
+              rowPosition="bottom"
+            />
           </div>
-        ) : null}
+        ) : (
+          <>
+            <div>
+              <TeamRow
+                team={game.away_team}
+                info={game.away_team_info}
+                sportKey={game.sport_key}
+              />
+
+              <TeamRow
+                team={game.home_team}
+                info={game.home_team_info}
+                sportKey={game.sport_key}
+              />
+            </div>
+
+            <div className="mt-1.5 grid grid-cols-2 gap-2.5 md:gap-3">
+              <MobileMarketModalButton
+                game={game}
+                market={h2h}
+                outcome={awayMoneyline}
+                team={game.away_team}
+                teamInfo={game.away_team_info}
+                now={now}
+                colorsEnabled={colorsEnabled}
+                goldEnabled={goldEnabled}
+              />
+
+              <MobileMarketModalButton
+                game={game}
+                market={h2h}
+                outcome={homeMoneyline}
+                team={game.home_team}
+                teamInfo={game.home_team_info}
+                now={now}
+                colorsEnabled={colorsEnabled}
+                goldEnabled={goldEnabled}
+              />
+            </div>
+
+            {hasMoreBets ? (
+              <div className="mt-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMoreBetsOpen((current) => {
+                      const nextValue = !current;
+                      moreBetsOpenedByUserRef.current = nextValue;
+                      return nextValue;
+                    });
+                  }}
+                  className="mt-2 inline-flex items-center gap-1.5 text-[14px] font-medium text-zinc-300 transition-colors hover:text-zinc-500"
+                >
+                  <span>More Bets</span>
+
+                  <motion.span
+                    animate={{ rotate: moreBetsOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="grid place-items-center text-zinc-100"
+                  >
+                    <FiChevronDown className="h-3 w-3" />
+                  </motion.span>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {moreBetsOpen ? (
+                    <motion.div
+                      key="mobile-more-bets"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                      onAnimationComplete={scrollToBottomAfterMoreBetsRender}
+                      className="overflow-hidden"
+                    >
+                      <div className="grid gap-3 pt-1 md:gap-3.5">
+                        {hasSpread ? (
+                          <div className="grid gap-2">
+                            <div className="px-0.5 text-[12px] font-medium leading-none text-zinc-400">
+                              {spread?.label ?? "Spread"}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                              <MobileMarketModalButton
+                                game={game}
+                                market={spread}
+                                outcome={awaySpread}
+                                team={game.away_team}
+                                teamInfo={game.away_team_info}
+                                now={now}
+                                colorsEnabled={colorsEnabled}
+                                goldEnabled={goldEnabled}
+                              />
+
+                              <MobileMarketModalButton
+                                game={game}
+                                market={spread}
+                                outcome={homeSpread}
+                                team={game.home_team}
+                                teamInfo={game.home_team_info}
+                                now={now}
+                                colorsEnabled={colorsEnabled}
+                                goldEnabled={goldEnabled}
+                              />
+                            </div>
+                          </div>
+                        ) : null}
+
+                        {hasTotal ? (
+                          <div className="grid gap-2">
+                            <div className="px-0.5 text-[12px] font-medium leading-none text-zinc-400">
+                              {total?.label ?? "Total"}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                              <MobileMarketModalButton
+                                game={game}
+                                market={total}
+                                outcome={overTotal}
+                                now={now}
+                                colorsEnabled={colorsEnabled}
+                                goldEnabled={goldEnabled}
+                              />
+
+                              <MobileMarketModalButton
+                                game={game}
+                                market={total}
+                                outcome={underTotal}
+                                now={now}
+                                colorsEnabled={colorsEnabled}
+                                goldEnabled={goldEnabled}
+                              />
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
+            ) : null}
+          </>
+        )}
       </article>
 
       <article className="relative hidden lg:block">
@@ -1520,7 +1832,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
+              goldEnabled={goldEnabled}
             />
 
             <DesktopMarketCell
@@ -1533,7 +1845,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
+              goldEnabled={goldEnabled}
             />
           </div>
 
@@ -1548,7 +1860,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
+              goldEnabled={goldEnabled}
             />
 
             <DesktopMarketCell
@@ -1561,7 +1873,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
+              goldEnabled={goldEnabled}
             />
           </div>
 
@@ -1574,7 +1886,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
+              goldEnabled={goldEnabled}
             />
 
             <DesktopMarketCell
@@ -1585,7 +1897,7 @@ function GameCard({
               onSelect={onSelectBet}
               now={now}
               colorsEnabled={colorsEnabled}
-            goldEnabled={goldEnabled}
+              goldEnabled={goldEnabled}
             />
           </div>
         </div>
@@ -1670,23 +1982,47 @@ export default function GamesClient({
 
   const [hideLiveGames, setHideLiveGames] = useState(false);
   const [hideLiveGamesLoaded, setHideLiveGamesLoaded] = useState(false);
-  const [marketColorsEnabled, setMarketColorsEnabled] = useState(true);
+  const [marketColorsEnabled, setMarketColorsEnabled] = useState(false);
   const [marketColorsLoaded, setMarketColorsLoaded] = useState(false);
   const [goldMarketsEnabled, setGoldMarketsEnabled] = useState(false);
   const [goldMarketsLoaded, setGoldMarketsLoaded] = useState(false);
+  const [proMarketsEnabled, setProMarketsEnabled] = useState(true);
+  const [proMarketsLoaded, setProMarketsLoaded] = useState(false);
 
   useBrowserLayoutEffect(() => {
-    const storedGoldMarketsEnabled = readStoredGoldMarketsEnabled();
-    const storedMarketColorsEnabled = storedGoldMarketsEnabled
+    let storedGoldMarketsEnabled = readStoredGoldMarketsEnabled();
+    let storedProMarketsEnabled = readStoredProMarketsEnabled();
+    let storedMarketColorsEnabled = storedGoldMarketsEnabled
       ? false
       : readStoredMarketColorsEnabled();
+
+    try {
+      const defaultsApplied =
+        window.localStorage.getItem(MARKET_DISPLAY_DEFAULTS_STORAGE_KEY) ===
+        "true";
+
+      if (!defaultsApplied) {
+        storedProMarketsEnabled = true;
+        storedMarketColorsEnabled = false;
+        storedGoldMarketsEnabled = false;
+
+        writeStoredProMarketsEnabled(true);
+        writeStoredMarketColorsEnabled(false);
+        writeStoredGoldMarketsEnabled(false);
+        window.localStorage.setItem(MARKET_DISPLAY_DEFAULTS_STORAGE_KEY, "true");
+      }
+    } catch {
+      // Fall back to the in-memory defaults when storage is unavailable.
+    }
 
     setHideLiveGames(readStoredHideLiveGames());
     setMarketColorsEnabled(storedMarketColorsEnabled);
     setGoldMarketsEnabled(storedGoldMarketsEnabled);
+    setProMarketsEnabled(storedProMarketsEnabled);
     setHideLiveGamesLoaded(true);
     setMarketColorsLoaded(true);
     setGoldMarketsLoaded(true);
+    setProMarketsLoaded(true);
 
     if (storedGoldMarketsEnabled) {
       writeStoredMarketColorsEnabled(false);
@@ -1706,6 +2042,7 @@ export default function GamesClient({
     hideLiveGamesLoaded &&
     marketColorsLoaded &&
     goldMarketsLoaded &&
+    proMarketsLoaded &&
     now !== null;
   const totalGames = visibleGames.length;
 
@@ -1721,6 +2058,14 @@ export default function GamesClient({
     setHideLiveGames((current) => {
       const nextValue = !current;
       writeStoredHideLiveGames(nextValue);
+      return nextValue;
+    });
+  }
+
+  function toggleProMarkets() {
+    setProMarketsEnabled((current) => {
+      const nextValue = !current;
+      writeStoredProMarketsEnabled(nextValue);
       return nextValue;
     });
   }
@@ -1759,8 +2104,10 @@ export default function GamesClient({
     return (
       <div className="inline-flex h-[29px] items-center gap-1.5">
         <MarketSettingsDropdown
+          proEnabled={proMarketsEnabled}
           colorsEnabled={marketColorsEnabled}
           goldEnabled={goldMarketsEnabled}
+          onTogglePro={toggleProMarkets}
           onToggleColors={toggleMarketColors}
           onToggleGold={toggleGoldMarkets}
         />
@@ -1831,12 +2178,7 @@ export default function GamesClient({
   }, [hideLiveGamesLoaded, now, visibleFirstBet, visibleGames]);
 
   if (!initialGameStateReady) {
-    return (
-      <div
-        className="min-h-screen bg-[#09090b]"
-        aria-hidden="true"
-      />
-    );
+    return <div className="min-h-screen bg-[#09090b]" aria-hidden="true" />;
   }
 
   return (
@@ -1909,14 +2251,7 @@ export default function GamesClient({
                             index === group.games.length - 1;
 
                           return (
-                            <div
-                              key={game.id}
-                              className={
-                                index > 0
-                                  ? ""
-                                  : ""
-                              }
-                            >
+                            <div key={game.id} className={index > 0 ? "" : ""}>
                               <GameCard
                                 game={game}
                                 selectedBet={selectedBet}
@@ -1927,6 +2262,7 @@ export default function GamesClient({
                                 now={now}
                                 colorsEnabled={marketColorsEnabled}
                                 goldEnabled={goldMarketsEnabled}
+                                proEnabled={proMarketsEnabled}
                               />
                             </div>
                           );
