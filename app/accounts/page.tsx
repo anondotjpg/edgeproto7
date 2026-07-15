@@ -506,7 +506,7 @@ export default function AccountsPage() {
             <OwnedAccountsSection />
 
             <div className="mb-7 hidden text-center sm:mb-10 md:block leading-[1.2]">
-              <h1 className="text-[36px] font-semibold tracking-tight text-zinc-100 sm:text-[46px]">
+              <h1 className="text-[36px] font-semibold italic tracking-tight text-zinc-100 sm:text-[46px]">
                 Beat the Odds.
               </h1>
 
