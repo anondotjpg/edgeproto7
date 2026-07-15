@@ -43,7 +43,7 @@ export default function LeagueTabs({
           aria-label="Select league"
           className="no-scrollbar relative w-full overflow-x-auto overscroll-x-contain"
         >
-          <div className="flex min-w-max items-stretch px-4">
+          <div className="flex min-w-max items-stretch">
             {leagues.map((item) => {
               const isActive = item.league === selectedLeague;
 
@@ -54,7 +54,7 @@ export default function LeagueTabs({
                   href={`/?league=${item.league}`}
                   aria-current={isActive ? "page" : undefined}
                   className={[
-                    "relative flex h-[42px] min-w-[84px] shrink-0 scroll-mx-4 items-center justify-center px-4 text-[13px] leading-none transition-colors duration-150",
+                    "relative flex h-[42px] min-w-[78px] shrink-0 scroll-mx-0 items-center justify-center px-3 text-[13.5px] leading-none transition-colors duration-150",
                     isActive ? "text-zinc-100" : "text-zinc-500",
                   ].join(" ")}
                 >
@@ -86,7 +86,7 @@ export default function LeagueTabs({
                         damping: 38,
                         mass: 0.75,
                       }}
-                      className="absolute inset-x-0 bottom-0 z-20 h-[3px] rounded-t-full bg-[#cfa13a]"
+                      className="absolute inset-x-0 bottom-0 z-20 h-[3px] rounded-full bg-[#cfa13a]"
                     />
                   ) : null}
                 </Link>
