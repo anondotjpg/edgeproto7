@@ -204,14 +204,22 @@ function splitTeamNameIntoTwoLines(value: string): [string, string] {
 
   let bestSplitIndex = 1;
   let smallestLengthDifference = Number.POSITIVE_INFINITY;
+  let bestTopLineIsAtLeastAsLong = false;
 
   for (let index = 1; index < words.length; index += 1) {
     const firstLine = words.slice(0, index).join(" ");
     const secondLine = words.slice(index).join(" ");
     const lengthDifference = Math.abs(firstLine.length - secondLine.length);
+    const topLineIsAtLeastAsLong = firstLine.length >= secondLine.length;
 
-    if (lengthDifference < smallestLengthDifference) {
+    if (
+      lengthDifference < smallestLengthDifference ||
+      (lengthDifference === smallestLengthDifference &&
+        topLineIsAtLeastAsLong &&
+        !bestTopLineIsAtLeastAsLong)
+    ) {
       smallestLengthDifference = lengthDifference;
+      bestTopLineIsAtLeastAsLong = topLineIsAtLeastAsLong;
       bestSplitIndex = index;
     }
   }
@@ -560,6 +568,14 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
     splitTeamNameIntoTwoLines(awayTeamName);
   const [homeTeamLineOne, homeTeamLineTwo] =
     splitTeamNameIntoTwoLines(homeTeamName);
+  const longestTeamLineLength = Math.max(
+    awayTeamLineOne.length,
+    awayTeamLineTwo.trim().length,
+    homeTeamLineOne.length,
+    homeTeamLineTwo.trim().length,
+  );
+  const hasLongTeamLine = longestTeamLineLength >= 12;
+  const hasVeryLongTeamLine = longestTeamLineLength >= 16;
 
   return (
     <div className="relative text-center">
@@ -577,35 +593,53 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
         {game.sport_title}
       </div>
 
-      <h1 className="mx-auto mt-2 grid w-full max-w-[94vw] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-1 text-[20px] font-semibold leading-[1.05] tracking-[-0.025em] text-white sm:gap-4 sm:px-2 sm:text-[24px] md:hidden">
-        <span className="grid min-w-0 grid-rows-2 text-left">
-          <span className="block min-w-0 truncate">{awayTeamLineOne}</span>
-          <span className="block min-w-0 truncate">{awayTeamLineTwo}</span>
+      <h1
+        className={[
+          "mx-auto mt-2 grid w-full items-start justify-center px-0 font-semibold leading-[1.12] tracking-[-0.02em] text-white md:hidden",
+          hasVeryLongTeamLine
+            ? "max-w-[430px] grid-cols-[minmax(0,172px)_auto_minmax(0,172px)] gap-2.5 text-[17px] sm:max-w-[490px] sm:grid-cols-[minmax(0,198px)_auto_minmax(0,198px)] sm:gap-3 sm:text-[20px]"
+            : hasLongTeamLine
+              ? "max-w-[402px] grid-cols-[minmax(0,160px)_auto_minmax(0,160px)] gap-3 text-[18px] sm:max-w-[458px] sm:grid-cols-[minmax(0,184px)_auto_minmax(0,184px)] sm:gap-3.5 sm:text-[21px]"
+              : "max-w-[380px] grid-cols-[minmax(0,148px)_auto_minmax(0,148px)] gap-4 text-[18px] sm:max-w-[438px] sm:grid-cols-[minmax(0,172px)_auto_minmax(0,172px)] sm:gap-5 sm:text-[22px]",
+        ].join(" ")}
+      >
+        <span className="flex min-w-0 flex-col items-center justify-start pb-[0.14em] text-center">
+          <span className="block min-w-0 overflow-visible whitespace-nowrap">{awayTeamLineOne}</span>
+          <span className="block min-w-0 overflow-visible whitespace-nowrap">{awayTeamLineTwo}</span>
         </span>
 
-        <span className="text-[13px] font-medium leading-none tracking-normal text-zinc-500">
+        <span className="self-center text-[13px] font-medium leading-none tracking-normal text-zinc-500">
           vs.
         </span>
 
-        <span className="grid min-w-0 grid-rows-2 text-right">
-          <span className="block min-w-0 truncate">{homeTeamLineOne}</span>
-          <span className="block min-w-0 truncate">{homeTeamLineTwo}</span>
+        <span className="flex min-w-0 flex-col items-center justify-start pb-[0.14em] text-center">
+          <span className="block min-w-0 overflow-visible whitespace-nowrap">{homeTeamLineOne}</span>
+          <span className="block min-w-0 overflow-visible whitespace-nowrap">{homeTeamLineTwo}</span>
         </span>
       </h1>
 
-      <h1 className="mx-auto mt-3 hidden w-full max-w-[760px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6 px-4 text-[32px] font-semibold leading-[0.98] tracking-tight text-white md:grid lg:gap-8 lg:text-[36px]">
-        <span className="grid min-w-0 grid-rows-2 text-left">
-          <span className="block min-w-0 truncate">{awayTeamLineOne}</span>
-          <span className="block min-w-0 truncate">{awayTeamLineTwo}</span>
+      <h1
+        className={[
+          "mx-auto mt-3 hidden w-full items-start justify-center px-0 font-semibold leading-[1.08] tracking-tight text-white md:grid",
+          hasVeryLongTeamLine
+            ? "max-w-[720px] grid-cols-[minmax(0,286px)_auto_minmax(0,286px)] gap-6 text-[28px] lg:max-w-[790px] lg:grid-cols-[minmax(0,316px)_auto_minmax(0,316px)] lg:gap-7 lg:text-[31px]"
+            : hasLongTeamLine
+              ? "max-w-[680px] grid-cols-[minmax(0,270px)_auto_minmax(0,270px)] gap-7 text-[29px] lg:max-w-[748px] lg:grid-cols-[minmax(0,300px)_auto_minmax(0,300px)] lg:gap-8 lg:text-[33px]"
+              : "max-w-[640px] grid-cols-[minmax(0,250px)_auto_minmax(0,250px)] gap-8 text-[29px] lg:max-w-[710px] lg:grid-cols-[minmax(0,280px)_auto_minmax(0,280px)] lg:gap-10 lg:text-[33px]",
+        ].join(" ")}
+      >
+        <span className="flex min-w-0 flex-col items-center justify-start pb-[0.14em] text-center">
+          <span className="block min-w-0 overflow-visible whitespace-nowrap">{awayTeamLineOne}</span>
+          <span className="block min-w-0 overflow-visible whitespace-nowrap">{awayTeamLineTwo}</span>
         </span>
 
-        <span className="text-[15px] font-medium leading-none tracking-normal text-zinc-500 lg:text-[16px]">
+        <span className="self-center text-[15px] font-medium leading-none tracking-normal text-zinc-500 lg:text-[16px]">
           vs.
         </span>
 
-        <span className="grid min-w-0 grid-rows-2 text-right">
-          <span className="block min-w-0 truncate">{homeTeamLineOne}</span>
-          <span className="block min-w-0 truncate">{homeTeamLineTwo}</span>
+        <span className="flex min-w-0 flex-col items-center justify-start pb-[0.14em] text-center">
+          <span className="block min-w-0 overflow-visible whitespace-nowrap">{homeTeamLineOne}</span>
+          <span className="block min-w-0 overflow-visible whitespace-nowrap">{homeTeamLineTwo}</span>
         </span>
       </h1>
 
