@@ -19,28 +19,28 @@ const MAIN_NAV_LINKS = [
     href: "/",
     ActiveIcon: GoHomeFill,
     InactiveIcon: GoHome,
-    mobileIconClassName: "h-[30.8px] w-[30.8px]",
+    mobileIconClassName: "h-[31px] w-[31px]",
   },
   {
     label: "Accounts",
     href: "/accounts",
     ActiveIcon: MdAccountBalanceWallet,
     InactiveIcon: MdOutlineAccountBalanceWallet,
-    mobileIconClassName: "h-[30.8px] w-[30.8px]",
+    mobileIconClassName: "h-[31px] w-[31px]",
   },
   {
     label: "Portfolio",
     href: "/portfolio",
     ActiveIcon: IoStatsChart,
     InactiveIcon: IoStatsChartOutline,
-    mobileIconClassName: "h-[31.9px] w-[31.9px]",
+    mobileIconClassName: "h-8 w-8",
   },
   {
     label: "Payouts",
     href: "/payouts",
     ActiveIcon: SiCashapp,
     InactiveIcon: SiCashapp,
-    mobileIconClassName: "h-[25.3px] w-[25.3px]",
+    mobileIconClassName: "h-[25px] w-[25px]",
   },
 ] as const;
 
@@ -50,7 +50,7 @@ const SECONDARY_NAV_LINKS = [
     href: "/deposits",
     ActiveIcon: BiSolidPurchaseTag,
     InactiveIcon: BiPurchaseTag,
-    mobileIconClassName: "h-[31.9px] w-[31.9px]",
+    mobileIconClassName: "h-8 w-8",
   },
 ] as const;
 
@@ -148,11 +148,16 @@ export default function AppSidebar() {
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t-[0.5] border-zinc-800 bg-[#09090b]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-        <div className="relative h-20">
+      <nav className="fixed inset-x-0 bottom-0 z-50 isolate overflow-hidden border-t border-zinc-800/80 pb-[env(safe-area-inset-bottom)] [backface-visibility:hidden] [transform:translateZ(0)] md:hidden">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[#09090b]/95 backdrop-blur [backface-visibility:hidden] [transform:translateZ(0)]"
+        />
+
+        <div className="relative h-20 [backface-visibility:hidden] [transform:translateZ(0)]">
           {activeIndex >= 0 ? (
             <motion.div
-              className="pointer-events-none absolute inset-y-0 left-0 z-0 flex w-1/5 items-center justify-center"
+              className="pointer-events-none absolute inset-y-0 left-0 z-0 flex w-1/5 items-center justify-center [backface-visibility:hidden] [transform:translateZ(0)]"
               initial={false}
               animate={{ x: `${activeIndex * 100}%` }}
               transition={{
@@ -166,7 +171,7 @@ export default function AppSidebar() {
             </motion.div>
           ) : null}
 
-          <div className="relative z-10 grid h-full grid-cols-5">
+          <div className="relative z-10 grid h-full grid-cols-5 [backface-visibility:hidden] [transform:translateZ(0)]">
             {MOBILE_NAV_LINKS.map((item) => {
               const isActive = isActivePath(pathname, item.href);
               const Icon = isActive ? item.ActiveIcon : item.InactiveIcon;
@@ -182,10 +187,10 @@ export default function AppSidebar() {
                     isActive ? "text-zinc-100" : "text-zinc-500",
                   ].join(" ")}
                 >
-                  <span className="flex h-11 w-11 items-center justify-center">
+                  <span className="flex h-11 w-11 items-center justify-center [backface-visibility:hidden] [transform:translateZ(0)]">
                     <Icon
                       aria-hidden="true"
-                      className={`${item.mobileIconClassName} block shrink-0`}
+                      className={`${item.mobileIconClassName} block shrink-0 [backface-visibility:hidden] [transform:translateZ(0)]`}
                     />
                   </span>
                 </Link>
