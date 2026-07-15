@@ -1404,14 +1404,14 @@ function BetSlipControls({
             </div>
           </div>
         ) : isMobileDrawer ? (
-          <div className="flex flex-col items-center text-center">
+          <div className="relative min-h-[82px] w-full overflow-visible">
             <motion.div
               key={amountShakeKey}
               animate={
                 amountShakeKey > 0 ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
               }
               transition={{ duration: 0.28, ease: "easeOut" }}
-              className="flex min-h-[78px] w-full items-center justify-center overflow-visible px-6 py-1 text-[58px] font-semibold leading-none tracking-[-0.055em] text-white"
+              className="flex min-h-[82px] w-full items-start justify-center overflow-visible px-6 pt-1 text-center text-[58px] font-semibold leading-none tracking-[-0.055em] text-white"
             >
               <div className="inline-flex max-w-full items-center justify-center overflow-visible px-2">
                 <MoneyFlow value={amountValue} className="overflow-visible" />
@@ -1421,16 +1421,17 @@ function BetSlipControls({
             <div
               aria-hidden={!showPotentialPayout}
               className={[
-                "mt-1 h-5 text-[13px] leading-5 text-zinc-500 transition-opacity",
+                "absolute right-0 top-1 flex flex-col items-end text-right transition-opacity",
                 showPotentialPayout ? "opacity-100" : "opacity-0",
               ].join(" ")}
             >
-              Pot. payout{" "}
-              <span className="font-semibold text-zinc-300">
+              <span className="text-[12px] font-medium leading-none text-zinc-500">
+                Pot. payout
+              </span>
+              <span className="mt-1 text-[16px] font-semibold leading-none text-zinc-300">
                 <MoneyFlow value={possiblePayoutValue} />
               </span>
             </div>
-
           </div>
         ) : (
           <div className="flex items-start justify-between gap-4">
