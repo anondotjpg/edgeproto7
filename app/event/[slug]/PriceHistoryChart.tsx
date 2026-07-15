@@ -155,31 +155,31 @@ function ChartLegend({
 }
 
 function PriceHistoryChartSkeleton() {
-  const awayEndY = 119;
-  const homeEndY = 139;
+  const awayEndY = 98;
+  const homeEndY = 128;
 
   return (
     <div
       aria-hidden="true"
-      className="relative h-[260px] w-full min-w-0 animate-pulse overflow-visible"
+      className="relative -mt-3 h-[220px] w-full min-w-0 animate-pulse overflow-visible sm:mt-0 sm:h-[260px]"
     >
       <div className="pointer-events-none absolute inset-y-0 left-2 right-3 overflow-visible">
         <svg
-          viewBox="0 0 1000 260"
+          viewBox="0 0 1000 220"
           preserveAspectRatio="none"
-          className="absolute inset-0 h-full w-full overflow-visible"
+          className="absolute inset-0 h-full w-full overflow-visible sm:hidden"
           style={{ overflow: "visible" }}
         >
           <path
             d="
-              M0 135
-              C48 131, 91 111, 148 117
-              C205 123, 241 151, 304 140
-              C363 130, 398 104, 457 113
-              C516 123, 555 151, 616 139
-              C677 127, 708 99, 768 109
-              C828 119, 861 148, 918 135
-              C955 127, 980 112, 1000 119
+              M0 124
+              C48 118, 90 84, 148 94
+              C205 104, 242 158, 304 140
+              C364 122, 398 72, 457 89
+              C516 106, 555 164, 616 143
+              C677 122, 709 65, 768 85
+              C828 105, 862 157, 918 130
+              C955 113, 980 85, 1000 98
             "
             fill="none"
             stroke="rgba(244,244,245,0.3)"
@@ -191,14 +191,59 @@ function PriceHistoryChartSkeleton() {
 
           <path
             d="
-              M0 143
-              C55 150, 97 138, 152 127
-              C210 115, 247 108, 305 121
-              C365 135, 402 153, 459 144
-              C518 135, 550 108, 613 117
-              C674 127, 708 151, 768 141
-              C828 131, 862 105, 918 114
-              C956 120, 981 147, 1000 139
+              M0 145
+              C55 162, 97 143, 152 119
+              C210 94, 247 73, 305 99
+              C365 126, 402 169, 459 149
+              C518 129, 550 75, 613 94
+              C674 113, 708 165, 768 142
+              C828 119, 862 70, 918 91
+              C956 105, 981 153, 1000 128
+            "
+            fill="none"
+            stroke="rgba(113,113,122,0.42)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+
+        <svg
+          viewBox="0 0 1000 260"
+          preserveAspectRatio="none"
+          className="absolute inset-0 hidden h-full w-full overflow-visible sm:block"
+          style={{ overflow: "visible" }}
+        >
+          <path
+            d="
+              M0 146
+              C48 139, 90 99, 148 111
+              C205 123, 242 187, 304 165
+              C364 144, 398 85, 457 105
+              C516 125, 555 194, 616 169
+              C677 144, 709 77, 768 101
+              C828 125, 862 185, 918 154
+              C955 134, 980 101, 1000 116
+            "
+            fill="none"
+            stroke="rgba(244,244,245,0.3)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          <path
+            d="
+              M0 171
+              C55 191, 97 169, 152 141
+              C210 111, 247 86, 305 117
+              C365 149, 402 200, 459 176
+              C518 152, 550 89, 613 111
+              C674 134, 708 195, 768 168
+              C828 141, 862 83, 918 107
+              C956 124, 981 180, 1000 151
             "
             fill="none"
             stroke="rgba(113,113,122,0.42)"
@@ -213,7 +258,7 @@ function PriceHistoryChartSkeleton() {
           className="absolute h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
           style={{
             right: "-4.5px",
-            top: `${(awayEndY / 260) * 100}%`,
+            top: `${(awayEndY / 220) * 100}%`,
             backgroundColor: "#f4f4f5",
           }}
         />
@@ -222,7 +267,25 @@ function PriceHistoryChartSkeleton() {
           className="absolute h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
           style={{
             right: "-4.5px",
-            top: `${(homeEndY / 260) * 100}%`,
+            top: `${(homeEndY / 220) * 100}%`,
+            backgroundColor: "#71717a",
+          }}
+        />
+
+        <span
+          className="absolute hidden h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b] sm:block"
+          style={{
+            right: "-4.5px",
+            top: `${(116 / 260) * 100}%`,
+            backgroundColor: "#f4f4f5",
+          }}
+        />
+
+        <span
+          className="absolute hidden h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b] sm:block"
+          style={{
+            right: "-4.5px",
+            top: `${(151 / 260) * 100}%`,
             backgroundColor: "#71717a",
           }}
         />
