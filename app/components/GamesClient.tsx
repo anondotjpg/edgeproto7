@@ -1400,7 +1400,7 @@ function MarketSettingsDropdown({
               role="switch"
               aria-checked={proEnabled}
               onClick={onTogglePro}
-              className="flex h-8 w-full cursor-pointer items-center justify-between rounded-md px-2 text-left transition-colors hover:bg-zinc-900"
+              className="flex h-8 w-full cursor-pointer items-center justify-between rounded-md px-2 text-left transition-colors hover:bg-zinc-900 sm:hidden"
             >
               <span className="text-[13px] font-medium text-zinc-200">Pro</span>
 
