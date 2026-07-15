@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Inter } from "next/font/google";
+import localFont from "next/font/local";
+import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AppSidebar from "./components/AppSidebar";
 import SafariScrollGate from "./components/SafariScrollGate";
@@ -7,10 +8,42 @@ import TopRightAuth from "./components/TopRightAuth";
 import Providers from "./providers";
 import ResponsiveToaster from "./components/ResponsiveToaster";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+const sfProRounded = localFont({
+  src: [
+    {
+      path: "../public/SF-Pro-Rounded-Thin.otf",
+      weight: "100",
+      style: "normal",
+    },
+    {
+      path: "../public/SF-Pro-Rounded-Light.otf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../public/SF-Pro-Rounded-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/SF-Pro-Rounded-Medium.otf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/SF-Pro-Rounded-Semibold.otf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../public/SF-Pro-Rounded-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-sf-pro-rounded",
   display: "swap",
+  fallback: ["ui-rounded", "system-ui", "sans-serif"],
 });
 
 const geistMono = Geist_Mono({
@@ -125,7 +158,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
+      className={`${sfProRounded.variable} ${geistMono.variable} h-full bg-[#09090b] antialiased`}
     >
       <head>
         <script
