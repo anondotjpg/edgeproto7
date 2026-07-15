@@ -6,7 +6,7 @@ export const LEAGUES = [
   { key: "nfl", label: "NFL", tag: 450, teamLeague: "nfl" },
 ] as const;
 
-const MIN_MARKET_VOLUME = 200;
+const MIN_MARKET_VOLUME = 100;
 
 export type LeagueKey = (typeof LEAGUES)[number]["key"];
 export type MarketKey = "h2h" | "spreads" | "totals";
