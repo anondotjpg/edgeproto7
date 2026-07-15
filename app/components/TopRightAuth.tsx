@@ -46,13 +46,17 @@ export default function TopRightAuth() {
       closeTimer.current = null;
     }
 
-    if (window.innerWidth >= 1024) setMenuOpen(true);
+    if (window.innerWidth >= 1024) {
+      setMenuOpen(true);
+    }
   };
 
   const scheduleClose = () => {
     if (window.innerWidth < 1024) return;
 
-    if (closeTimer.current) clearTimeout(closeTimer.current);
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+    }
 
     closeTimer.current = setTimeout(() => {
       setMenuOpen(false);
@@ -60,7 +64,10 @@ export default function TopRightAuth() {
   };
 
   const goldButtonClassName =
-    "relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626] whitespace-nowrap";
+    "relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626]";
+
+  const phoneGoldButtonClassName =
+    "relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 active:translate-y-[2px] active:shadow-none";
 
   const avatarSeed =
     user?.id || user?.wallet?.address || user?.email?.address || "edge-user";
@@ -70,13 +77,61 @@ export default function TopRightAuth() {
   const accountMenuItemClassName =
     "flex h-10 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-left text-[14px] font-medium transition-colors hover:bg-zinc-900 active:bg-zinc-900";
 
+  const desktopAvatarButton = (
+    <button
+      type="button"
+      onClick={() => setMenuOpen((open) => !open)}
+      className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
+      aria-haspopup="menu"
+      aria-expanded={menuOpen}
+      aria-label="Open account menu"
+    >
+      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#a97924] p-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.42)]">
+        <span className="flex h-full w-full items-center justify-center rounded-full bg-[#09090b] p-[2px]">
+          <span className="flex h-[28px] w-[28px] items-center justify-center overflow-hidden rounded-full">
+            <Avatar
+              size={28}
+              name={`Edge-${avatarSeed}`}
+              variant="pixel"
+              colors={avatarColors}
+            />
+          </span>
+        </span>
+      </span>
+    </button>
+  );
+
+  const phoneAvatarButton = (
+    <button
+      type="button"
+      onClick={() => setMenuOpen((open) => !open)}
+      className="relative flex h-9 w-9 cursor-pointer items-center justify-start rounded-full"
+      aria-haspopup="menu"
+      aria-expanded={menuOpen}
+      aria-label="Open account menu"
+    >
+      <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+        <Avatar
+          size={32}
+          name={`Edge-${avatarSeed}`}
+          variant="pixel"
+          colors={avatarColors}
+        />
+      </span>
+    </button>
+  );
+
+  const shimmer = (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
+    />
+  );
+
   const signedInControls = (
     <>
       <Link href="/accounts" className={goldButtonClassName}>
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
-        />
+        {shimmer}
         <span className="relative z-10">Start Challenge</span>
       </Link>
 
@@ -86,27 +141,7 @@ export default function TopRightAuth() {
         onMouseLeave={scheduleClose}
         className="relative flex shrink-0 items-center"
       >
-        <button
-          type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
-          aria-haspopup="menu"
-          aria-expanded={menuOpen}
-          aria-label="Open account menu"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#a97924] p-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.42)]">
-            <span className="flex h-full w-full items-center justify-center rounded-full bg-[#09090b] p-[2px]">
-              <span className="flex h-[28px] w-[28px] items-center justify-center overflow-hidden rounded-full">
-                <Avatar
-                  size={28}
-                  name={`Edge-${avatarSeed}`}
-                  variant="pixel"
-                  colors={avatarColors}
-                />
-              </span>
-            </span>
-          </span>
-        </button>
+        {desktopAvatarButton}
 
         <AnimatePresence initial={false}>
           {menuOpen ? (
@@ -161,23 +196,51 @@ export default function TopRightAuth() {
     signedInControls
   ) : (
     <button type="button" onClick={login} className={goldButtonClassName}>
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
-      />
+      {shimmer}
+      <span className="relative z-10">Sign in</span>
+    </button>
+  );
+
+  const phoneLeftControl = !ready ? (
+    <span className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-zinc-900" />
+  ) : authenticated ? (
+    phoneAvatarButton
+  ) : (
+    <span className="h-9 w-9 shrink-0" aria-hidden="true" />
+  );
+
+  const phoneRightControl = !ready ? (
+    <span className="h-9 w-[68px] shrink-0 animate-pulse rounded-full bg-zinc-900" />
+  ) : authenticated ? (
+    <Link href="/accounts" className={phoneGoldButtonClassName}>
+      {shimmer}
+      <span className="relative z-10">Start</span>
+    </Link>
+  ) : (
+    <button
+      type="button"
+      onClick={login}
+      className={phoneGoldButtonClassName}
+    >
+      {shimmer}
       <span className="relative z-10">Sign in</span>
     </button>
   );
 
   return (
     <>
-      <div className="pointer-events-none absolute left-0 right-0 top-0 z-50 md:left-[240px] lg:hidden">
-        <div className="px-4 pb-5 pt-[calc(20px+env(safe-area-inset-top))] sm:px-6 sm:pb-6 sm:pt-[calc(24px+env(safe-area-inset-top))]">
-          <div className="flex items-center justify-between gap-3 md:justify-end">
+      {/* Actual phone screens */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-50 sm:hidden">
+        <div className="px-4 pb-5 pt-[calc(20px+env(safe-area-inset-top))]">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+            <div className="pointer-events-auto flex justify-start">
+              {phoneLeftControl}
+            </div>
+
             <Link
               href="/"
               aria-label="Edge home"
-              className="pointer-events-auto flex h-9 shrink-0 items-center md:hidden"
+              className="pointer-events-auto flex h-9 items-center justify-center"
             >
               <Image
                 src="/logo.png"
@@ -189,6 +252,17 @@ export default function TopRightAuth() {
               />
             </Link>
 
+            <div className="pointer-events-auto flex justify-end">
+              {phoneRightControl}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tablet layout */}
+      <div className="pointer-events-none absolute left-0 right-0 top-0 z-50 hidden sm:block md:left-[240px] lg:hidden">
+        <div className="px-6 pb-6 pt-[calc(24px+env(safe-area-inset-top))]">
+          <div className="flex items-center justify-end gap-3">
             <div className="pointer-events-auto flex min-w-0 items-center justify-end gap-3">
               {cta}
             </div>
@@ -196,7 +270,8 @@ export default function TopRightAuth() {
         </div>
       </div>
 
-      <div className="pointer-events-none fixed top-4 right-6 z-50 hidden lg:block">
+      {/* Desktop layout */}
+      <div className="pointer-events-none fixed right-6 top-4 z-50 hidden lg:block">
         <div className="pointer-events-auto flex items-center gap-3">{cta}</div>
       </div>
 
@@ -225,8 +300,7 @@ export default function TopRightAuth() {
                 duration: 0.16,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              style={{ transformOrigin: "top right" }}
-              className="fixed right-4 top-[calc(72px+env(safe-area-inset-top))] z-[210] w-[176px] whitespace-nowrap rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl sm:right-6 lg:hidden"
+              className="fixed left-4 top-[calc(72px+env(safe-area-inset-top))] z-[210] w-[176px] origin-top-left whitespace-nowrap rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl sm:left-auto sm:right-6 sm:origin-top-right lg:hidden"
             >
               <Link
                 href="/accounts"
