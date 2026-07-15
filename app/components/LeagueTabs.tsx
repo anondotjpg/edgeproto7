@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
 
 type LeagueTab = {
   label: string;
@@ -16,11 +17,94 @@ export default function LeagueTabs({
   leagues: readonly LeagueTab[];
   selectedLeague: string;
 }) {
+  const activePhoneTabRef = useRef<HTMLAnchorElement | null>(null);
+
+  useEffect(() => {
+    const activeTab = activePhoneTabRef.current;
+
+    if (!activeTab) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      activeTab.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [selectedLeague]);
+
   return (
     <>
+      {/* Actual phone screens */}
+      <div className="relative z-30 w-full overflow-visible sm:hidden">
+        <nav
+          aria-label="Select league"
+          className="no-scrollbar relative w-full overflow-x-auto overscroll-x-contain"
+        >
+          <div className="flex min-w-max items-stretch px-4">
+            {leagues.map((item) => {
+              const isActive = item.league === selectedLeague;
+
+              return (
+                <Link
+                  ref={isActive ? activePhoneTabRef : undefined}
+                  key={item.league}
+                  href={`/?league=${item.league}`}
+                  aria-current={isActive ? "page" : undefined}
+                  className={[
+                    "relative flex h-[42px] min-w-[80px] shrink-0 scroll-mx-4 items-center justify-center px-4 text-[13px] leading-none transition-colors duration-150",
+                    isActive ? "text-zinc-100" : "text-zinc-500",
+                  ].join(" ")}
+                >
+                  <span className="relative z-10 grid whitespace-nowrap">
+                    <span
+                      aria-hidden="true"
+                      className="invisible col-start-1 row-start-1 font-extrabold"
+                    >
+                      {item.label}
+                    </span>
+
+                    <span
+                      className={[
+                        "col-start-1 row-start-1",
+                        isActive ? "font-extrabold" : "font-bold",
+                      ].join(" ")}
+                    >
+                      {item.label}
+                    </span>
+                  </span>
+
+                  {isActive ? (
+                    <motion.span
+                      layoutId="activePhoneLeagueBar"
+                      initial={false}
+                      transition={{
+                        type: "spring",
+                        stiffness: 480,
+                        damping: 38,
+                        mass: 0.75,
+                      }}
+                      className="absolute inset-x-0 bottom-0 z-20 h-[3px] rounded-t-full bg-zinc-100"
+                    />
+                  ) : null}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 left-1/2 z-0 h-px w-screen -translate-x-1/2 bg-zinc-800"
+        />
+      </div>
+
+      {/* Tablet and smaller desktop screens */}
       <nav
         aria-label="Select league"
-        className="no-scrollbar relative z-30 flex w-full items-center gap-2 overflow-x-auto lg:hidden"
+        className="no-scrollbar relative z-30 hidden w-full items-center gap-2 overflow-x-auto sm:flex lg:hidden"
       >
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
@@ -59,9 +143,10 @@ export default function LeagueTabs({
         })}
       </nav>
 
+      {/* Large desktop screens */}
       <nav
         aria-label="Select league"
-        className="no-scrollbar relative z-20 hidden w-min items-center gap-4 overflow-x-auto rounded-lg lg:flex lg:gap-2"
+        className="no-scrollbar relative z-20 hidden w-min items-center gap-2 overflow-x-auto rounded-lg lg:flex"
       >
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
@@ -72,23 +157,21 @@ export default function LeagueTabs({
               href={`/?league=${item.league}`}
               aria-current={isActive ? "page" : undefined}
               className={[
-                "relative shrink-0 text-[13px] font-medium transition-colors",
-                "sm:rounded-full sm:px-4 sm:py-2",
-                isActive
-                  ? "text-white"
-                  : "text-zinc-300",
+                "relative shrink-0 rounded-full px-4 py-2 text-[13px] font-medium transition-colors",
+                isActive ? "text-white" : "text-zinc-300",
               ].join(" ")}
             >
               {isActive ? (
                 <motion.span
                   layoutId="activeLeaguePill"
+                  initial={false}
                   transition={{
                     type: "spring",
                     stiffness: 420,
                     damping: 34,
                     mass: 0.8,
                   }}
-                  className="absolute inset-0 m-[2px] hidden rounded-lg bg-zinc-900 sm:block"
+                  className="absolute inset-0 m-[2px] rounded-lg bg-zinc-900"
                 />
               ) : null}
 

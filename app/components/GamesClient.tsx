@@ -1842,8 +1842,10 @@ export default function GamesClient({
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white">
       <div className="relative mx-auto w-full max-w-[1660px] px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-6 md:pb-6">
-        <header className="pt-[calc(60px+env(safe-area-inset-top))] lg:pt-2 xl:pr-[420px]">
-          <LeagueTabs leagues={leagues} selectedLeague={selectedLeague} />
+        <header className="overflow-visible pt-[calc(60px+env(safe-area-inset-top))] lg:pt-2 xl:pr-[420px]">
+          <div className="relative left-1/2 w-[100dvw] -translate-x-1/2 overflow-visible sm:left-auto sm:w-auto sm:translate-x-0">
+            <LeagueTabs leagues={leagues} selectedLeague={selectedLeague} />
+          </div>
         </header>
 
         <div className="mt-5 grid gap-6 lg:mt-[26px] xl:grid-cols-[minmax(0,1156px)_420px] xl:items-start xl:justify-center">
