@@ -10,6 +10,7 @@ import {
   useMemo,
   useRef,
   useState,
+  ReactNode,
 } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
@@ -817,6 +818,48 @@ function OffsetPlaceBetButton({
   );
 }
 
+function GoldAccountAction({
+  children,
+  onClick,
+  href,
+  compact = false,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  href?: string;
+  compact?: boolean;
+}) {
+  const className = [
+    "relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-all duration-150",
+    "hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626]",
+    compact ? "active:translate-y-[2px] active:shadow-none" : "",
+  ].join(" ");
+
+  const content = (
+    <>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
+      />
+      <span className="relative z-10">{children}</span>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" onClick={onClick} className={className}>
+      {content}
+    </button>
+  );
+}
+
 const AccountSelectSection = memo(function AccountSelectSection({
   ready,
   authenticated,
@@ -1014,19 +1057,16 @@ const AccountSelectSection = memo(function AccountSelectSection({
             ))}
           </div>
         ) : !authenticated ? (
-          <button
-            type="button"
-            onClick={login}
+          <div
             className={[
-              "flex w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 text-left text-zinc-300",
-              isMobileDrawer
-                ? "h-[64px] p-2.5 text-sm"
-                : "h-[80px] p-3.5 text-base",
+              "flex w-full items-start justify-start",
+              isMobileDrawer ? "h-[64px]" : "h-[80px]",
             ].join(" ")}
           >
-            <span className="inline underline cursor-pointer">Sign in</span>
-            &nbsp;to select an account
-          </button>
+            <GoldAccountAction onClick={login} compact={isMobileDrawer}>
+              Sign In
+            </GoldAccountAction>
+          </div>
         ) : selectableAccounts.length ? (
           <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
             {selectableAccounts.map((account) => {
@@ -1096,18 +1136,16 @@ const AccountSelectSection = memo(function AccountSelectSection({
             })}
           </div>
         ) : (
-          <Link
-            href="/accounts"
+          <div
             className={[
-              "flex w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 text-left text-zinc-300",
-              isMobileDrawer
-                ? "h-[64px] p-2.5 text-sm"
-                : "h-[80px] p-3.5 text-base",
+              "flex w-full items-start justify-start",
+              isMobileDrawer ? "h-[64px]" : "h-[80px]",
             ].join(" ")}
           >
-            No active accounts.&nbsp;
-            <span className="inline underline">Start a challenge</span>
-          </Link>
+            <GoldAccountAction href="/accounts" compact={isMobileDrawer}>
+              Start Challenge
+            </GoldAccountAction>
+          </div>
         )}
       </div>
     </div>
