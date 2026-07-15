@@ -80,6 +80,25 @@ function formatPrice(price?: number) {
   return price > 0 ? `+${price}` : `${price}`;
 }
 
+function OddsValue({
+  value,
+  signClassName,
+}: {
+  value: string;
+  signClassName: string;
+}) {
+  const hasSign = value.startsWith("+") || value.startsWith("-");
+
+  if (!hasSign) return <>{value}</>;
+
+  return (
+    <>
+      <span className={signClassName}>{value[0]}</span>
+      <span>{value.slice(1)}</span>
+    </>
+  );
+}
+
 function getImpliedProbability(price?: number) {
   if (price === undefined || price === null || price === 0) return null;
 
@@ -595,31 +614,6 @@ function EventHeader({ game, now }: { game: Game; now: number | null }) {
 
       <h1
         className={[
-          "mx-auto mt-2 grid w-full items-start justify-center px-0 font-semibold leading-[1.12] tracking-[-0.02em] text-white md:hidden",
-          hasVeryLongTeamLine
-            ? "max-w-[430px] grid-cols-[minmax(0,172px)_auto_minmax(0,172px)] gap-2.5 text-[17px] sm:max-w-[490px] sm:grid-cols-[minmax(0,198px)_auto_minmax(0,198px)] sm:gap-3 sm:text-[20px]"
-            : hasLongTeamLine
-              ? "max-w-[402px] grid-cols-[minmax(0,160px)_auto_minmax(0,160px)] gap-3 text-[18px] sm:max-w-[458px] sm:grid-cols-[minmax(0,184px)_auto_minmax(0,184px)] sm:gap-3.5 sm:text-[21px]"
-              : "max-w-[380px] grid-cols-[minmax(0,148px)_auto_minmax(0,148px)] gap-4 text-[18px] sm:max-w-[438px] sm:grid-cols-[minmax(0,172px)_auto_minmax(0,172px)] sm:gap-5 sm:text-[22px]",
-        ].join(" ")}
-      >
-        <span className="flex min-w-0 flex-col items-center justify-start pb-[0.14em] text-center">
-          <span className="block min-w-0 overflow-visible whitespace-nowrap">{awayTeamLineOne}</span>
-          <span className="block min-w-0 overflow-visible whitespace-nowrap">{awayTeamLineTwo}</span>
-        </span>
-
-        <span className="self-center text-[13px] font-medium leading-none tracking-normal text-zinc-500">
-          vs.
-        </span>
-
-        <span className="flex min-w-0 flex-col items-center justify-start pb-[0.14em] text-center">
-          <span className="block min-w-0 overflow-visible whitespace-nowrap">{homeTeamLineOne}</span>
-          <span className="block min-w-0 overflow-visible whitespace-nowrap">{homeTeamLineTwo}</span>
-        </span>
-      </h1>
-
-      <h1
-        className={[
           "mx-auto mt-3 hidden w-full items-start justify-center px-0 font-semibold leading-[1.08] tracking-tight text-white md:grid",
           hasVeryLongTeamLine
             ? "max-w-[720px] grid-cols-[minmax(0,286px)_auto_minmax(0,286px)] gap-6 text-[28px] lg:max-w-[790px] lg:grid-cols-[minmax(0,316px)_auto_minmax(0,316px)] lg:gap-7 lg:text-[31px]"
@@ -701,7 +695,7 @@ function MobileTeamRow({
   info?: TeamInfo;
   sportKey: string;
 }) {
-  const displayName = formatUiTeamName(info?.alias?.trim() || team);
+  const displayName = formatUiTeamName(info?.name?.trim() || team);
 
   return (
     <div className="flex h-[44px] items-center gap-2 py-1">
@@ -716,7 +710,7 @@ function MobileTeamRow({
       )}
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <div className="min-w-0 truncate text-[14px] font-semibold leading-tight text-zinc-100">
+        <div className="min-w-0 truncate text-[18.2px] font-semibold leading-tight text-zinc-100">
           {displayName}
         </div>
 
@@ -802,7 +796,10 @@ function MobileMoneylineModalButton({
                 isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
               ].join(" ")}
             >
-              {betData.odds}
+              <OddsValue
+                value={betData.odds}
+                signClassName="font-medium"
+              />
             </span>
           </>
         )}
@@ -842,7 +839,10 @@ function MobileMarketModalButton({
             </span>
 
             <span className="shrink-0 text-[15.6px] font-semibold leading-none tracking-tight text-zinc-100">
-              {betData.odds}
+              <OddsValue
+                value={betData.odds}
+                signClassName="font-medium"
+              />
             </span>
           </>
         )}
@@ -1117,7 +1117,7 @@ function MarketFace({
                 isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
               ].join(" ")}
             >
-              {odds}
+              <OddsValue value={odds} signClassName="font-semibold" />
             </span>
           </>
         )}
@@ -1218,7 +1218,10 @@ function DesktopMarketCell({
                     isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
                   ].join(" ")}
                 >
-                  {betData.odds}
+                  <OddsValue
+                    value={betData.odds}
+                    signClassName="font-semibold"
+                  />
                 </span>
               </>
             )}

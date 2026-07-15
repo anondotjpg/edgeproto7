@@ -212,6 +212,38 @@ function formatPrice(price?: number) {
   return price > 0 ? `+${price}` : `${price}`;
 }
 
+function OddsText({
+  value,
+  numberWeightClassName = "font-bold",
+  signWeightClassName = "font-semibold",
+}: {
+  value?: string;
+  numberWeightClassName?: string;
+  signWeightClassName?: string;
+}) {
+  const safeValue = value ?? "—";
+  const hasSign =
+    safeValue.startsWith("+") ||
+    safeValue.startsWith("-") ||
+    safeValue.startsWith("−");
+  const sign = hasSign ? safeValue.slice(0, 1) : "";
+  const number = hasSign ? safeValue.slice(1) : safeValue;
+
+  return (
+    <span aria-label={safeValue}>
+      {sign ? (
+        <span aria-hidden="true" className={signWeightClassName}>
+          {sign}
+        </span>
+      ) : null}
+
+      <span aria-hidden="true" className={numberWeightClassName}>
+        {number}
+      </span>
+    </span>
+  );
+}
+
 function getImpliedProbability(price?: number) {
   if (price === undefined || price === null || price === 0) return null;
 
@@ -759,12 +791,11 @@ function MarketFace({
               </span>
               <span
                 className={[
-                  "shrink-0 font-bold leading-none tracking-tight",
-                  centered ? "text-[13px]" : "text-[13px]",
+                  "shrink-0 text-[13px] leading-none tracking-tight",
                   isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
                 ].join(" ")}
               >
-                {odds}
+                <OddsText value={odds} />
               </span>
             </>
           ))}
@@ -877,11 +908,11 @@ function DesktopMarketCell({
 
                 <span
                   className={[
-                    "shrink-0 text-[13px] font-bold leading-none tracking-tight",
+                    "shrink-0 text-[13px] leading-none tracking-tight",
                     isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
                   ].join(" ")}
                 >
-                  {betData.odds}
+                  <OddsText value={betData.odds} />
                 </span>
               </>
             )}
@@ -1010,11 +1041,11 @@ function MobileProMarketSelection({
 
             <span
               className={[
-                "text-[12px] font-bold leading-none tracking-tight sm:text-[13px]",
+                "text-[13.2px] leading-none tracking-tight sm:text-[14.3px]",
                 isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
               ].join(" ")}
             >
-              {betData.odds}
+              <OddsText value={betData.odds} />
             </span>
           </>
         )}
@@ -1234,11 +1265,15 @@ function MobileMarketModalButton({
 
             <span
               className={[
-                "text-[15.6px] font-semibold leading-none tracking-tight",
+                "text-[15.6px] leading-none tracking-tight",
                 isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
               ].join(" ")}
             >
-              {betData.odds}
+              <OddsText
+                value={betData.odds}
+                numberWeightClassName="font-semibold"
+                signWeightClassName="font-medium"
+              />
             </span>
           </>
         )}
