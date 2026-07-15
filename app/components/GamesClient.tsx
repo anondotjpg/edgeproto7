@@ -356,6 +356,13 @@ function formatUiTeamName(value: string) {
   return value.replace(/\bPortlandFire\b/g, "Portland Fire");
 }
 
+function getForcedMobileTeamNameLines(value: string) {
+  if (value === "Portland Fire") return ["Portland", "Fire"];
+  if (value === "Toronto Tempo") return ["Toronto", "Tempo"];
+
+  return null;
+}
+
 function getTeamDisplayName(team: string, info?: TeamInfo) {
   const cleanAlias = info?.alias?.trim();
 
@@ -689,6 +696,7 @@ function TeamRow({
   sportKey: string;
 }) {
   const displayName = formatUiTeamName(getTeamDisplayName(team, info));
+  const forcedMobileNameLines = getForcedMobileTeamNameLines(displayName);
 
   return (
     <div className="flex h-[42px] items-center gap-2 px-0 py-0.5 lg:h-[46px] lg:gap-2.5 lg:px-2 lg:py-1">
@@ -703,8 +711,29 @@ function TeamRow({
       )}
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <div className="truncate text-[15px] font-semibold leading-tight text-zinc-100 lg:text-[15px]">
-          {displayName}
+        <div
+          className={[
+            "min-w-0 font-semibold text-zinc-100",
+            forcedMobileNameLines
+              ? "whitespace-normal text-[16px] leading-[1.05]"
+              : "truncate text-[16px] leading-tight",
+            "lg:truncate lg:whitespace-nowrap lg:text-[15px] lg:leading-tight",
+          ].join(" ")}
+        >
+          {forcedMobileNameLines ? (
+            <>
+              <span className="lg:hidden">
+                {forcedMobileNameLines.map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
+              </span>
+              <span className="hidden lg:inline">{displayName}</span>
+            </>
+          ) : (
+            displayName
+          )}
         </div>
 
         {info?.record ? (
@@ -1086,6 +1115,7 @@ function MobileProTeamRow({
   rowPosition: "top" | "bottom";
 }) {
   const displayName = formatUiTeamName(getTeamDisplayName(team, teamInfo));
+  const forcedMobileNameLines = getForcedMobileTeamNameLines(displayName);
   const marketShellClassName =
     rowPosition === "top"
       ? "rounded-t-2xl border-x border-t border-zinc-800"
@@ -1105,8 +1135,21 @@ function MobileProTeamRow({
         )}
 
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[14px] font-semibold leading-tight text-zinc-100 sm:text-[15px]">
-            {displayName}
+          <div
+            className={[
+              "font-semibold text-zinc-100",
+              forcedMobileNameLines
+                ? "whitespace-normal text-[15px] leading-[1.02] sm:text-[16px]"
+                : "truncate text-[15px] leading-tight sm:text-[16px]",
+            ].join(" ")}
+          >
+            {forcedMobileNameLines
+              ? forcedMobileNameLines.map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))
+              : displayName}
           </div>
 
           {teamInfo?.record ? (
