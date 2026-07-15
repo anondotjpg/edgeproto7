@@ -832,8 +832,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
     const firstCard = row.querySelector<HTMLElement>("[data-account-card]");
     const cardWidth =
       firstCard?.getBoundingClientRect().width ??
-      (row.clientWidth -
-        ACCOUNT_CARD_GAP_PX * (ACCOUNT_CARDS_PER_PAGE - 1)) /
+      (row.clientWidth - ACCOUNT_CARD_GAP_PX * (ACCOUNT_CARDS_PER_PAGE - 1)) /
         ACCOUNT_CARDS_PER_PAGE;
 
     const pageStep =
@@ -1032,7 +1031,9 @@ const AccountSelectSection = memo(function AccountSelectSection({
                     <div className="flex h-4 items-center justify-between gap-2">
                       <span className="text-zinc-500">Avail</span>
                       <span className="font-medium text-zinc-300">
-                        <CompactMoneyFlow value={getAvailableBalance(account)} />
+                        <CompactMoneyFlow
+                          value={getAvailableBalance(account)}
+                        />
                       </span>
                     </div>
 
@@ -1052,7 +1053,8 @@ const AccountSelectSection = memo(function AccountSelectSection({
             href="/accounts"
             className="flex h-[80px] w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 p-3.5 text-left text-base text-zinc-300"
           >
-            No active accounts.&nbsp;<span className="inline underline">Start a challenge</span>
+            No active accounts.&nbsp;
+            <span className="inline underline">Start a challenge</span>
           </Link>
         )}
       </div>
@@ -1115,8 +1117,10 @@ function BetSlipControls({
   const [holdProgress, setHoldProgress] = useState(0);
   const [amountShakeKey, setAmountShakeKey] = useState(0);
 
-  const sliderDisabled = isGameStarted || maxBetAmount <= 0;
-  const showQuickAmounts = maxBetAmount > 0 && selectedAccountIds.length > 0;
+  const isMobileDrawer = mobileLayout && panelMode === "modal";
+  const amountInputDisabled = isGameStarted || maxBetAmount <= 0;
+  const showQuickAmounts =
+    !isMobileDrawer && maxBetAmount > 0 && selectedAccountIds.length > 0;
   const showPotentialPayout = amountValue > 0 && possiblePayout !== "—";
 
   const placeBetDisabled =
@@ -1203,6 +1207,35 @@ function BetSlipControls({
     onAmountChange(nextAmount);
   }
 
+  function handleMobileKeypadPress(key: string) {
+    if (amountInputDisabled) return;
+
+    if (key === "backspace") {
+      onAmountChange(Math.floor(amountValue / 10));
+      return;
+    }
+
+    if (key === "max") {
+      onAmountChange(maxBetAmount);
+      return;
+    }
+
+    const currentDigits =
+      amountValue > 0 ? String(Math.max(0, Math.floor(amountValue))) : "";
+    const nextDigits = `${currentDigits}${key}`.replace(/^0+(?=\d)/, "");
+    const nextAmount = Number(nextDigits || 0);
+
+    if (!Number.isFinite(nextAmount)) return;
+
+    if (nextAmount > maxBetAmount) {
+      onAmountChange(maxBetAmount);
+      setAmountShakeKey((current) => current + 1);
+      return;
+    }
+
+    onAmountChange(nextAmount);
+  }
+
   useEffect(() => {
     if (!mobileLayout || placeBetDisabled) {
       clearHold();
@@ -1229,7 +1262,11 @@ function BetSlipControls({
         onToggleAccount={onToggleAccount}
       />
 
-      <div className="mt-4 overflow-visible">
+      <div
+        className={
+          isMobileDrawer ? "mt-2 overflow-visible" : "mt-4 overflow-visible"
+        }
+      >
         {panelMode === "sidebar" ? (
           <div>
             <div className="mb-2 flex items-start justify-between gap-4">
@@ -1277,6 +1314,40 @@ function BetSlipControls({
                   className="h-[62px] w-full bg-transparent text-right text-[56px] font-semibold leading-none tracking-tight text-white outline-none placeholder:text-zinc-600"
                 />
               </motion.div>
+            </div>
+          </div>
+        ) : isMobileDrawer ? (
+          <div className="flex flex-col items-center text-center">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+              Amount
+            </div>
+
+            <motion.div
+              key={amountShakeKey}
+              animate={
+                amountShakeKey > 0 ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
+              }
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              className="mt-1 flex min-h-[70px] max-w-full items-center justify-center overflow-hidden px-2 text-[58px] font-semibold leading-none tracking-[-0.055em] text-white"
+            >
+              <MoneyFlow value={amountValue} />
+            </motion.div>
+
+            <div
+              aria-hidden={!showPotentialPayout}
+              className={[
+                "mt-1 h-5 text-[13px] leading-5 text-zinc-500 transition-opacity",
+                showPotentialPayout ? "opacity-100" : "opacity-0",
+              ].join(" ")}
+            >
+              Pot. payout{" "}
+              <span className="font-semibold text-zinc-300">
+                <MoneyFlow value={possiblePayoutValue} />
+              </span>
+            </div>
+
+            <div className="mt-0.5 text-[11px] font-medium text-zinc-600">
+              Max {formatMoney(maxBetAmount)}
             </div>
           </div>
         ) : (
@@ -1350,7 +1421,76 @@ function BetSlipControls({
           ) : null}
         </AnimatePresence>
 
-        {panelMode !== "sidebar" ? (
+        {isMobileDrawer ? (
+          <div
+            className="mx-auto mt-2 grid w-full max-w-[360px] grid-cols-3 gap-x-5 gap-y-0.5"
+            data-vaul-no-drag=""
+            onPointerDown={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}
+          >
+            {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((key) => (
+              <motion.button
+                key={key}
+                type="button"
+                whileTap={{ scale: 0.88 }}
+                onClick={() => handleMobileKeypadPress(key)}
+                disabled={amountInputDisabled}
+                className="flex h-[54px] cursor-pointer items-center justify-center rounded-full text-[27px] font-medium text-zinc-100 transition-colors hover:bg-zinc-900 active:bg-zinc-900 disabled:cursor-not-allowed disabled:text-zinc-700"
+              >
+                {key}
+              </motion.button>
+            ))}
+
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.88 }}
+              onClick={() => handleMobileKeypadPress("max")}
+              disabled={amountInputDisabled}
+              className="flex h-[54px] cursor-pointer items-center justify-center rounded-full text-[13px] font-bold uppercase tracking-[0.08em] text-zinc-400 transition-colors hover:bg-zinc-900 active:bg-zinc-900 disabled:cursor-not-allowed disabled:text-zinc-700"
+            >
+              Max
+            </motion.button>
+
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.88 }}
+              onClick={() => handleMobileKeypadPress("0")}
+              disabled={amountInputDisabled}
+              className="flex h-[54px] cursor-pointer items-center justify-center rounded-full text-[27px] font-medium text-zinc-100 transition-colors hover:bg-zinc-900 active:bg-zinc-900 disabled:cursor-not-allowed disabled:text-zinc-700"
+            >
+              0
+            </motion.button>
+
+            <motion.button
+              type="button"
+              aria-label="Delete last digit"
+              whileTap={{ scale: 0.88 }}
+              onClick={() => handleMobileKeypadPress("backspace")}
+              disabled={amountInputDisabled || amountValue <= 0}
+              className="flex h-[54px] cursor-pointer items-center justify-center rounded-full text-zinc-300 transition-colors hover:bg-zinc-900 active:bg-zinc-900 disabled:cursor-not-allowed disabled:text-zinc-700"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="h-6 w-6"
+              >
+                <path
+                  d="M9.25 5.5h9.25a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9.25a2 2 0 0 1-1.55-.74L3 12l4.7-5.76A2 2 0 0 1 9.25 5.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="m12 9.25 5.5 5.5m0-5.5-5.5 5.5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </motion.button>
+          </div>
+        ) : panelMode !== "sidebar" ? (
           <div
             className="-mx-1 mt-4 overflow-visible px-1"
             data-vaul-no-drag=""
@@ -1362,7 +1502,7 @@ function BetSlipControls({
               min={0}
               max={Math.max(maxBetAmount, 1)}
               step={1}
-              disabled={sliderDisabled}
+              disabled={amountInputDisabled}
               onValueChange={onAmountChange}
               className="[&_[data-slot=slider-range]]:bg-zinc-300 [&_[data-slot=slider-track]]:bg-zinc-700 [&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border-zinc-300 [&_[data-slot=slider-thumb]]:bg-zinc-100"
             />
@@ -1713,7 +1853,9 @@ export function BetSlipPanel({
             }
 
             return current.filter((accountId) =>
-              selectableLoadedAccounts.some((account) => account.id === accountId),
+              selectableLoadedAccounts.some(
+                (account) => account.id === accountId,
+              ),
             );
           });
         }
@@ -1913,7 +2055,8 @@ export function BetSlipPanel({
     } catch (err) {
       console.error(err);
 
-      const message = err instanceof Error ? err.message : "Something went wrong.";
+      const message =
+        err instanceof Error ? err.message : "Something went wrong.";
 
       setError(message);
       toast.info("Bet not placed", {
