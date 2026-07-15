@@ -199,8 +199,11 @@ const HOLD_TO_PLACE_MS = 1250;
 const ACCOUNT_ROW_CLASS =
   "flex snap-x snap-mandatory scroll-smooth gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
-const ACCOUNT_CARD_CLASS =
-  "h-[80px] snap-start overflow-hidden rounded-xl border p-2 text-left transition-colors";
+const ACCOUNT_CARD_BASE_CLASS =
+  "snap-start overflow-hidden rounded-xl border p-2 text-left transition-colors";
+
+const ACCOUNT_CARD_CLASS = `h-[80px] ${ACCOUNT_CARD_BASE_CLASS}`;
+const MOBILE_DRAWER_ACCOUNT_CARD_CLASS = `h-[64px] ${ACCOUNT_CARD_BASE_CLASS}`;
 
 const ACCOUNT_CARD_STYLE: CSSProperties = {
   flex: "0 0 calc((100% - 24px) / 3)",
@@ -498,12 +501,20 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-zinc-900 ${className}`} />;
 }
 
-function AccountOptionSkeleton({ hideMax = false }: { hideMax?: boolean }) {
+function AccountOptionSkeleton({
+  compact = false,
+  hideMax = false,
+}: {
+  compact?: boolean;
+  hideMax?: boolean;
+}) {
   return (
     <div
       data-account-card=""
       style={ACCOUNT_CARD_STYLE}
-      className={`${ACCOUNT_CARD_CLASS} border-zinc-800 bg-black/30`}
+      className={`${
+        compact ? MOBILE_DRAWER_ACCOUNT_CARD_CLASS : ACCOUNT_CARD_CLASS
+      } border-zinc-800 bg-black/30`}
     >
       <div className="flex h-5 items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -514,7 +525,7 @@ function AccountOptionSkeleton({ hideMax = false }: { hideMax?: boolean }) {
       <div
         className={[
           "text-[12px] leading-4",
-          hideMax ? "mt-3" : "mt-2 space-y-0.5",
+          hideMax ? "mt-2" : "mt-2 space-y-0.5",
         ].join(" ")}
       >
         <div className="flex h-4 items-center justify-between gap-2">
@@ -939,7 +950,11 @@ const AccountSelectSection = memo(function AccountSelectSection({
   return (
     <div
       className={
-        panelMode === "sidebar" ? "mt-4 h-[112px]" : ACCOUNT_SELECT_SHELL_CLASS
+        panelMode === "sidebar"
+          ? "mt-4 h-[112px]"
+          : isMobileDrawer
+            ? "mt-4 h-[100px]"
+            : ACCOUNT_SELECT_SHELL_CLASS
       }
     >
       <div className="flex h-[18px] items-center justify-between gap-3">
@@ -981,18 +996,33 @@ const AccountSelectSection = memo(function AccountSelectSection({
         ) : null}
       </div>
 
-      <div className={ACCOUNT_LIST_CLASS}>
+      <div
+        className={
+          isMobileDrawer
+            ? "mt-2.5 h-[72px] overflow-hidden"
+            : ACCOUNT_LIST_CLASS
+        }
+      >
         {!ready || isLoadingAccounts ? (
           <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
             {Array.from({ length: 3 }).map((_, index) => (
-              <AccountOptionSkeleton key={index} hideMax={isMobileDrawer} />
+              <AccountOptionSkeleton
+                key={index}
+                compact={isMobileDrawer}
+                hideMax={isMobileDrawer}
+              />
             ))}
           </div>
         ) : !authenticated ? (
           <button
             type="button"
             onClick={login}
-            className="flex h-[80px] w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 p-3.5 text-left text-base text-zinc-300"
+            className={[
+              "flex w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 text-left text-zinc-300",
+              isMobileDrawer
+                ? "h-[64px] p-2.5 text-sm"
+                : "h-[80px] p-3.5 text-base",
+            ].join(" ")}
           >
             <span className="inline underline cursor-pointer">Sign in</span>
             &nbsp;to select an account
@@ -1011,7 +1041,9 @@ const AccountSelectSection = memo(function AccountSelectSection({
                   style={ACCOUNT_CARD_STYLE}
                   onClick={() => onToggleAccount(account.id)}
                   className={[
-                    ACCOUNT_CARD_CLASS,
+                    isMobileDrawer
+                      ? MOBILE_DRAWER_ACCOUNT_CARD_CLASS
+                      : ACCOUNT_CARD_CLASS,
                     "cursor-pointer",
                     selected
                       ? "border-zinc-400 bg-zinc-900"
@@ -1038,7 +1070,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
                   <div
                     className={[
                       "text-[12px] leading-4",
-                      isMobileDrawer ? "mt-3" : "mt-2 space-y-0.5",
+                      isMobileDrawer ? "mt-2" : "mt-2 space-y-0.5",
                     ].join(" ")}
                   >
                     <div className="flex h-4 items-center justify-between gap-2">
@@ -1066,7 +1098,12 @@ const AccountSelectSection = memo(function AccountSelectSection({
         ) : (
           <Link
             href="/accounts"
-            className="flex h-[80px] w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 p-3.5 text-left text-base text-zinc-300"
+            className={[
+              "flex w-full cursor-pointer items-start rounded-2xl border border-zinc-800 bg-black/30 text-left text-zinc-300",
+              isMobileDrawer
+                ? "h-[64px] p-2.5 text-sm"
+                : "h-[80px] p-3.5 text-base",
+            ].join(" ")}
           >
             No active accounts.&nbsp;
             <span className="inline underline">Start a challenge</span>
@@ -1374,9 +1411,11 @@ function BetSlipControls({
                 amountShakeKey > 0 ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
               }
               transition={{ duration: 0.28, ease: "easeOut" }}
-              className="flex min-h-[70px] max-w-full items-center justify-center overflow-hidden px-2 text-[58px] font-semibold leading-none tracking-[-0.055em] text-white"
+              className="flex min-h-[78px] w-full items-center justify-center overflow-visible px-6 py-1 text-[58px] font-semibold leading-none tracking-[-0.055em] text-white"
             >
-              <MoneyFlow value={amountValue} />
+              <div className="inline-flex max-w-full items-center justify-center overflow-visible px-2">
+                <MoneyFlow value={amountValue} className="overflow-visible" />
+              </div>
             </motion.div>
 
             <div
