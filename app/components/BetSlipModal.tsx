@@ -204,7 +204,7 @@ const ACCOUNT_CARD_BASE_CLASS =
   "snap-start overflow-hidden rounded-xl border p-2 text-left transition-colors";
 
 const ACCOUNT_CARD_CLASS = `h-[80px] ${ACCOUNT_CARD_BASE_CLASS}`;
-const MOBILE_DRAWER_ACCOUNT_CARD_CLASS = `h-[64px] ${ACCOUNT_CARD_BASE_CLASS}`;
+const MOBILE_DRAWER_ACCOUNT_CARD_CLASS = `h-[60px] ${ACCOUNT_CARD_BASE_CLASS}`;
 
 const ACCOUNT_CARD_STYLE: CSSProperties = {
   flex: "0 0 calc((100% - 24px) / 3)",
@@ -589,7 +589,7 @@ const BetSlipHeader = memo(function BetSlipHeader({
         panelMode === "sidebar"
           ? "min-h-[82px] border-b border-zinc-800 px-5 pt-4 pb-3"
           : mobileLayout
-            ? "min-h-[64px] pt-[2px]"
+            ? "min-h-[60px] pt-[2px]"
             : "min-h-[72px]",
       ].join(" ")}
     >
@@ -728,11 +728,16 @@ function OffsetPlaceBetButton({
   const buttonContent = buttonText;
   const { shellStyle, faceStyle, progressStyle } =
     getTeamActionButtonStyles(teamColor);
+  const isMobileDrawer = mobileLayout && panelMode === "modal";
 
   if (mobileLayout) {
     return (
       <div
-        className="mt-3 mb-2 rounded-xl bg-zinc-800"
+        className={
+          isMobileDrawer
+            ? "mt-[10px] mb-[7px] rounded-xl bg-zinc-800"
+            : "mt-3 mb-2 rounded-xl bg-zinc-800"
+        }
         style={{
           paddingBottom: "2px",
           ...shellStyle,
@@ -756,7 +761,8 @@ function OffsetPlaceBetButton({
           onPointerCancel={onPointerCancel}
           disabled={disabled}
           className={[
-            "relative h-16 w-full cursor-pointer select-none overflow-hidden rounded-xl bg-zinc-900 text-[16px] font-semibold disabled:cursor-not-allowed",
+            "relative w-full cursor-pointer select-none overflow-hidden rounded-xl bg-zinc-900 text-[16px] font-semibold disabled:cursor-not-allowed",
+            isMobileDrawer ? "h-[60px]" : "h-16",
             darkText ? "text-[#120d02]" : "text-zinc-100",
           ].join(" ")}
           style={faceStyle}
@@ -996,7 +1002,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
         panelMode === "sidebar"
           ? "mt-4 h-[112px]"
           : isMobileDrawer
-            ? "mt-4 h-[100px]"
+            ? "mt-[14px] h-[94px]"
             : ACCOUNT_SELECT_SHELL_CLASS
       }
     >
@@ -1042,7 +1048,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
       <div
         className={
           isMobileDrawer
-            ? "mt-2.5 h-[72px] overflow-hidden"
+            ? "mt-2 h-[68px] overflow-hidden"
             : ACCOUNT_LIST_CLASS
         }
       >
@@ -1060,7 +1066,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
           <div
             className={[
               "flex w-full items-start justify-start",
-              isMobileDrawer ? "h-[64px]" : "h-[80px]",
+              isMobileDrawer ? "h-[60px]" : "h-[80px]",
             ].join(" ")}
           >
             <GoldAccountAction onClick={login} compact={isMobileDrawer}>
@@ -1139,7 +1145,7 @@ const AccountSelectSection = memo(function AccountSelectSection({
           <div
             className={[
               "flex w-full items-start justify-start",
-              isMobileDrawer ? "h-[64px]" : "h-[80px]",
+              isMobileDrawer ? "h-[60px]" : "h-[80px]",
             ].join(" ")}
           >
             <GoldAccountAction href="/accounts" compact={isMobileDrawer}>
@@ -1185,7 +1191,7 @@ function MobileNumberKey({
       onPointerDown={animatePress}
       onClick={() => onPress(digit)}
       disabled={disabled}
-      className="flex h-[54px] cursor-pointer items-center justify-center bg-transparent text-[27px] font-medium text-zinc-100 outline-none disabled:cursor-not-allowed disabled:text-zinc-700"
+      className="flex h-[51px] cursor-pointer items-center justify-center bg-transparent text-[27px] font-medium text-zinc-100 outline-none disabled:cursor-not-allowed disabled:text-zinc-700"
     >
       {digit}
     </motion.button>
@@ -1389,7 +1395,7 @@ function BetSlipControls({
 
       <div
         className={
-          isMobileDrawer ? "mt-2 overflow-visible" : "mt-4 overflow-visible"
+          isMobileDrawer ? "mt-1.5 overflow-visible" : "mt-4 overflow-visible"
         }
       >
         {panelMode === "sidebar" ? (
@@ -1442,14 +1448,14 @@ function BetSlipControls({
             </div>
           </div>
         ) : isMobileDrawer ? (
-          <div className="relative min-h-[82px] w-full overflow-visible">
+          <div className="relative min-h-[77px] w-full overflow-visible">
             <motion.div
               key={amountShakeKey}
               animate={
                 amountShakeKey > 0 ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }
               }
               transition={{ duration: 0.28, ease: "easeOut" }}
-              className="flex min-h-[82px] w-full items-start justify-center overflow-visible px-6 pt-1 text-center text-[58px] font-semibold leading-none tracking-[-0.055em] text-white"
+              className="flex min-h-[77px] w-full items-start justify-center overflow-visible px-6 pt-1 text-center text-[58px] font-semibold leading-none tracking-[-0.055em] text-white"
             >
               <div className="inline-flex max-w-full items-center justify-center overflow-visible px-2">
                 <MoneyFlow value={amountValue} className="overflow-visible" />
@@ -1544,7 +1550,7 @@ function BetSlipControls({
 
         {isMobileDrawer ? (
           <div
-            className="mx-auto mt-2 grid w-full max-w-[360px] grid-cols-3 gap-x-5 gap-y-0.5"
+            className="mx-auto mt-1.5 grid w-full max-w-[360px] grid-cols-3 gap-x-5 gap-y-0.5"
             data-vaul-no-drag=""
             onPointerDown={(event) => event.stopPropagation()}
             onTouchStart={(event) => event.stopPropagation()}
@@ -1558,7 +1564,7 @@ function BetSlipControls({
               />
             ))}
 
-            <div aria-hidden="true" className="h-[54px]" />
+            <div aria-hidden="true" className="h-[51px]" />
 
             <MobileNumberKey
               digit="0"
@@ -1578,7 +1584,7 @@ function BetSlipControls({
               }}
               onClick={() => handleMobileKeypadPress("backspace")}
               disabled={amountInputDisabled || amountValue <= 0}
-              className="flex h-[54px] cursor-pointer items-center justify-center bg-transparent text-zinc-300 outline-none disabled:cursor-not-allowed disabled:text-zinc-700"
+              className="flex h-[51px] cursor-pointer items-center justify-center bg-transparent text-zinc-300 outline-none disabled:cursor-not-allowed disabled:text-zinc-700"
             >
               <FaChevronLeft aria-hidden="true" className="h-5 w-5" />
             </motion.button>
@@ -2294,8 +2300,8 @@ export default function BetSlipModal({
               </DrawerDescription>
             </DrawerHeader>
 
-            <div className="mx-auto w-full max-w-2xl overflow-hidden bg-zinc-950 px-5 pb-[max(14px,env(safe-area-inset-bottom))] pt-2">
-              <div className="mx-auto mb-5 h-1.5 w-12 shrink-0 rounded-full bg-zinc-800" />
+            <div className="mx-auto w-full max-w-2xl overflow-hidden bg-zinc-950 px-5 pb-[max(12px,env(safe-area-inset-bottom))] pt-[6px]">
+              <div className="mx-auto mb-4 h-1.5 w-12 shrink-0 rounded-full bg-zinc-800" />
 
               <div className="overflow-visible">
                 <BetSlipPanel
