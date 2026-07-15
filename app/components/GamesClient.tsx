@@ -991,7 +991,7 @@ function MobileProMarketSelection({
             ? "bg-zinc-950"
             : displayTeamColor
               ? ""
-              : "bg-zinc-950/70 peer-hover:bg-zinc-900/80 group-hover:bg-zinc-900/80",
+              : "bg-zinc-900/30 peer-hover:bg-zinc-900/80 group-hover:bg-zinc-900/80",
         ].join(" ")}
         style={faceStyle}
       >
