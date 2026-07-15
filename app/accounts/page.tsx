@@ -500,13 +500,13 @@ export default function AccountsPage() {
           <div className="mx-auto w-full max-w-[1480px] px-4 pb-24 sm:px-6 md:py-8 md:pb-8">
             <OwnedAccountsSection />
 
-            <div className="mb-7 hidden text-center sm:mb-10 md:block">
-              <h1 className="text-[30px] font-semibold italic tracking-tight text-zinc-100 sm:text-[38px]">
-                Find Your Edge
+            <div className="mb-7 hidden text-center sm:mb-10 md:block leading-[1.2]">
+              <h1 className="text-[36px] font-semibold tracking-tight text-zinc-100 sm:text-[46px]">
+                Beat the Odds.
               </h1>
 
-              <p className="text-[15px] text-zinc-500 sm:text-[16px]">
-                Beat the odds.
+              <p className="text-[17px] text-zinc-500 sm:text-[20px]">
+                Fund your Bets
               </p>
             </div>
 
