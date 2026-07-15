@@ -157,7 +157,7 @@ export default function LeagueTabs({
               href={`/?league=${item.league}`}
               aria-current={isActive ? "page" : undefined}
               className={[
-                "relative shrink-0 rounded-full px-4 py-2 text-[13px] font-medium transition-colors",
+                "relative shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors",
                 isActive ? "text-white" : "text-zinc-300",
               ].join(" ")}
             >
