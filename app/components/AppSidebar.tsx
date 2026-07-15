@@ -149,7 +149,7 @@ export default function AppSidebar() {
       </aside>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t-[0.5] border-zinc-800 bg-[#09090b]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-        <div className="relative mx-[3%] h-20">
+        <div className="relative h-20">
           {activeIndex >= 0 ? (
             <motion.div
               className="pointer-events-none absolute inset-y-0 left-0 z-0 flex w-1/5 items-center justify-center"
