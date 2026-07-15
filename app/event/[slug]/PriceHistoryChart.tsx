@@ -138,6 +138,7 @@ function ChartLegend({
           className="h-[2px] w-4 rounded-full"
           style={{ backgroundColor: awayStroke }}
         />
+
         <span>{awayLabel || "Away"}</span>
       </div>
 
@@ -146,6 +147,7 @@ function ChartLegend({
           className="h-[2px] w-4 rounded-full"
           style={{ backgroundColor: homeStroke }}
         />
+
         <span>{homeLabel || "Home"}</span>
       </div>
     </div>
@@ -153,70 +155,78 @@ function ChartLegend({
 }
 
 function PriceHistoryChartSkeleton() {
+  const awayEndY = 119;
+  const homeEndY = 139;
+
   return (
     <div
       aria-hidden="true"
-      className="relative h-[260px] w-full min-w-0 animate-pulse"
+      className="relative h-[260px] w-full min-w-0 animate-pulse overflow-visible"
     >
-      <svg
-        viewBox="0 0 1000 260"
-        preserveAspectRatio="none"
-        className="pointer-events-none absolute inset-0 h-full w-full"
-      >
-        <path
-          d="
-            M0 132
-            C52 129, 91 118, 148 123
-            C204 128, 239 143, 303 135
-            C362 127, 401 113, 456 121
-            C514 129, 555 141, 614 133
-            C671 125, 709 109, 767 118
-            C824 127, 861 139, 916 130
-            C953 124, 979 121, 1000 127
-          "
-          fill="none"
-          stroke="rgba(244,244,245,0.3)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
+      <div className="pointer-events-none absolute inset-y-0 left-2 right-3 overflow-visible">
+        <svg
+          viewBox="0 0 1000 260"
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full overflow-visible"
+          style={{ overflow: "visible" }}
+        >
+          <path
+            d="
+              M0 135
+              C48 131, 91 111, 148 117
+              C205 123, 241 151, 304 140
+              C363 130, 398 104, 457 113
+              C516 123, 555 151, 616 139
+              C677 127, 708 99, 768 109
+              C828 119, 861 148, 918 135
+              C955 127, 980 112, 1000 119
+            "
+            fill="none"
+            stroke="rgba(244,244,245,0.3)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          <path
+            d="
+              M0 143
+              C55 150, 97 138, 152 127
+              C210 115, 247 108, 305 121
+              C365 135, 402 153, 459 144
+              C518 135, 550 108, 613 117
+              C674 127, 708 151, 768 141
+              C828 131, 862 105, 918 114
+              C956 120, 981 147, 1000 139
+            "
+            fill="none"
+            stroke="rgba(113,113,122,0.42)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+
+        <span
+          className="absolute h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
+          style={{
+            right: "-4.5px",
+            top: `${(awayEndY / 260) * 100}%`,
+            backgroundColor: "#f4f4f5",
+          }}
         />
 
-        <path
-          d="
-            M0 139
-            C57 143, 98 135, 153 129
-            C210 123, 246 119, 304 127
-            C362 135, 401 143, 457 136
-            C515 128, 551 116, 613 124
-            C672 132, 708 142, 766 133
-            C825 124, 861 115, 916 122
-            C953 127, 980 138, 1000 135
-          "
-          fill="none"
-          stroke="rgba(113,113,122,0.42)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
+        <span
+          className="absolute h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
+          style={{
+            right: "-4.5px",
+            top: `${(homeEndY / 260) * 100}%`,
+            backgroundColor: "#71717a",
+          }}
         />
-      </svg>
-      
-      <span
-        className="absolute right-0 h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
-        style={{
-          top: `${(127 / 260) * 100}%`,
-          backgroundColor: "#f4f4f5",
-        }}
-      />
-
-      <span
-        className="absolute right-0 h-[9px] w-[9px] -translate-y-1/2 rounded-full border-2 border-[#09090b]"
-        style={{
-          top: `${(135 / 260) * 100}%`,
-          backgroundColor: "#71717a",
-        }}
-      />
+      </div>
     </div>
   );
 }
