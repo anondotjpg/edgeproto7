@@ -9,6 +9,10 @@ import {
   MdAccountBalanceWallet,
   MdOutlineAccountBalanceWallet,
 } from "react-icons/md";
+import { BiSolidWalletAlt } from "react-icons/bi";
+import { BiWalletAlt } from "react-icons/bi";
+import { HiWallet } from "react-icons/hi2";
+import { HiOutlineWallet } from "react-icons/hi2";
 import { IoStatsChart, IoStatsChartOutline } from "react-icons/io5";
 import { SiCashapp } from "react-icons/si";
 import { BiPurchaseTag, BiSolidPurchaseTag } from "react-icons/bi";
@@ -24,8 +28,8 @@ const MAIN_NAV_LINKS = [
   {
     label: "Accounts",
     href: "/accounts",
-    ActiveIcon: MdAccountBalanceWallet,
-    InactiveIcon: MdOutlineAccountBalanceWallet,
+    ActiveIcon: HiWallet,
+    InactiveIcon: HiOutlineWallet,
     mobileIconClassName: "h-[31px] w-[31px]",
   },
   {
