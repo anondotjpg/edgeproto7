@@ -110,9 +110,9 @@ export default function TopRightAuth() {
       aria-expanded={menuOpen}
       aria-label="Open account menu"
     >
-      <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+      <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full">
         <Avatar
-          size={32}
+          size={36}
           name={`Edge-${avatarSeed}`}
           variant="pixel"
           colors={avatarColors}
