@@ -1088,7 +1088,7 @@ function MobileProTeamRow({
 
       <div
         className={[
-          "grid w-[186px] shrink-0 grid-cols-3 overflow-hidden bg-zinc-950 sm:w-[228px]",
+          "grid w-[199px] shrink-0 grid-cols-3 overflow-hidden bg-zinc-950 sm:w-[244px]",
           marketShellClassName,
         ].join(" ")}
       >
