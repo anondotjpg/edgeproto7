@@ -493,11 +493,16 @@ export default function AccountsPage() {
             opacity: 0;
           }
         }
+
+        .accounts-page-shell {
+          align-items: flex-start;
+          padding-top: calc(5rem + env(safe-area-inset-top));
+        }
       `}</style>
 
       <div className="relative min-h-screen bg-transparent text-white">
-        <div className="relative z-10 flex min-h-screen items-start pt-20 md:items-center md:pt-10 lg:pt-0">
-          <div className="mx-auto w-full max-w-[1480px] px-4 pb-24 sm:px-6 md:py-8 md:pb-8">
+        <div className="accounts-page-shell relative z-10 flex min-h-screen">
+          <div className="mx-auto w-full max-w-[1480px] px-4 pb-24 sm:px-6 md:pb-8">
             <OwnedAccountsSection />
 
             <div className="mb-7 hidden text-center sm:mb-10 md:block leading-[1.2]">
