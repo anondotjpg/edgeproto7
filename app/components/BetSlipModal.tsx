@@ -1523,7 +1523,7 @@ function BetSlipControls({
                   opacity: maxHintPhase === "visible" ? 1 : 0,
                   y: maxHintPhase === "visible" ? 0 : -2,
                 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
+                transition={{ duration: 0.33, ease: "easeOut" }}
                 className="pointer-events-none absolute left-1/2 top-[75px] -translate-x-1/2 text-[10px] font-semibold uppercase leading-none tracking-[0.16em] text-zinc-500"
               >
                 MAX
