@@ -5,6 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { FiCheck, FiCopy } from "react-icons/fi";
 import { IoWarningOutline } from "react-icons/io5";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
 import AccountPositionsTable from "./AccountPositionsTable";
@@ -596,6 +599,38 @@ function RuleRoomCard({
   );
 }
 
+function CopyButton({
+  label,
+  value,
+  copied,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  copied: string | null;
+  onCopy: (label: string, value: string) => void;
+}) {
+  const isCopied = copied === label;
+
+  return (
+    <motion.button
+      type="button"
+      onClick={() => onCopy(label, value)}
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.88 }}
+      transition={{ type: "spring", stiffness: 560, damping: 34 }}
+      aria-label={isCopied ? "Copied" : "Copy account ID"}
+      className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center text-zinc-500 outline-none transition-colors hover:text-zinc-100 focus-visible:text-zinc-100"
+    >
+      {isCopied ? (
+        <FiCheck className="h-4 w-4" />
+      ) : (
+        <FiCopy className="h-4 w-4" />
+      )}
+    </motion.button>
+  );
+}
+
 function PageState({
   title,
   description,
@@ -634,6 +669,22 @@ export default function AccountPage() {
   const [data, setData] = useState<AccountDetailResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  async function copyText(label: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(label);
+
+      window.setTimeout(() => {
+        setCopied(null);
+      }, 1200);
+    } catch {
+      toast.error("Unable to copy", {
+        description: "Please copy it manually.",
+      });
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -1011,12 +1062,21 @@ export default function AccountPage() {
           <AccountPositionsTable openBets={openBets} pastBets={pastBets} />
         </section>
 
-        <section className="mt-10 min-h-[72px] rounded-2xl bg-zinc-950/70 p-4 ring-1 ring-zinc-900">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-600">
+        <section className="relative mt-10 min-h-[72px] rounded-2xl bg-zinc-950/70 p-4 ring-1 ring-zinc-900">
+          <div className="absolute right-3 top-3">
+            <CopyButton
+              label="account-id"
+              value={account.id}
+              copied={copied}
+              onCopy={copyText}
+            />
+          </div>
+
+          <div className="pr-9 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-600">
             Account ID
           </div>
 
-          <div className="mt-2 break-all text-[13px] text-zinc-400">
+          <div className="mt-2 break-all pr-9 text-[13px] text-zinc-400">
             {account.id}
           </div>
         </section>
