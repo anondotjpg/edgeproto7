@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
-import { FiArrowUpRight, FiEdit2 } from "react-icons/fi";
+import { FiEdit2 } from "react-icons/fi";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 type ExistingAccount = {
@@ -607,15 +607,19 @@ export default function OwnedAccountsSection() {
 
                           <button
                             type="button"
-                            aria-label="Open account"
-                            title="Open account"
+                            aria-label="View account"
+                            title="View account"
                             onClick={(event) => {
                               event.stopPropagation();
                               openAccount(account.id);
                             }}
-                            className="flex h-7 w-7 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100"
+                            className="relative inline-flex h-7 shrink-0 cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-3 text-[11px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626]"
                           >
-                            <FiArrowUpRight className="h-4.5 w-4.5" />
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
+                            />
+                            <span className="relative z-10">View</span>
                           </button>
                         </div>
                       </div>
