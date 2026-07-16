@@ -232,14 +232,14 @@ function MobileAccountCardContent({
   return (
     <div className="md:hidden">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex min-h-10 items-center">
+        <div className="flex min-h-12 items-center">
           <Image
             src={PLAN_IMAGE_SRC[planKey]}
             alt={`${sizeLabel} challenge`}
-            width={112}
-            height={48}
-            sizes="112px"
-            className="h-10 w-auto max-w-[118px] object-contain object-left"
+            width={140}
+            height={60}
+            sizes="140px"
+            className="h-12 w-auto max-w-[148px] object-contain object-left"
             priority
           />
         </div>
