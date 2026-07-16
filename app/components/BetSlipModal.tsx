@@ -1249,6 +1249,7 @@ function BetSlipControls({
   const [maxHintPhase, setMaxHintPhase] = useState<
     "hidden" | "visible" | "fading"
   >("hidden");
+  const maxHintRevealTimerRef = useRef<number | null>(null);
   const maxHintTimerRef = useRef<number | null>(null);
   const maxHintFadeTimerRef = useRef<number | null>(null);
 
@@ -1343,6 +1344,11 @@ function BetSlipControls({
   }
 
   function clearMobileMaxHintTimers() {
+    if (maxHintRevealTimerRef.current !== null) {
+      window.clearTimeout(maxHintRevealTimerRef.current);
+      maxHintRevealTimerRef.current = null;
+    }
+
     if (maxHintTimerRef.current !== null) {
       window.clearTimeout(maxHintTimerRef.current);
       maxHintTimerRef.current = null;
@@ -1369,22 +1375,24 @@ function BetSlipControls({
 
   function showMobileMaxHint() {
     clearMobileMaxHintTimers();
-    setMaxHintPhase("visible");
+    setMaxHintPhase("hidden");
 
-    maxHintTimerRef.current = window.setTimeout(() => {
-      maxHintTimerRef.current = null;
-      fadeOutMobileMaxHint();
-    }, 1500);
+    maxHintRevealTimerRef.current = window.setTimeout(() => {
+      maxHintRevealTimerRef.current = null;
+      setMaxHintPhase("visible");
+
+      maxHintTimerRef.current = window.setTimeout(() => {
+        maxHintTimerRef.current = null;
+        fadeOutMobileMaxHint();
+      }, 1500);
+    }, 220);
   }
 
   function handleMobileKeypadPress(key: string) {
     if (amountInputDisabled) return;
 
     if (key === "backspace") {
-      if (maxHintPhase !== "hidden") {
-        fadeOutMobileMaxHint();
-      }
-
+      fadeOutMobileMaxHint();
       onAmountChange(Math.floor(amountValue / 10));
       return;
     }
