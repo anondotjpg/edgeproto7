@@ -35,10 +35,10 @@ export async function POST(req: Request) {
 
   try {
     const verifiedToken =
-      await privyServer.utils().auth().verifyAuthToken(accessToken);
+      await privyServer.utils().auth().verifyAccessToken(accessToken);
 
     // This ID comes from the verified Privy JWT, never from request JSON.
-    privyUserId = verifiedToken.userId;
+    privyUserId = verifiedToken.user_id;
   } catch (error) {
     console.error("[users/sync] invalid Privy token", error);
 

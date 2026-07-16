@@ -67,6 +67,10 @@ export async function upsertAppUser({
   email,
   walletAddress,
 }: UpsertAppUserInput) {
+  if (typeof privyUserId !== "string") {
+    throw new Error("Missing Privy user ID.");
+  }
+
   const normalizedPrivyUserId = privyUserId.trim();
 
   if (!normalizedPrivyUserId) {
