@@ -1384,7 +1384,7 @@ function BetSlipControls({
       maxHintTimerRef.current = window.setTimeout(() => {
         maxHintTimerRef.current = null;
         fadeOutMobileMaxHint();
-      }, 1500);
+      }, 1800);
     }, 220);
   }
 
@@ -1404,13 +1404,9 @@ function BetSlipControls({
 
     if (!Number.isFinite(nextAmount)) return;
 
-    if (nextAmount >= maxBetAmount) {
+    if (nextAmount > maxBetAmount) {
       onAmountChange(maxBetAmount);
-
-      if (nextAmount > maxBetAmount) {
-        setAmountShakeKey((current) => current + 1);
-      }
-
+      setAmountShakeKey((current) => current + 1);
       showMobileMaxHint();
       return;
     }
@@ -1518,12 +1514,15 @@ function BetSlipControls({
             {maxHintPhase !== "hidden" ? (
               <motion.div
                 key="mobile-max-hint"
-                initial={false}
+                initial={{ opacity: 0, y: -2 }}
                 animate={{
                   opacity: maxHintPhase === "visible" ? 1 : 0,
                   y: maxHintPhase === "visible" ? 0 : -2,
                 }}
-                transition={{ duration: 0.33, ease: "easeOut" }}
+                transition={{
+                  duration: maxHintPhase === "visible" ? 0.1 : 0.18,
+                  ease: "easeOut",
+                }}
                 className="pointer-events-none absolute left-1/2 top-[75px] -translate-x-1/2 text-[10px] font-semibold uppercase leading-none tracking-[0.16em] text-zinc-500"
               >
                 MAX
