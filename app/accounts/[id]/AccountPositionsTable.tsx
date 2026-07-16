@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 
 type BetRow = {
   id: string;
@@ -377,8 +376,8 @@ function PositionsSegmentedControl({
 }) {
   return (
     <div className="mb-3 flex items-center">
-      <div className="relative z-20 inline-flex h-10 w-fit items-center rounded-lg bg-zinc-900/70">
-        {POSITIONS_TABS.map((tab) => {
+      <div className="relative z-20 inline-grid h-10 w-fit grid-cols-2 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950/80">
+        {POSITIONS_TABS.map((tab, index) => {
           const active = selectedView === tab.value;
 
           return (
@@ -387,24 +386,14 @@ function PositionsSegmentedControl({
               type="button"
               onClick={() => onChange(tab.value)}
               className={[
-                "relative flex h-10 min-w-[62px] cursor-pointer items-center justify-center rounded-lg px-3.5 text-[13px] font-medium transition-colors",
-                active ? "text-zinc-100" : "text-zinc-300 hover:text-zinc-100",
+                "flex h-full min-w-[66px] cursor-pointer items-center justify-center px-3.5 text-[13px] font-medium transition-colors",
+                index > 0 ? "border-l border-zinc-800" : "",
+                active
+                  ? "bg-zinc-800/80 text-zinc-100"
+                  : "text-zinc-400 hover:bg-zinc-900/60 hover:text-zinc-100",
               ].join(" ")}
             >
-              {active ? (
-                <motion.span
-                  layoutId="account-positions-segment-active"
-                  transition={{
-                    type: "spring",
-                    stiffness: 420,
-                    damping: 34,
-                    mass: 0.8,
-                  }}
-                  className="absolute inset-0 m-[3px] rounded-lg bg-zinc-800/70"
-                />
-              ) : null}
-
-              <span className="relative z-10">{tab.label}</span>
+              {tab.label}
             </button>
           );
         })}
