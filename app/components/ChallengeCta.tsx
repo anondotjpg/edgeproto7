@@ -307,10 +307,10 @@ function AccountHero({
         <Image
           src={PLAN_IMAGE_SRC[planKey]}
           alt={`${Number(planKey) / 1000}K challenge`}
-          width={128}
-          height={52}
-          sizes="128px"
-          className="h-11 w-auto max-w-[132px] object-contain object-left"
+          width={140}
+          height={60}
+          sizes="140px"
+          className="h-12 w-auto max-w-[148px] object-contain object-left"
           priority
         />
       </div>
