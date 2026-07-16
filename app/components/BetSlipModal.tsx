@@ -1246,8 +1246,11 @@ function BetSlipControls({
   const holdCompletedRef = useRef(false);
   const [holdProgress, setHoldProgress] = useState(0);
   const [amountShakeKey, setAmountShakeKey] = useState(0);
-  const [showMaxHint, setShowMaxHint] = useState(false);
+  const [maxHintPhase, setMaxHintPhase] = useState<
+    "hidden" | "visible" | "fading"
+  >("hidden");
   const maxHintTimerRef = useRef<number | null>(null);
+  const maxHintFadeTimerRef = useRef<number | null>(null);
 
   const isMobileDrawer = mobileLayout && panelMode === "modal";
   const amountInputDisabled = isGameStarted || maxBetAmount <= 0;
@@ -1339,25 +1342,38 @@ function BetSlipControls({
     onAmountChange(nextAmount);
   }
 
-  function hideMobileMaxHint() {
+  function clearMobileMaxHintTimers() {
     if (maxHintTimerRef.current !== null) {
       window.clearTimeout(maxHintTimerRef.current);
       maxHintTimerRef.current = null;
     }
 
-    setShowMaxHint(false);
+    if (maxHintFadeTimerRef.current !== null) {
+      window.clearTimeout(maxHintFadeTimerRef.current);
+      maxHintFadeTimerRef.current = null;
+    }
+  }
+
+  function fadeOutMobileMaxHint() {
+    clearMobileMaxHintTimers();
+
+    setMaxHintPhase((current) =>
+      current === "hidden" ? "hidden" : "fading",
+    );
+
+    maxHintFadeTimerRef.current = window.setTimeout(() => {
+      setMaxHintPhase("hidden");
+      maxHintFadeTimerRef.current = null;
+    }, 180);
   }
 
   function showMobileMaxHint() {
-    if (maxHintTimerRef.current !== null) {
-      window.clearTimeout(maxHintTimerRef.current);
-    }
-
-    setShowMaxHint(true);
+    clearMobileMaxHintTimers();
+    setMaxHintPhase("visible");
 
     maxHintTimerRef.current = window.setTimeout(() => {
-      setShowMaxHint(false);
       maxHintTimerRef.current = null;
+      fadeOutMobileMaxHint();
     }, 1500);
   }
 
@@ -1365,8 +1381,8 @@ function BetSlipControls({
     if (amountInputDisabled) return;
 
     if (key === "backspace") {
-      if (showMaxHint) {
-        hideMobileMaxHint();
+      if (maxHintPhase !== "hidden") {
+        fadeOutMobileMaxHint();
       }
 
       onAmountChange(Math.floor(amountValue / 10));
@@ -1404,9 +1420,7 @@ function BetSlipControls({
     return () => {
       clearHold();
 
-      if (maxHintTimerRef.current !== null) {
-        window.clearTimeout(maxHintTimerRef.current);
-      }
+      clearMobileMaxHintTimers();
     };
   }, []);
 
@@ -1493,20 +1507,20 @@ function BetSlipControls({
               </div>
             </motion.div>
 
-            <AnimatePresence initial={false}>
-              {showMaxHint ? (
-                <motion.div
-                  key="mobile-max-hint"
-                  initial={{ opacity: 0, y: -2 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -2 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="pointer-events-none absolute left-1/2 top-[75px] -translate-x-1/2 text-[10px] font-semibold uppercase leading-none tracking-[0.16em] text-zinc-500"
-                >
-                  MAX
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
+            {maxHintPhase !== "hidden" ? (
+              <motion.div
+                key="mobile-max-hint"
+                initial={false}
+                animate={{
+                  opacity: maxHintPhase === "visible" ? 1 : 0,
+                  y: maxHintPhase === "visible" ? 0 : -2,
+                }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="pointer-events-none absolute left-1/2 top-[75px] -translate-x-1/2 text-[10px] font-semibold uppercase leading-none tracking-[0.16em] text-zinc-500"
+              >
+                MAX
+              </motion.div>
+            ) : null}
 
             <div
               aria-hidden={!showPotentialPayout}
