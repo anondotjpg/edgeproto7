@@ -141,24 +141,10 @@ function MobileQuantitySelector({
 }) {
   return (
     <div
-      className="flex h-[46px] shrink-0 items-center rounded-2xl p-[1px]"
+      className="flex h-[46px] shrink-0 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/70"
       aria-label="Account quantity"
     >
-      <div className="flex h-full items-center">
-        <button
-          type="button"
-          onClick={() => onChange(Math.max(1, quantity - 1))}
-          disabled={quantity <= 1}
-          aria-label="Decrease account quantity"
-          className="grid h-9 w-7 cursor-pointer place-items-center rounded-xl text-[17px] font-semibold leading-none text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          −
-        </button>
-
-        <span className="grid h-9 min-w-6 place-items-center text-[14px] font-semibold tabular-nums text-zinc-100">
-          {quantity}
-        </span>
-
+      <div className="flex w-7 flex-col border-r border-zinc-800">
         <button
           type="button"
           onClick={() =>
@@ -166,11 +152,25 @@ function MobileQuantitySelector({
           }
           disabled={quantity >= MAX_ACCOUNT_QUANTITY}
           aria-label="Increase account quantity"
-          className="grid h-9 w-7 cursor-pointer place-items-center rounded-xl text-[17px] font-semibold leading-none text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+          className="grid min-h-0 flex-1 cursor-pointer place-items-center border-b border-zinc-800 text-[15px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-800/80 hover:text-zinc-100 active:bg-zinc-700/80 disabled:cursor-not-allowed disabled:opacity-30"
         >
           +
         </button>
+
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(1, quantity - 1))}
+          disabled={quantity <= 1}
+          aria-label="Decrease account quantity"
+          className="grid min-h-0 flex-1 cursor-pointer place-items-center text-[15px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-800/80 hover:text-zinc-100 active:bg-zinc-700/80 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          −
+        </button>
       </div>
+
+      <span className="grid min-w-9 place-items-center px-2 text-[15px] font-semibold tabular-nums text-zinc-100">
+        {quantity}
+      </span>
     </div>
   );
 }
