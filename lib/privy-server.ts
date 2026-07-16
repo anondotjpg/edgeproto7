@@ -1,3 +1,5 @@
+import "server-only";
+
 import { PrivyClient } from "@privy-io/node";
 
 const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;

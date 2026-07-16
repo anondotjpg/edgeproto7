@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AppSidebar from "./components/AppSidebar";
+import PrivyUserSync from "./components/PrivyUserSync";
 import SafariScrollGate from "./components/SafariScrollGate";
 import TopRightAuth from "./components/TopRightAuth";
 import Providers from "./providers";
@@ -174,6 +175,8 @@ export default function RootLayout({
         <SafariScrollGate />
 
         <Providers>
+          <PrivyUserSync />
+
           <style>{`
             @keyframes buttonShimmer {
               0% {

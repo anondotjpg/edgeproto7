@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { upsertAppUser } from "@/lib/users";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
 import { validatePromoCode } from "@/lib/promo-codes";
 import { createRelayDepositQuote } from "@/lib/relay";
@@ -264,58 +265,6 @@ async function assertCanCreateRelayDeposit(userId: string) {
   }
 }
 
-async function upsertUser({
-  privyUserId,
-  email,
-  walletAddress,
-}: {
-  privyUserId: string;
-  email: string | null | undefined;
-  walletAddress: string | null | undefined;
-}) {
-  const { data: existingUser, error: existingUserError } = await supabaseAdmin
-    .from("users")
-    .select("id")
-    .eq("privy_user_id", privyUserId)
-    .maybeSingle();
-
-  if (existingUserError) {
-    throw existingUserError;
-  }
-
-  if (existingUser?.id) {
-    const { error: updateUserError } = await supabaseAdmin
-      .from("users")
-      .update({
-        email: email ?? null,
-        wallet_address: walletAddress ?? null,
-      })
-      .eq("id", existingUser.id);
-
-    if (updateUserError) {
-      throw updateUserError;
-    }
-
-    return existingUser.id as string;
-  }
-
-  const { data: insertedUser, error: insertUserError } = await supabaseAdmin
-    .from("users")
-    .insert({
-      privy_user_id: privyUserId,
-      email: email ?? null,
-      wallet_address: walletAddress ?? null,
-    })
-    .select("id")
-    .single();
-
-  if (insertUserError) {
-    throw insertUserError;
-  }
-
-  return insertedUser.id as string;
-}
-
 async function createFreePromoInvoice({
   userId,
   planKey,
@@ -543,7 +492,7 @@ export async function POST(req: Request) {
       return accountQuantityErrorResponse();
     }
 
-    const userId = await upsertUser({
+    const userId = await upsertAppUser({
       privyUserId,
       email: body.email,
       walletAddress: body.walletAddress,
