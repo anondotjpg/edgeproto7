@@ -1246,6 +1246,8 @@ function BetSlipControls({
   const holdCompletedRef = useRef(false);
   const [holdProgress, setHoldProgress] = useState(0);
   const [amountShakeKey, setAmountShakeKey] = useState(0);
+  const [showMaxHint, setShowMaxHint] = useState(false);
+  const maxHintTimerRef = useRef<number | null>(null);
 
   const isMobileDrawer = mobileLayout && panelMode === "modal";
   const amountInputDisabled = isGameStarted || maxBetAmount <= 0;
@@ -1337,6 +1339,19 @@ function BetSlipControls({
     onAmountChange(nextAmount);
   }
 
+  function showMobileMaxHint() {
+    if (maxHintTimerRef.current !== null) {
+      window.clearTimeout(maxHintTimerRef.current);
+    }
+
+    setShowMaxHint(true);
+
+    maxHintTimerRef.current = window.setTimeout(() => {
+      setShowMaxHint(false);
+      maxHintTimerRef.current = null;
+    }, 1500);
+  }
+
   function handleMobileKeypadPress(key: string) {
     if (amountInputDisabled) return;
 
@@ -1352,9 +1367,14 @@ function BetSlipControls({
 
     if (!Number.isFinite(nextAmount)) return;
 
-    if (nextAmount > maxBetAmount) {
+    if (nextAmount >= maxBetAmount) {
       onAmountChange(maxBetAmount);
-      setAmountShakeKey((current) => current + 1);
+
+      if (nextAmount > maxBetAmount) {
+        setAmountShakeKey((current) => current + 1);
+      }
+
+      showMobileMaxHint();
       return;
     }
 
@@ -1370,6 +1390,10 @@ function BetSlipControls({
   useEffect(() => {
     return () => {
       clearHold();
+
+      if (maxHintTimerRef.current !== null) {
+        window.clearTimeout(maxHintTimerRef.current);
+      }
     };
   }, []);
 
@@ -1455,6 +1479,21 @@ function BetSlipControls({
                 <MoneyFlow value={amountValue} className="overflow-visible" />
               </div>
             </motion.div>
+
+            <AnimatePresence initial={false}>
+              {showMaxHint ? (
+                <motion.div
+                  key="mobile-max-hint"
+                  initial={{ opacity: 0, y: -2 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -2 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="pointer-events-none absolute left-1/2 top-[75px] -translate-x-1/2 text-[10px] font-semibold uppercase leading-none tracking-[0.16em] text-zinc-500"
+                >
+                  MAX
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
 
             <div
               aria-hidden={!showPotentialPayout}
