@@ -172,13 +172,12 @@ function RuleSkeleton({ label }: { label: string }) {
 function PositionsSegmentedControlSkeleton() {
   return (
     <div className="mb-3 flex items-center">
-      <div className="relative z-20 inline-flex h-10 w-fit items-center rounded-lg bg-zinc-900/70">
-        <div className="relative flex h-10 min-w-[62px] items-center justify-center rounded-lg px-3.5 text-[13px] font-medium text-zinc-100">
-          <span className="absolute inset-0 m-[3px] rounded-lg bg-zinc-800" />
-          <span className="relative z-10">Open</span>
+      <div className="relative z-20 inline-grid h-10 w-fit grid-cols-2 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950/80">
+        <div className="flex h-full min-w-[66px] items-center justify-center bg-zinc-800/80 px-3.5 text-[13px] font-medium text-zinc-100">
+          Open
         </div>
 
-        <div className="relative flex h-10 min-w-[62px] items-center justify-center rounded-lg px-3.5 text-[13px] font-medium text-zinc-300">
+        <div className="flex h-full min-w-[66px] items-center justify-center border-l border-zinc-800 px-3.5 text-[13px] font-medium text-zinc-400">
           Past
         </div>
       </div>
@@ -303,12 +302,16 @@ export default function AccountPageSkeleton() {
           <PositionsTableSkeleton />
         </section>
 
-        <section className="mt-10 min-h-[72px] rounded-2xl bg-zinc-950/70 p-4 ring-1 ring-zinc-900">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-600">
+        <section className="relative mt-10 min-h-[72px] rounded-2xl bg-zinc-950/70 p-4 ring-1 ring-zinc-900">
+          <div className="absolute right-3 top-3 grid h-7 w-7 place-items-center">
+            <SkeletonBlock className="h-4 w-4 rounded-sm" />
+          </div>
+
+          <div className="pr-9 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-600">
             Account ID
           </div>
 
-          <SkeletonBlock className="mt-3 h-4 w-full max-w-xl" />
+          <SkeletonBlock className="mt-2 h-4 w-full max-w-xl pr-9" />
         </section>
       </div>
     </div>
