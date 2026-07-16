@@ -1339,6 +1339,15 @@ function BetSlipControls({
     onAmountChange(nextAmount);
   }
 
+  function hideMobileMaxHint() {
+    if (maxHintTimerRef.current !== null) {
+      window.clearTimeout(maxHintTimerRef.current);
+      maxHintTimerRef.current = null;
+    }
+
+    setShowMaxHint(false);
+  }
+
   function showMobileMaxHint() {
     if (maxHintTimerRef.current !== null) {
       window.clearTimeout(maxHintTimerRef.current);
@@ -1356,6 +1365,10 @@ function BetSlipControls({
     if (amountInputDisabled) return;
 
     if (key === "backspace") {
+      if (showMaxHint) {
+        hideMobileMaxHint();
+      }
+
       onAmountChange(Math.floor(amountValue / 10));
       return;
     }
