@@ -692,23 +692,27 @@ export default function PortfolioClient() {
       {!ready || loading ? (
         <PortfolioSkeleton />
       ) : !authenticated ? (
-        <EmptyState
-          title="Sign in to view"
-          description="Open and past positions will appear here."
-          action={
-            <button
-              type="button"
-              onClick={login}
-              className="relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626] whitespace-nowrap"
-            >
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
-              />
-              <span className="relative z-10">Sign in</span>
-            </button>
-          }
-        />
+        <div className="overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/80 shadow-sm">
+          <div className="border-b border-zinc-900/80 px-3 py-3 last:border-b-0 sm:px-5 lg:min-w-[560px] xl:min-w-[760px]">
+            <EmptyState
+              title="Sign in to view"
+              description="Open and past positions will appear here. Sign in to monitor."
+              action={
+                <button
+                  type="button"
+                  onClick={login}
+                  className="relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626]"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
+                  />
+                  <span className="relative z-10">Sign in</span>
+                </button>
+              }
+            />
+          </div>
+        </div>
       ) : (
         <>
           {error ? (
