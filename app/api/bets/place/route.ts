@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { privyServer } from "@/lib/privy-server";
 
-const MIN_ALLOWED_AMERICAN_ODDS = -190;
+const MIN_ALLOWED_AMERICAN_ODDS = -200;
 const ALLOWED_MARKETS = new Set(["h2h", "spreads", "totals"]);
 
 const TOTAL_MARKET_LOGO = "/over.png";
@@ -556,7 +556,7 @@ export async function POST(req: Request) {
 
     if (serverBet.odds < MIN_ALLOWED_AMERICAN_ODDS) {
       return blockBet(
-        "Only -190 or better odds can be placed.",
+        "Only 200 or better odds can be placed.",
         "odds_not_allowed",
       );
     }
