@@ -446,7 +446,7 @@ export default function OwnedAccountsSection() {
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="min-w-0 text-base font-semibold tracking-tight text-zinc-100 sm:text-xl">
               Accounts{" "}
-              <span className="text-zinc-500">({accounts.length})</span>
+              <span className="text-zinc-500 hidden">({accounts.length})</span>
             </h2>
 
             <div
