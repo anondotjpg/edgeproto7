@@ -23,7 +23,7 @@ const MAIN_NAV_LINKS = [
     href: "/accounts",
     ActiveIcon: HiWallet,
     InactiveIcon: HiOutlineWallet,
-    mobileIconClassName: "h-[34px] w-[34px]",
+    mobileIconClassName: "h-[36px] w-[36px]",
   },
   {
     label: "Portfolio",
