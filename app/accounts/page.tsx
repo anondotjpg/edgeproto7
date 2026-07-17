@@ -165,7 +165,7 @@ function MobileQuantitySelector({
         }
         disabled={quantity >= MAX_ACCOUNT_QUANTITY}
         aria-label="Increase account quantity"
-        className="grid h-11 w-11 shrink-0 cursor-pointer touch-manipulation select-none place-items-center rounded-xl text-[21px] font-semibold leading-none text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 active:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-30"
+        className="grid h-11 w-11 shrink-0 cursor-pointer touch-manipulation select-none place-items-center rounded-xl text-[21px] font-semibold leading-none text-zinc-400 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
       >
         +
       </button>
