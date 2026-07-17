@@ -613,7 +613,7 @@ export default function OwnedAccountsSection() {
                               event.stopPropagation();
                               openAccount(account.id);
                             }}
-                            className="relative inline-flex h-7 shrink-0 cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-3 text-[11px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-colors duration-150 hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626]"
+                            className="relative inline-flex h-7 shrink-0 cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border border-zinc-800 bg-zinc-900 px-3 text-[11px] font-bold leading-none text-zinc-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] transition-colors duration-150 hover:border-zinc-700 hover:bg-zinc-800"
                           >
                             <span
                               aria-hidden="true"
