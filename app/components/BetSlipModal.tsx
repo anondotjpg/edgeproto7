@@ -26,6 +26,7 @@ import {
   DrawerTitle,
 } from "../components/ui/drawer";
 import { Slider } from "../components/ui/slider";
+import { playEdgeSound } from "@/lib/sound";
 
 type OwnedAccount = {
   id: string;
@@ -2119,6 +2120,7 @@ export function BetSlipPanel({
         setError(message);
       }
 
+      playEdgeSound("error");
       toast.info("Bet not placed", {
         description: message,
       });
@@ -2223,6 +2225,7 @@ export function BetSlipPanel({
         return;
       }
 
+      playEdgeSound("sparkle");
       toast("Bet placed", {
         description: `${formatMoney(stake)} on ${formatUiTeamName(
           getTeamDisplayName(currentBet.team, currentBet.teamAlias),
@@ -2238,10 +2241,7 @@ export function BetSlipPanel({
       const message =
         err instanceof Error ? err.message : "Something went wrong.";
 
-      setError(message);
-      toast.info("Bet not placed", {
-        description: message,
-      });
+      showBetNotPlaced(message, true);
     } finally {
       setIsPlacing(false);
     }

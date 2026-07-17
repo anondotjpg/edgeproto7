@@ -10,6 +10,10 @@ import LeagueTabs from "./LeagueTabs";
 import BetSlipModal, { BetSlipPanel, type BetSlipData } from "./BetSlipModal";
 import type { Game } from "../page";
 import { FiChevronDown, FiSettings } from "react-icons/fi";
+import {
+  initializeSoundEnabled,
+  setSoundEnabled as persistSoundEnabled,
+} from "@/lib/sound";
 
 type LeagueBlock = {
   leagueKey: string;
@@ -1329,16 +1333,20 @@ function MarketSettingsDropdown({
   proEnabled,
   colorsEnabled,
   goldEnabled,
+  soundEnabled,
   onTogglePro,
   onToggleColors,
   onToggleGold,
+  onToggleSound,
 }: {
   proEnabled: boolean;
   colorsEnabled: boolean;
   goldEnabled: boolean;
+  soundEnabled: boolean;
   onTogglePro: () => void;
   onToggleColors: () => void;
   onToggleGold: () => void;
+  onToggleSound: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -1462,6 +1470,31 @@ function MarketSettingsDropdown({
               >
                 <motion.span
                   animate={{ x: goldEnabled ? 17 : 0 }}
+                  transition={{ type: "spring", stiffness: 520, damping: 34 }}
+                  className="block h-[13px] w-[13px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+                />
+              </span>
+            </button>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={soundEnabled}
+              onClick={onToggleSound}
+              className="flex h-8 w-full cursor-pointer items-center justify-between rounded-md px-2 text-left transition-colors hover:bg-zinc-900"
+            >
+              <span className="text-[13px] font-medium text-zinc-200">
+                Sound
+              </span>
+
+              <span
+                className={[
+                  "relative h-[17px] w-[34px] shrink-0 rounded-full p-0.5 transition-colors duration-200",
+                  soundEnabled ? "bg-[#cfa13a]" : "bg-zinc-800",
+                ].join(" ")}
+              >
+                <motion.span
+                  animate={{ x: soundEnabled ? 17 : 0 }}
                   transition={{ type: "spring", stiffness: 520, damping: 34 }}
                   className="block h-[13px] w-[13px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
                 />
@@ -2067,6 +2100,8 @@ export default function GamesClient({
   const [goldMarketsLoaded, setGoldMarketsLoaded] = useState(false);
   const [proMarketsEnabled, setProMarketsEnabled] = useState(true);
   const [proMarketsLoaded, setProMarketsLoaded] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundLoaded, setSoundLoaded] = useState(false);
 
   useBrowserLayoutEffect(() => {
     let storedGoldMarketsEnabled = readStoredGoldMarketsEnabled();
@@ -2074,6 +2109,7 @@ export default function GamesClient({
     let storedMarketColorsEnabled = storedGoldMarketsEnabled
       ? false
       : readStoredMarketColorsEnabled();
+    const storedSoundEnabled = initializeSoundEnabled();
 
     try {
       const defaultsApplied =
@@ -2098,10 +2134,12 @@ export default function GamesClient({
     setMarketColorsEnabled(storedMarketColorsEnabled);
     setGoldMarketsEnabled(storedGoldMarketsEnabled);
     setProMarketsEnabled(storedProMarketsEnabled);
+    setSoundEnabled(storedSoundEnabled);
     setHideLiveGamesLoaded(true);
     setMarketColorsLoaded(true);
     setGoldMarketsLoaded(true);
     setProMarketsLoaded(true);
+    setSoundLoaded(true);
 
     if (storedGoldMarketsEnabled) {
       writeStoredMarketColorsEnabled(false);
@@ -2122,6 +2160,7 @@ export default function GamesClient({
     marketColorsLoaded &&
     goldMarketsLoaded &&
     proMarketsLoaded &&
+    soundLoaded &&
     now !== null;
   const totalGames = visibleGames.length;
 
@@ -2177,6 +2216,14 @@ export default function GamesClient({
     });
   }
 
+  function toggleSound() {
+    setSoundEnabled((current) => {
+      const nextValue = !current;
+      persistSoundEnabled(nextValue);
+      return nextValue;
+    });
+  }
+
   function renderMarketControls() {
     const showHideLiveToggle = hideLiveGamesLoaded && liveGameCount > 0;
 
@@ -2186,9 +2233,11 @@ export default function GamesClient({
           proEnabled={proMarketsEnabled}
           colorsEnabled={marketColorsEnabled}
           goldEnabled={goldMarketsEnabled}
+          soundEnabled={soundEnabled}
           onTogglePro={toggleProMarkets}
           onToggleColors={toggleMarketColors}
           onToggleGold={toggleGoldMarkets}
+          onToggleSound={toggleSound}
         />
 
         {showHideLiveToggle ? (
