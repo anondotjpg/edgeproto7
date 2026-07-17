@@ -726,13 +726,22 @@ function OffsetPlaceBetButton({
         : "Place Bet";
 
   const buttonContent = buttonText;
+  const hasTeamActionColor = isValidHexColor(teamColor);
+  const useNeutralDefault = !hasTeamActionColor;
+
   const { shellStyle, faceStyle, progressStyle } =
     getTeamActionButtonStyles(teamColor);
+
+  const neutralFaceClassName =
+    "border border-zinc-700 bg-linear-to-br from-zinc-300 via-zinc-400 to-zinc-500 text-zinc-950 hover:from-zinc-200 hover:via-zinc-300 hover:to-zinc-400";
 
   if (mobileLayout) {
     return (
       <div
-        className="mt-3 mb-2 rounded-xl bg-zinc-800"
+        className={[
+          "mt-3 mb-2 rounded-xl",
+          useNeutralDefault ? "bg-zinc-600" : "bg-zinc-800",
+        ].join(" ")}
         style={{
           paddingBottom: "2px",
           ...shellStyle,
@@ -756,13 +765,21 @@ function OffsetPlaceBetButton({
           onPointerCancel={onPointerCancel}
           disabled={disabled}
           className={[
-            "relative h-16 w-full cursor-pointer select-none overflow-hidden rounded-xl bg-zinc-900 text-[16px] font-semibold disabled:cursor-not-allowed",
-            darkText ? "text-[#120d02]" : "text-zinc-100",
+            "relative h-16 w-full cursor-pointer select-none overflow-hidden rounded-xl text-[16px] font-semibold transition-colors duration-150 disabled:cursor-not-allowed",
+            useNeutralDefault
+              ? neutralFaceClassName
+              : [
+                  "bg-zinc-900",
+                  darkText ? "text-[#120d02]" : "text-zinc-100",
+                ].join(" "),
           ].join(" ")}
           style={faceStyle}
         >
           <span
-            className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-800"
+            className={[
+              "pointer-events-none absolute inset-y-0 left-0",
+              useNeutralDefault ? "bg-zinc-600/45" : "bg-zinc-800",
+            ].join(" ")}
             style={{
               width: `${holdProgress * 100}%`,
               ...progressStyle,
@@ -780,7 +797,8 @@ function OffsetPlaceBetButton({
   return (
     <div
       className={[
-        "rounded-xl bg-zinc-800",
+        "rounded-xl",
+        useNeutralDefault ? "bg-zinc-600" : "bg-zinc-800",
         panelMode === "sidebar" ? "mt-3 mb-5" : "mt-3 mb-0",
       ].join(" ")}
       style={{
@@ -804,8 +822,13 @@ function OffsetPlaceBetButton({
         onPointerCancel={onPointerCancel}
         disabled={disabled}
         className={[
-          "relative w-full translate-y-[-2px] cursor-pointer select-none overflow-hidden rounded-xl bg-zinc-900 font-semibold transition-transform duration-100 hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed",
-          darkText ? "text-[#120d02]" : "text-zinc-100",
+          "relative w-full translate-y-[-2px] cursor-pointer select-none overflow-hidden rounded-xl font-semibold transition-all duration-100 hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed",
+          useNeutralDefault
+            ? neutralFaceClassName
+            : [
+                "bg-zinc-900",
+                darkText ? "text-[#120d02]" : "text-zinc-100",
+              ].join(" "),
           panelMode === "sidebar" ? "h-12 text-[15px]" : "h-12 text-[15px]",
         ].join(" ")}
         style={faceStyle}
