@@ -154,7 +154,7 @@ function MobileQuantitySelector({
         −
       </button>
 
-      <span className="grid h-11 min-w-7 place-items-center text-[15px] font-semibold tabular-nums text-zinc-100">
+      <span className="grid h-11 min-w-7 place-items-center text-[18px] font-semibold tabular-nums text-zinc-100">
         {quantity}
       </span>
 
