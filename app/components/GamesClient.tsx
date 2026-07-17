@@ -816,11 +816,11 @@ function MarketFace({
                   "font-bold leading-none",
                   centered
                     ? "text-[11px] tracking-[0.06em]"
-                    : "min-w-0 truncate text-left text-[11px] tracking-[0.06em] [direction:rtl]",
+                    : "min-w-0 truncate text-[11px] tracking-[0.06em]",
                   isGoldMarket ? "text-[#120d02]" : "text-zinc-300",
                 ].join(" ")}
               >
-                <span dir="ltr">{label}</span>
+                {label}
               </span>
               <span
                 className={[
@@ -933,10 +933,10 @@ function DesktopMarketCell({
                     isGoldMarket ? "text-[#120d02]" : "text-zinc-300",
                     centered
                       ? "text-[11px] tracking-[0.06em]"
-                      : "min-w-0 truncate text-left text-[11px] tracking-[0.06em] [direction:rtl]",
+                      : "min-w-0 truncate text-[11px] tracking-[0.06em]",
                   ].join(" ")}
                 >
-                  <span dir="ltr">{label}</span>
+                  {label}
                 </span>
 
                 <span
@@ -1065,11 +1065,11 @@ function MobileProMarketSelection({
           <>
             <span
               className={[
-                "max-w-full truncate text-left text-[9.5px] font-bold leading-none tracking-[0.03em] [direction:rtl] sm:text-[10.5px]",
+                "max-w-full truncate text-[9.5px] font-bold leading-none tracking-[0.03em] sm:text-[10.5px]",
                 isGoldMarket ? "text-[#120d02]" : "text-zinc-300",
               ].join(" ")}
             >
-              <span dir="ltr">{compactLabel}</span>
+              {compactLabel}
             </span>
 
             <span
@@ -1303,18 +1303,16 @@ function MobileMarketModalButton({
           <>
             <span
               className={[
-                "min-w-0 max-w-full truncate text-left text-[12px] font-bold leading-none tracking-[0.12em] [direction:rtl]",
+                "text-[12px] font-bold leading-none tracking-[0.12em]",
                 isGoldMarket ? "text-[#120d02]" : "text-zinc-200",
               ].join(" ")}
             >
-              <span dir="ltr">
-                {getOutcomeButtonLabel({ market, outcome, team, teamInfo })}
-              </span>
+              {getOutcomeButtonLabel({ market, outcome, team, teamInfo })}
             </span>
 
             <span
               className={[
-                "shrink-0 text-[15.6px] leading-none tracking-tight",
+                "text-[15.6px] leading-none tracking-tight",
                 isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
               ].join(" ")}
             >
