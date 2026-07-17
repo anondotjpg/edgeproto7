@@ -733,7 +733,7 @@ function OffsetPlaceBetButton({
     getTeamActionButtonStyles(teamColor);
 
   const neutralFaceClassName =
-    "border border-zinc-700 bg-linear-to-br from-zinc-300 via-zinc-400 to-zinc-500 text-zinc-950 hover:from-zinc-200 hover:via-zinc-300 hover:to-zinc-400";
+    "border border-zinc-700 bg-linear-to-br from-zinc-300 via-zinc-400 to-zinc-500 text-zinc-950";
 
   if (mobileLayout) {
     return (
