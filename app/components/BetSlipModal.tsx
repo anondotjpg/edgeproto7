@@ -26,7 +26,7 @@ import {
   DrawerTitle,
 } from "../components/ui/drawer";
 import { Slider } from "../components/ui/slider";
-import { playEdgeSound } from "@/lib/sound";
+import { playEdgeSound, unlockEdgeSound } from "@/lib/sound";
 
 type OwnedAccount = {
   id: string;
@@ -1301,7 +1301,13 @@ function BetSlipControls({
   }
 
   function beginHoldToPlace(event: PointerEvent<HTMLButtonElement>) {
-    if (!mobileLayout || placeBetDisabled) return;
+    if (placeBetDisabled) return;
+
+    // Unlock the shared Web Audio context inside the original user gesture.
+    // The success/error sound can then play after the async bet request ends.
+    void unlockEdgeSound();
+
+    if (!mobileLayout) return;
 
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
