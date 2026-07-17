@@ -141,36 +141,34 @@ function MobileQuantitySelector({
 }) {
   return (
     <div
-      className="flex h-[46px] shrink-0 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/70"
+      className="flex h-[46px] shrink-0 items-center rounded-2xl"
       aria-label="Account quantity"
     >
-      <div className="flex w-7 flex-col border-r border-zinc-800">
-        <button
-          type="button"
-          onClick={() =>
-            onChange(Math.min(MAX_ACCOUNT_QUANTITY, quantity + 1))
-          }
-          disabled={quantity >= MAX_ACCOUNT_QUANTITY}
-          aria-label="Increase account quantity"
-          className="grid min-h-0 flex-1 cursor-pointer place-items-center border-b border-zinc-800 text-[15px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-800/80 hover:text-zinc-100 active:bg-zinc-700/80 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          +
-        </button>
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(1, quantity - 1))}
+        disabled={quantity <= 1}
+        aria-label="Decrease account quantity"
+        className="grid h-11 w-11 shrink-0 cursor-pointer touch-manipulation select-none place-items-center rounded-xl text-[21px] font-semibold leading-none text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 active:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-30"
+      >
+        −
+      </button>
 
-        <button
-          type="button"
-          onClick={() => onChange(Math.max(1, quantity - 1))}
-          disabled={quantity <= 1}
-          aria-label="Decrease account quantity"
-          className="grid min-h-0 flex-1 cursor-pointer place-items-center text-[15px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-800/80 hover:text-zinc-100 active:bg-zinc-700/80 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          −
-        </button>
-      </div>
-
-      <span className="grid min-w-9 place-items-center px-2 text-[15px] font-semibold tabular-nums text-zinc-100">
+      <span className="grid h-11 min-w-7 place-items-center text-[15px] font-semibold tabular-nums text-zinc-100">
         {quantity}
       </span>
+
+      <button
+        type="button"
+        onClick={() =>
+          onChange(Math.min(MAX_ACCOUNT_QUANTITY, quantity + 1))
+        }
+        disabled={quantity >= MAX_ACCOUNT_QUANTITY}
+        aria-label="Increase account quantity"
+        className="grid h-11 w-11 shrink-0 cursor-pointer touch-manipulation select-none place-items-center rounded-xl text-[21px] font-semibold leading-none text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 active:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-30"
+      >
+        +
+      </button>
     </div>
   );
 }
