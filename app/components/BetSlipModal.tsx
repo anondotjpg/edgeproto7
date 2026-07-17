@@ -863,7 +863,6 @@ function GoldAccountAction({
 const AccountSelectSection = memo(function AccountSelectSection({
   ready,
   authenticated,
-  login,
   accounts,
   selectedAccountIds,
   isLoadingAccounts,
@@ -873,7 +872,6 @@ const AccountSelectSection = memo(function AccountSelectSection({
 }: {
   ready: boolean;
   authenticated: boolean;
-  login: () => void;
   accounts: OwnedAccount[];
   selectedAccountIds: string[];
   isLoadingAccounts: boolean;
@@ -1063,8 +1061,8 @@ const AccountSelectSection = memo(function AccountSelectSection({
               isMobileDrawer ? "h-[64px]" : "h-[80px]",
             ].join(" ")}
           >
-            <GoldAccountAction onClick={login} compact={isMobileDrawer}>
-              Sign In
+            <GoldAccountAction href="/accounts" compact={isMobileDrawer}>
+              Start Challenge
             </GoldAccountAction>
           </div>
         ) : selectableAccounts.length ? (
@@ -1195,7 +1193,6 @@ function MobileNumberKey({
 function BetSlipControls({
   ready,
   authenticated,
-  login,
   accounts,
   selectedAccountIds,
   isLoadingAccounts,
@@ -1219,7 +1216,6 @@ function BetSlipControls({
 }: {
   ready: boolean;
   authenticated: boolean;
-  login: () => void;
   accounts: OwnedAccount[];
   selectedAccountIds: string[];
   isLoadingAccounts: boolean;
@@ -1433,7 +1429,6 @@ function BetSlipControls({
       <AccountSelectSection
         ready={ready}
         authenticated={authenticated}
-        login={login}
         accounts={accounts}
         selectedAccountIds={selectedAccountIds}
         isLoadingAccounts={isLoadingAccounts}
@@ -1728,7 +1723,6 @@ const MemoBetSlipControls = memo(BetSlipControls, (prev, next) => {
   return (
     prev.ready === next.ready &&
     prev.authenticated === next.authenticated &&
-    prev.login === next.login &&
     prev.accounts === next.accounts &&
     prev.selectedAccountIds === next.selectedAccountIds &&
     prev.isLoadingAccounts === next.isLoadingAccounts &&
@@ -1763,7 +1757,6 @@ function BetSlipContent({
   teamLogoAlt,
   ready,
   authenticated,
-  login,
   accounts,
   selectedAccountIds,
   isLoadingAccounts,
@@ -1796,7 +1789,6 @@ function BetSlipContent({
   teamLogoAlt?: string | null;
   ready: boolean;
   authenticated: boolean;
-  login: () => void;
   accounts: OwnedAccount[];
   selectedAccountIds: string[];
   isLoadingAccounts: boolean;
@@ -1837,7 +1829,6 @@ function BetSlipContent({
       <MemoBetSlipControls
         ready={ready}
         authenticated={authenticated}
-        login={login}
         accounts={accounts}
         selectedAccountIds={selectedAccountIds}
         isLoadingAccounts={isLoadingAccounts}
@@ -2261,7 +2252,6 @@ export function BetSlipPanel({
       })}
       ready={ready}
       authenticated={authenticated}
-      login={login}
       accounts={selectableAccounts}
       selectedAccountIds={selectedAccountIds}
       isLoadingAccounts={isLoadingAccounts}

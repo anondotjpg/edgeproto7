@@ -10,7 +10,7 @@ import { FiLogOut } from "react-icons/fi";
 import { RiUserFill } from "react-icons/ri";
 
 export default function TopRightAuth() {
-  const { ready, authenticated, login, logout, user } = usePrivy();
+  const { ready, authenticated, logout, user } = usePrivy();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -195,10 +195,10 @@ export default function TopRightAuth() {
   ) : authenticated ? (
     signedInControls
   ) : (
-    <button type="button" onClick={login} className={goldButtonClassName}>
+    <Link href="/accounts" className={goldButtonClassName}>
       {shimmer}
-      <span className="relative z-10">Sign in</span>
-    </button>
+      <span className="relative z-10">Start Challenge</span>
+    </Link>
   );
 
   const phoneLeftControl = !ready ? (
@@ -217,14 +217,10 @@ export default function TopRightAuth() {
       <span className="relative z-10">Start</span>
     </Link>
   ) : (
-    <button
-      type="button"
-      onClick={login}
-      className={phoneGoldButtonClassName}
-    >
+    <Link href="/accounts" className={phoneGoldButtonClassName}>
       {shimmer}
-      <span className="relative z-10">Sign in</span>
-    </button>
+      <span className="relative z-10">Start</span>
+    </Link>
   );
 
   return (
