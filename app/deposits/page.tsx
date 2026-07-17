@@ -622,7 +622,7 @@ function MobileDepositCard({
         ].join(" ")}
       >
         <div className="min-w-0">
-          <div className="h-3.5 truncate text-[15px] font-semibold capitalize leading-[14px] tracking-[0.14em] text-zinc-600">
+          <div className="h-3.5 truncate text-[15px] font-semibold capitalize leading-[14px] text-zinc-600">
             Method
           </div>
           <div className="mt-2 h-6 truncate text-[15px] font-semibold leading-6 text-zinc-100">
@@ -631,7 +631,7 @@ function MobileDepositCard({
         </div>
 
         <div className="min-w-0 pl-1">
-          <div className="h-3.5 truncate text-[15px] font-semibold capitalize  leading-[14px] tracking-[0.14em] text-zinc-600">
+          <div className="h-3.5 truncate text-[15px] font-semibold capitalize  leading-[14px] text-zinc-600">
             Status
           </div>
           <div
