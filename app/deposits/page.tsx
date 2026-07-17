@@ -622,7 +622,7 @@ function MobileDepositCard({
         ].join(" ")}
       >
         <div className="min-w-0">
-          <div className="h-3.5 truncate text-[11px] font-semibold capitalize leading-[14px] tracking-[0.14em] text-zinc-600">
+          <div className="h-3.5 truncate text-[15px] font-semibold capitalize leading-[14px] tracking-[0.14em] text-zinc-600">
             Method
           </div>
           <div className="mt-2 h-6 truncate text-[15px] font-semibold leading-6 text-zinc-100">
@@ -631,7 +631,7 @@ function MobileDepositCard({
         </div>
 
         <div className="min-w-0 pl-1">
-          <div className="h-3.5 truncate text-[11px] font-semibold capitalize  leading-[14px] tracking-[0.14em] text-zinc-600">
+          <div className="h-3.5 truncate text-[15px] font-semibold capitalize  leading-[14px] tracking-[0.14em] text-zinc-600">
             Status
           </div>
           <div
@@ -651,7 +651,7 @@ function MobileDepositCard({
                 type="button"
                 onClick={onCancel}
                 disabled={canceling}
-                className="inline-flex h-7 w-[44px] cursor-pointer items-center justify-center bg-transparent px-0 text-[11px] font-semibold leading-none text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+                className="inline-flex h-7 w-[44px] cursor-pointer items-center justify-center bg-transparent px-0 text-[15px] font-semibold leading-none text-red-400 transition-colors hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {canceling ? <InlineSpinner /> : "Cancel"}
               </button>
@@ -660,7 +660,7 @@ function MobileDepositCard({
             <button
               type="button"
               onClick={onToggleExpand}
-              className="h-7 w-12 shrink-0 cursor-pointer rounded-lg border border-zinc-800 bg-black/30 px-0 text-[11px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+              className="h-7 w-12 shrink-0 cursor-pointer rounded-lg border border-zinc-800 bg-black/30 px-0 text-[15px] font-semibold leading-none text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
             >
               {expanded ? "Hide" : "View"}
             </button>
