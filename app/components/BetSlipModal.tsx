@@ -689,6 +689,28 @@ const BetSlipHeader = memo(function BetSlipHeader({
   );
 });
 
+function ActionButtonSkeleton({
+  mobileLayout,
+  panelMode,
+}: {
+  mobileLayout: boolean;
+  panelMode: "modal" | "sidebar";
+}) {
+  return (
+    <SkeletonBlock
+      className={[
+        "w-full rounded-xl bg-zinc-800",
+        mobileLayout ? "mt-3 mb-2 h-16" : "h-12",
+        !mobileLayout && panelMode === "sidebar"
+          ? "mt-3 mb-5"
+          : !mobileLayout
+            ? "mt-3 mb-0"
+            : "",
+      ].join(" ")}
+    />
+  );
+}
+
 function OffsetPlaceBetButton({
   disabled,
   isPlacing,
@@ -1314,6 +1336,7 @@ function BetSlipControls({
   // Start Challenge is the default action. Only show the betting action
   // after at least one selectable account is available.
   const startChallengeMode = accounts.length === 0;
+  const actionIsLoading = !ready || isLoadingAccounts;
 
   const placeBetDisabled =
     isGameStarted ||
@@ -1766,22 +1789,29 @@ function BetSlipControls({
         ) : null}
       </AnimatePresence>
 
-      <OffsetPlaceBetButton
-        disabled={startChallengeMode ? false : placeBetDisabled}
-        isPlacing={isPlacing}
-        isGameStarted={isGameStarted}
-        mobileLayout={mobileLayout}
-        holdProgress={holdProgress}
-        panelMode={panelMode}
-        teamColor={teamColor}
-        darkText={darkText}
-        startChallengeMode={startChallengeMode}
-        onPlaceBet={onPlaceBet}
-        onPointerDown={beginHoldToPlace}
-        onPointerUp={cancelHoldToPlace}
-        onPointerLeave={cancelHoldToPlace}
-        onPointerCancel={cancelHoldToPlace}
-      />
+      {actionIsLoading ? (
+        <ActionButtonSkeleton
+          mobileLayout={mobileLayout}
+          panelMode={panelMode}
+        />
+      ) : (
+        <OffsetPlaceBetButton
+          disabled={startChallengeMode ? false : placeBetDisabled}
+          isPlacing={isPlacing}
+          isGameStarted={isGameStarted}
+          mobileLayout={mobileLayout}
+          holdProgress={holdProgress}
+          panelMode={panelMode}
+          teamColor={teamColor}
+          darkText={darkText}
+          startChallengeMode={startChallengeMode}
+          onPlaceBet={onPlaceBet}
+          onPointerDown={beginHoldToPlace}
+          onPointerUp={cancelHoldToPlace}
+          onPointerLeave={cancelHoldToPlace}
+          onPointerCancel={cancelHoldToPlace}
+        />
+      )}
     </div>
   );
 }
