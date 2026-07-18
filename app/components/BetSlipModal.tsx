@@ -700,7 +700,8 @@ function ActionButtonSkeleton({
     <SkeletonBlock
       className={[
         "w-full rounded-xl bg-zinc-800",
-        mobileLayout ? "mt-3 mb-2 h-16" : "h-12",
+        // Match the full action shell: button face height plus its 2px offset base.
+        mobileLayout ? "mt-3 mb-2 h-[66px]" : "h-[50px]",
         !mobileLayout && panelMode === "sidebar"
           ? "mt-3 mb-5"
           : !mobileLayout
