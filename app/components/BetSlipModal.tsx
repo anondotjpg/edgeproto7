@@ -1311,10 +1311,9 @@ function BetSlipControls({
     !isMobileDrawer && maxBetAmount > 0 && selectedAccountIds.length > 0;
   const showPotentialPayout = amountValue > 0 && possiblePayout !== "—";
 
-  const startChallengeMode =
-    ready &&
-    !isLoadingAccounts &&
-    (!authenticated || accounts.length === 0);
+  // Start Challenge is the default action. Only show the betting action
+  // after at least one selectable account is available.
+  const startChallengeMode = accounts.length === 0;
 
   const placeBetDisabled =
     isGameStarted ||
