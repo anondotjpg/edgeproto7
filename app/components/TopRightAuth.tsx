@@ -236,15 +236,15 @@ export default function TopRightAuth() {
             <Link
               href="/"
               aria-label="Edge home"
-              className="pointer-events-auto flex h-9 items-center justify-center"
+              className="pointer-events-auto flex h-[30.6px] items-center justify-center"
             >
               <Image
                 src="/logo.png"
                 alt="Edge"
-                width={112}
-                height={36}
+                width={95}
+                height={31}
                 priority
-                className="h-9 w-auto object-contain"
+                className="h-[30.6px] w-auto object-contain"
               />
             </Link>
 
