@@ -112,8 +112,8 @@ export default function AppSidebar() {
 
   return (
     <>
-      <aside className="fixed left-0 top-0 hidden h-screen w-[240px] bg-[#0b0b0d] md:block">
-        <div className="flex h-full w-full flex-col border-r border-zinc-800 bg-[#0b0b0d] px-6">
+      <aside className="fixed left-0 top-0 hidden h-screen w-[240px] bg-[#09090b] md:block">
+        <div className="flex h-full w-full flex-col border-r border-zinc-800 bg-[#09090b] px-6">
           <div className="pt-5">
             <div className="flex items-center">
               <Image
