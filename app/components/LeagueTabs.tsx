@@ -99,7 +99,7 @@ export default function LeagueTabs({
       {/* Tablet and smaller desktop screens */}
       <nav
         aria-label="Select league"
-        className="no-scrollbar relative z-30 hidden w-full items-center gap-2 overflow-x-auto sm:flex lg:hidden"
+        className="no-scrollbar relative z-30 hidden w-full items-center gap-2 overflow-x-auto sm:flex"
       >
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
@@ -141,7 +141,7 @@ export default function LeagueTabs({
       {/* Large desktop screens */}
       <nav
         aria-label="Select league"
-        className="no-scrollbar relative z-20 hidden max-w-full items-center gap-2 overflow-x-auto rounded-lg lg:flex"
+        className="no-scrollbar relative z-20 hidden max-w-full items-center gap-2 overflow-x-auto rounded-lg"
       >
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
