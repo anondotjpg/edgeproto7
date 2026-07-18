@@ -698,6 +698,7 @@ function OffsetPlaceBetButton({
   panelMode,
   teamColor,
   darkText = false,
+  startChallengeMode,
   onPlaceBet,
   onPointerDown,
   onPointerUp,
@@ -712,12 +713,43 @@ function OffsetPlaceBetButton({
   panelMode: "modal" | "sidebar";
   teamColor?: string | null;
   darkText?: boolean;
+  startChallengeMode: boolean;
   onPlaceBet: () => void;
   onPointerDown: (event: PointerEvent<HTMLButtonElement>) => void;
   onPointerUp: () => void;
   onPointerLeave: () => void;
   onPointerCancel: () => void;
 }) {
+  if (startChallengeMode) {
+    return (
+      <div
+        className={[
+          "rounded-xl bg-[#6b5520]",
+          mobileLayout
+            ? "mt-3 mb-2"
+            : panelMode === "sidebar"
+              ? "mt-3 mb-5"
+              : "mt-3 mb-0",
+        ].join(" ")}
+        style={{ paddingBottom: "2px" }}
+      >
+        <Link
+          href="/accounts"
+          className={[
+            "relative flex w-full translate-y-[-2px] cursor-pointer select-none items-center justify-center overflow-hidden rounded-xl border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-all duration-100 hover:translate-y-[-1px] hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626] active:translate-y-0 active:shadow-none",
+            mobileLayout ? "h-16 text-[16px]" : "h-12 text-[15px]",
+          ].join(" ")}
+        >
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
+          />
+          <span className="relative z-10">Start Challenge</span>
+        </Link>
+      </div>
+    );
+  }
+
   const buttonText = isGameStarted
     ? "Game Started"
     : isPlacing
@@ -1279,6 +1311,11 @@ function BetSlipControls({
     !isMobileDrawer && maxBetAmount > 0 && selectedAccountIds.length > 0;
   const showPotentialPayout = amountValue > 0 && possiblePayout !== "—";
 
+  const startChallengeMode =
+    ready &&
+    !isLoadingAccounts &&
+    (!authenticated || accounts.length === 0);
+
   const placeBetDisabled =
     isGameStarted ||
     isPlacing ||
@@ -1731,7 +1768,7 @@ function BetSlipControls({
       </AnimatePresence>
 
       <OffsetPlaceBetButton
-        disabled={placeBetDisabled}
+        disabled={startChallengeMode ? false : placeBetDisabled}
         isPlacing={isPlacing}
         isGameStarted={isGameStarted}
         mobileLayout={mobileLayout}
@@ -1739,6 +1776,7 @@ function BetSlipControls({
         panelMode={panelMode}
         teamColor={teamColor}
         darkText={darkText}
+        startChallengeMode={startChallengeMode}
         onPlaceBet={onPlaceBet}
         onPointerDown={beginHoldToPlace}
         onPointerUp={cancelHoldToPlace}
