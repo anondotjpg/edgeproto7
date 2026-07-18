@@ -54,7 +54,7 @@ export default function LeagueTabs({
                   href={`/?league=${item.league}`}
                   aria-current={isActive ? "page" : undefined}
                   className={[
-                    "relative flex h-[52px] w-auto shrink-0 scroll-mx-0 items-center justify-center px-[14.4px] text-[26px] leading-none transition-colors duration-150",
+                    "relative flex h-[52px] w-auto shrink-0 scroll-mx-0 items-center justify-center px-[14.4px] text-[23.4px] leading-none transition-colors duration-150",
                     isActive ? "text-zinc-100" : "text-zinc-500",
                   ].join(" ")}
                 >
@@ -99,7 +99,7 @@ export default function LeagueTabs({
       {/* Tablet and smaller desktop screens */}
       <nav
         aria-label="Select league"
-        className="no-scrollbar relative z-30 hidden w-full items-center gap-2 overflow-x-auto sm:flex"
+        className="no-scrollbar relative z-30 hidden w-full items-center gap-2 overflow-x-auto sm:flex lg:hidden"
       >
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
@@ -110,7 +110,7 @@ export default function LeagueTabs({
               href={`/?league=${item.league}`}
               aria-current={isActive ? "page" : undefined}
               className={[
-                "relative inline-flex h-11 w-auto shrink-0 items-center justify-center rounded-[11px] border px-[18px] text-[19.5px] leading-none transition-colors duration-150",
+                "relative inline-flex h-11 w-auto shrink-0 items-center justify-center rounded-[11px] border px-[18px] text-[17.55px] leading-none transition-colors duration-150",
                 isActive
                   ? "border-zinc-700/70 bg-zinc-800/35 text-zinc-100"
                   : "border-zinc-800 bg-zinc-950/70 text-zinc-500",
@@ -141,7 +141,7 @@ export default function LeagueTabs({
       {/* Large desktop screens */}
       <nav
         aria-label="Select league"
-        className="no-scrollbar relative z-20 hidden max-w-full items-center gap-2 overflow-x-auto rounded-lg"
+        className="no-scrollbar relative z-20 hidden max-w-full items-center gap-2 overflow-x-auto rounded-lg lg:flex"
       >
         {leagues.map((item) => {
           const isActive = item.league === selectedLeague;
@@ -152,7 +152,7 @@ export default function LeagueTabs({
               href={`/?league=${item.league}`}
               aria-current={isActive ? "page" : undefined}
               className={[
-                "relative w-auto shrink-0 whitespace-nowrap rounded-full px-[18px] py-2.5 text-[19.5px] font-semibold transition-colors",
+                "relative w-auto shrink-0 whitespace-nowrap rounded-full px-[18px] py-2.5 text-[17.55px] font-semibold transition-colors",
                 isActive ? "text-white" : "text-zinc-300",
               ].join(" ")}
             >
