@@ -103,11 +103,11 @@ function TeamLogo({ src, alt }: { src?: string; alt: string }) {
 
 function EmptyUpcomingPreview() {
   return (
-    <div className="grid gap-2.5" aria-hidden="true">
+    <div className="grid gap-2 sm:gap-2.5" aria-hidden="true">
       {[0, 1, 2].map((index) => (
         <div
           key={index}
-          className="relative h-[70px] overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/60"
+          className="relative h-[64px] overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/60 sm:h-[70px]"
         >
           <motion.div
             className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-zinc-800/40 to-transparent"
@@ -162,30 +162,33 @@ export default function EmptyGamesState({
       .slice(0, previewCount);
   }, [currentTime, leagueBlocks, leagues, previewCount]);
 
-  const title =
-    reason === "live-hidden"
-      ? "Live games are hidden"
-      : `No ${selectedLeagueLabel} markets right now`;
-
-  const description =
-    reason === "live-hidden"
-      ? "Markets will appear here as soon as they are ready."
-      : "Markets will appear here as soon as they are ready.";
+  const description = "Markets will appear here as soon as they are ready.";
 
   return (
-    <section className="mx-auto flex min-h-[430px] w-full max-w-[760px] flex-col justify-center py-8 sm:min-h-[480px] sm:py-12">
+    <section className="mx-auto flex min-h-[360px] w-full max-w-[760px] flex-col justify-center py-4 sm:min-h-[480px] sm:py-12">
       <div className="flex flex-col items-center text-center">
         <h2 className="max-w-[620px] text-[27px] font-semibold leading-[1.08] tracking-[-0.035em] text-zinc-50 sm:text-[34px]">
-          {title}
+          {reason === "live-hidden" ? (
+            "Live games are hidden"
+          ) : (
+            <>
+              <span className="sm:hidden">
+                No {selectedLeagueLabel} markets
+              </span>
+              <span className="hidden sm:inline">
+                No {selectedLeagueLabel} markets right now
+              </span>
+            </>
+          )}
         </h2>
 
-        <p className="mt-3 max-w-[540px] text-[14px] leading-6 text-zinc-500 sm:text-[15px]">
+        <p className="mt-2 max-w-[540px] text-[14px] leading-5 text-zinc-500 sm:mt-3 sm:text-[15px] sm:leading-6">
           {description}
         </p>
       </div>
 
-      <div className="mt-9 sm:mt-11">
-        <div className="mb-3 flex items-center justify-between px-1">
+      <div className="mt-6 sm:mt-11">
+        <div className="mb-2 flex items-center justify-between px-1 sm:mb-3">
           <div className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-[#cfa13a] shadow-[0_0_10px_rgba(207,161,58,0.45)]" />
             <span className="text-[12px] font-semibold capitalize text-zinc-500">
@@ -195,7 +198,7 @@ export default function EmptyGamesState({
         </div>
 
         {upcomingGames.length > 0 ? (
-          <div className="grid gap-2.5">
+          <div className="grid gap-2 sm:gap-2.5">
             {upcomingGames.map((item) => {
               const awayName = getTeamDisplayName(
                 item.game.away_team,
@@ -212,7 +215,7 @@ export default function EmptyGamesState({
                   type="button"
                   onClick={() => onSelectLeague(item.leagueKey)}
                   whileTap={reduceMotion ? undefined : { scale: 0.992 }}
-                  className="group grid min-h-[72px] w-full cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-zinc-900 bg-zinc-950/65 px-3.5 py-3 text-left shadow-[0_16px_50px_rgba(0,0,0,0.16)] transition-colors hover:border-zinc-800 hover:bg-zinc-950 sm:gap-4 sm:px-4"
+                  className="group grid min-h-[66px] w-full cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-zinc-900 bg-zinc-950/65 px-3.5 py-2.5 text-left shadow-[0_16px_50px_rgba(0,0,0,0.16)] transition-colors hover:border-zinc-800 hover:bg-zinc-950 sm:min-h-[72px] sm:gap-4 sm:px-4 sm:py-3"
                   aria-label={`Open ${item.leagueLabel}: ${awayName} versus ${homeName}`}
                 >
                   <div className="flex items-center -space-x-2">
@@ -222,6 +225,7 @@ export default function EmptyGamesState({
                         alt={awayName}
                       />
                     </div>
+
                     <div className="grid h-10 w-10 place-items-center rounded-xl border border-zinc-800 bg-[#09090b] sm:h-11 sm:w-11">
                       <TeamLogo
                         src={item.game.home_team_info?.logo}
@@ -237,14 +241,16 @@ export default function EmptyGamesState({
                       {homeName}
                     </div>
 
-                    <div className="mt-1 flex min-w-0 items-center gap-2 text-[12px] font-medium text-zinc-500">
+                    <div className="mt-0.5 flex min-w-0 items-center gap-2 text-[12px] font-medium text-zinc-500 sm:mt-1">
                       <span className="shrink-0 text-[#cfa13a]">
                         {item.leagueLabel}
                       </span>
+
                       <span
                         aria-hidden="true"
                         className="h-0.5 w-0.5 rounded-full bg-zinc-700"
                       />
+
                       <span className="flex min-w-0 items-center gap-1 truncate">
                         <FiClock className="h-3 w-3 shrink-0" />
                         {formatStartLabel(item.startsAt, currentTime)}
@@ -262,7 +268,7 @@ export default function EmptyGamesState({
         ) : (
           <div>
             <EmptyUpcomingPreview />
-            <p className="mt-4 text-center text-[13px] text-zinc-600">
+            <p className="mt-3 text-center text-[13px] text-zinc-600 sm:mt-4">
               More markets are syncing now.
             </p>
           </div>
