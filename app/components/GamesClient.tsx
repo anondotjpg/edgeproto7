@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { FaChevronRight, FaLock } from "react-icons/fa";
 import LastUpdatedAgo from "./LastUpdatedAgo";
 import LeagueTabs from "./LeagueTabs";
+import EmptyGamesState from "./EmptyGamesState";
 import BetSlipModal, { BetSlipPanel, type BetSlipData } from "./BetSlipModal";
 import type { Game } from "../page";
 import { FiChevronDown, FiSettings } from "react-icons/fi";
@@ -2404,16 +2405,34 @@ export default function GamesClient({
               </div>
 
               {!league || league.games.length === 0 ? (
-                <div className="text-[13px] text-zinc-400">
-                  No active {selectedLeagueMeta.label} markets right now
-                </div>
+                <>
+                  <div className="mb-3 flex items-end justify-end lg:hidden">
+                    {renderMarketControls()}
+                  </div>
+
+                  <EmptyGamesState
+                    leagueBlocks={data.leagues}
+                    leagues={leagues}
+                    selectedLeagueLabel={selectedLeagueMeta.label}
+                    onSelectLeague={handleSelectLeague}
+                    now={now}
+                  />
+                </>
               ) : visibleGames.length === 0 ? (
-                <div className="flex items-center justify-between gap-3 text-[13px] text-zinc-400">
-                  <span>
-                    No non-live {selectedLeagueMeta.label} markets right now
-                  </span>
-                  <span className="lg:hidden">{renderMarketControls()}</span>
-                </div>
+                <>
+                  <div className="mb-3 flex items-end justify-end lg:hidden">
+                    {renderMarketControls()}
+                  </div>
+
+                  <EmptyGamesState
+                    leagueBlocks={data.leagues}
+                    leagues={leagues}
+                    selectedLeagueLabel={selectedLeagueMeta.label}
+                    onSelectLeague={handleSelectLeague}
+                    now={now}
+                    reason="live-hidden"
+                  />
+                </>
               ) : (
                 <div className="grid gap-7">
                   {groupedGames.map((group, groupIndex) => (
