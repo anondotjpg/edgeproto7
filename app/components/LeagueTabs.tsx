@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type MouseEvent } from "react";
 
 type LeagueTab = {
   label: string;
@@ -10,13 +10,17 @@ type LeagueTab = {
   league: string;
 };
 
+type LeagueTabsProps = {
+  leagues: readonly LeagueTab[];
+  selectedLeague: string;
+  onSelectLeague: (league: string) => void;
+};
+
 export default function LeagueTabs({
   leagues,
   selectedLeague,
-}: {
-  leagues: readonly LeagueTab[];
-  selectedLeague: string;
-}) {
+  onSelectLeague,
+}: LeagueTabsProps) {
   const activePhoneTabRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
@@ -35,6 +39,25 @@ export default function LeagueTabs({
     return () => window.cancelAnimationFrame(frameId);
   }, [selectedLeague]);
 
+  function handleLeagueClick(
+    event: MouseEvent<HTMLAnchorElement>,
+    league: string,
+  ) {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    onSelectLeague(league);
+  }
+
   return (
     <>
       {/* Actual phone screens */}
@@ -52,7 +75,10 @@ export default function LeagueTabs({
                   ref={isActive ? activePhoneTabRef : undefined}
                   key={item.league}
                   href={`/?league=${item.league}`}
+                  prefetch={false}
+                  scroll={false}
                   aria-current={isActive ? "page" : undefined}
+                  onClick={(event) => handleLeagueClick(event, item.league)}
                   className={[
                     "relative flex h-[52px] w-auto shrink-0 scroll-mx-0 items-center justify-center px-[14.4px] text-[23.4px] leading-none transition-colors duration-150",
                     isActive ? "text-zinc-100" : "text-zinc-500",
@@ -108,7 +134,10 @@ export default function LeagueTabs({
             <Link
               key={item.league}
               href={`/?league=${item.league}`}
+              prefetch={false}
+              scroll={false}
               aria-current={isActive ? "page" : undefined}
+              onClick={(event) => handleLeagueClick(event, item.league)}
               className={[
                 "relative inline-flex h-11 w-auto shrink-0 items-center justify-center rounded-[11px] border px-[18px] text-[17.55px] leading-none transition-colors duration-150",
                 isActive
@@ -150,7 +179,10 @@ export default function LeagueTabs({
             <Link
               key={item.league}
               href={`/?league=${item.league}`}
+              prefetch={false}
+              scroll={false}
               aria-current={isActive ? "page" : undefined}
+              onClick={(event) => handleLeagueClick(event, item.league)}
               className={[
                 "relative w-auto shrink-0 whitespace-nowrap rounded-full px-[18px] py-2.5 text-[17.55px] font-semibold transition-colors",
                 isActive ? "text-white" : "text-zinc-300",

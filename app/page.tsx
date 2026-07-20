@@ -125,30 +125,24 @@ export default async function Home({
 }: {
   searchParams?: Promise<{ league?: string }>;
 }) {
-  const data = await getOdds();
-  const resolvedSearchParams = await searchParams;
-  const requestedLeague = resolvedSearchParams?.league;
+  const [data, resolvedSearchParams] = await Promise.all([
+    getOdds(),
+    searchParams ?? Promise.resolve<{ league?: string }>({}),
+  ]);
 
-  const selectedLeague: LeagueKey = LEAGUES.some(
+  const requestedLeague = resolvedSearchParams.league;
+
+  const initialSelectedLeague: LeagueKey = LEAGUES.some(
     (item) => item.league === requestedLeague,
   )
     ? (requestedLeague as LeagueKey)
     : "mlb";
 
-  const league =
-    data.leagues.find((item) => item.leagueKey === selectedLeague) ??
-    data.leagues[0];
-
-  const selectedLeagueMeta =
-    LEAGUES.find((item) => item.league === selectedLeague) ?? LEAGUES[0];
-
   return (
     <GamesClient
       data={data}
-      league={league}
       leagues={LEAGUES}
-      selectedLeague={selectedLeague}
-      selectedLeagueMeta={selectedLeagueMeta}
+      initialSelectedLeague={initialSelectedLeague}
     />
   );
 }

@@ -2071,18 +2071,29 @@ function getFirstBetForLeague(
 
 export default function GamesClient({
   data,
-  league,
   leagues,
-  selectedLeague,
-  selectedLeagueMeta,
+  initialSelectedLeague,
 }: {
   data: ApiResponse;
-  league?: LeagueBlock;
   leagues: readonly LeagueMeta[];
-  selectedLeague: string;
-  selectedLeagueMeta: LeagueMeta;
+  initialSelectedLeague: string;
 }) {
-  const allGames = useMemo(() => league?.games ?? [], [league?.games]);
+  const [selectedLeague, setSelectedLeague] = useState(initialSelectedLeague);
+
+  const league = useMemo(
+    () =>
+      data.leagues.find((item) => item.leagueKey === selectedLeague) ??
+      data.leagues[0],
+    [data.leagues, selectedLeague],
+  );
+
+  const selectedLeagueMeta = useMemo(
+    () =>
+      leagues.find((item) => item.league === selectedLeague) ?? leagues[0],
+    [leagues, selectedLeague],
+  );
+
+  const allGames = useMemo(() => league?.games ?? [], [league]);
   const now = useCurrentTimestamp(true);
   const liveGameCount = useMemo(
     () =>
@@ -2102,6 +2113,47 @@ export default function GamesClient({
   const [proMarketsLoaded, setProMarketsLoaded] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [soundLoaded, setSoundLoaded] = useState(false);
+
+  useEffect(() => {
+    function getLeagueFromUrl() {
+      const requestedLeague = new URLSearchParams(window.location.search).get(
+        "league",
+      );
+
+      return requestedLeague &&
+        leagues.some((item) => item.league === requestedLeague)
+        ? requestedLeague
+        : initialSelectedLeague;
+    }
+
+    function handlePopState() {
+      setSelectedLeague(getLeagueFromUrl());
+    }
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [initialSelectedLeague, leagues]);
+
+  function handleSelectLeague(nextLeague: string) {
+    if (
+      nextLeague === selectedLeague ||
+      !leagues.some((item) => item.league === nextLeague)
+    ) {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("league", nextLeague);
+
+    window.history.pushState(
+      null,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+
+    setSelectedLeague(nextLeague);
+  }
 
   useBrowserLayoutEffect(() => {
     let storedGoldMarketsEnabled = readStoredGoldMarketsEnabled();
@@ -2314,7 +2366,11 @@ export default function GamesClient({
       <div className="relative mx-auto w-full max-w-[1660px] px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-6 md:pb-6">
         <header className="overflow-visible pt-[calc(60px+env(safe-area-inset-top))] lg:pt-2 xl:pr-[420px]">
           <div className="relative left-1/2 w-[100dvw] -translate-x-1/2 overflow-visible sm:left-auto sm:w-auto sm:translate-x-0">
-            <LeagueTabs leagues={leagues} selectedLeague={selectedLeague} />
+            <LeagueTabs
+              leagues={leagues}
+              selectedLeague={selectedLeague}
+              onSelectLeague={handleSelectLeague}
+            />
           </div>
         </header>
 
