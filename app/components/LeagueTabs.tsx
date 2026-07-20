@@ -80,7 +80,7 @@ export default function LeagueTabs({
                   aria-current={isActive ? "page" : undefined}
                   onClick={(event) => handleLeagueClick(event, item.league)}
                   className={[
-                    "relative flex h-[52px] w-auto shrink-0 scroll-mx-0 items-center justify-center px-[14.4px] text-[23.4px] leading-none transition-colors duration-150",
+                    "relative flex h-[52px] w-auto shrink-0 scroll-mx-0 items-center justify-center px-[10.08px] text-[23.4px] leading-none transition-colors duration-150",
                     isActive ? "text-zinc-100" : "text-zinc-500",
                   ].join(" ")}
                 >
