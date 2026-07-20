@@ -4,6 +4,7 @@ export const LEAGUES = [
   { key: "mlb", label: "MLB", tag: 100381, teamLeague: "mlb" },
   { key: "wnba", label: "WNBA", tag: 100254, teamLeague: "wnba" },
   { key: "nfl", label: "NFL", tag: 450, teamLeague: "nfl" },
+  { key: "cfb", label: "CFB", tag: 10210, teamLeague: "cfb" },
 ] as const;
 
 const MIN_MARKET_VOLUME = 100;

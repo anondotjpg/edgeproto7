@@ -93,6 +93,7 @@ const LEAGUES = [
   { label: "MLB", tag: 100381, league: "mlb" },
   { label: "WNBA", tag: 100254, league: "wnba" },
   { label: "NFL", tag: 450, league: "nfl" },
+  { label: "CFB", tag: 10210, league: "cfb" },
   { label: "NBA", tag: 745, league: "nba" },
   { label: "NHL", tag: 899, league: "nhl" },
 ] as const;
