@@ -101,24 +101,38 @@ function TeamLogo({ src, alt }: { src?: string; alt: string }) {
   );
 }
 
+function SkeletonBlock({ className = "" }: { className?: string }) {
+  return (
+    <div className={`animate-pulse rounded-md bg-zinc-900 ${className}`} />
+  );
+}
+
 function EmptyUpcomingPreview() {
   return (
     <div className="grid gap-2 sm:gap-2.5" aria-hidden="true">
       {[0, 1, 2].map((index) => (
         <div
           key={index}
-          className="relative h-[64px] overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-950/60 sm:h-[70px]"
+          className="grid min-h-[66px] w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-zinc-900 bg-zinc-950/80 px-3.5 py-2.5 sm:min-h-[72px] sm:gap-4 sm:px-4 sm:py-3"
         >
-          <motion.div
-            className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-zinc-800/40 to-transparent"
-            animate={{ x: ["-130%", "430%"] }}
-            transition={{
-              duration: 2.2,
-              repeat: Infinity,
-              ease: "linear",
-              delay: index * 0.14,
-            }}
-          />
+          <div className="flex items-center -space-x-2">
+            <SkeletonBlock className="relative z-10 h-10 w-10 rounded-xl sm:h-11 sm:w-11" />
+            <SkeletonBlock className="h-10 w-10 rounded-xl sm:h-11 sm:w-11" />
+          </div>
+
+          <div className="min-w-0">
+            <SkeletonBlock className="h-4 w-full max-w-[230px] sm:h-[18px] sm:max-w-[280px]" />
+
+            <div className="mt-2 flex items-center gap-2">
+              <SkeletonBlock className="h-3 w-14" />
+
+              <SkeletonBlock className="h-1 w-1 rounded-full bg-zinc-800" />
+
+              <SkeletonBlock className="h-3 w-20 sm:w-24" />
+            </div>
+          </div>
+
+          <SkeletonBlock className="h-8 w-8 rounded-full bg-zinc-900/75" />
         </div>
       ))}
     </div>
@@ -175,6 +189,7 @@ export default function EmptyGamesState({
               <span className="sm:hidden">
                 No {selectedLeagueLabel} markets
               </span>
+
               <span className="hidden sm:inline">
                 No {selectedLeagueLabel} markets right now
               </span>
@@ -191,6 +206,7 @@ export default function EmptyGamesState({
         <div className="mb-2 flex items-center justify-between px-1 sm:mb-3">
           <div className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-[#cfa13a] shadow-[0_0_10px_rgba(207,161,58,0.45)]" />
+
             <span className="text-[12px] font-semibold capitalize text-zinc-500">
               Up next
             </span>
@@ -204,6 +220,7 @@ export default function EmptyGamesState({
                 item.game.away_team,
                 item.game.away_team_info?.alias,
               );
+
               const homeName = getTeamDisplayName(
                 item.game.home_team,
                 item.game.home_team_info?.alias,
@@ -237,7 +254,9 @@ export default function EmptyGamesState({
                   <div className="min-w-0">
                     <div className="truncate text-[14px] font-semibold leading-tight text-zinc-200 sm:text-[15px]">
                       {awayName}
+
                       <span className="px-1.5 text-zinc-600">vs.</span>
+
                       {homeName}
                     </div>
 
@@ -268,6 +287,7 @@ export default function EmptyGamesState({
         ) : (
           <div>
             <EmptyUpcomingPreview />
+
             <p className="mt-3 text-center text-[13px] text-zinc-600 sm:mt-4">
               More markets are syncing now.
             </p>
