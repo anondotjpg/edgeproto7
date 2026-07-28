@@ -10,7 +10,6 @@ import {
   useMemo,
   useRef,
   useState,
-  ReactNode,
 } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
@@ -215,7 +214,6 @@ const ACCOUNT_CARDS_PER_PAGE = 3;
 const ACCOUNT_CARD_GAP_PX = 12;
 const ACCOUNT_SCROLL_EPSILON_PX = 2;
 
-const ACCOUNT_SELECT_SHELL_CLASS = "mt-4 h-[112px]";
 const ACCOUNT_LIST_CLASS = "mt-2.5 h-[88px] overflow-hidden";
 
 const QUICK_AMOUNT_OPTIONS = [
@@ -897,48 +895,6 @@ function OffsetPlaceBetButton({
   );
 }
 
-function GoldAccountAction({
-  children,
-  onClick,
-  href,
-  compact = false,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  href?: string;
-  compact?: boolean;
-}) {
-  const className = [
-    "relative inline-flex h-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border border-[#6b5520] bg-linear-to-br from-[#e0b84b] via-[#cfa13a] to-[#b68b2d] px-4 text-[13px] font-bold leading-none text-[#120d02] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] transition-all duration-150",
-    "hover:from-[#cfa13a] hover:via-[#bd9130] hover:to-[#9f7626]",
-    compact ? "active:translate-y-[2px] active:shadow-none" : "",
-  ].join(" ");
-
-  const content = (
-    <>
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
-      />
-      <span className="relative z-10">{children}</span>
-    </>
-  );
-
-  if (href) {
-    return (
-      <Link href={href} className={className}>
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <button type="button" onClick={onClick} className={className}>
-      {content}
-    </button>
-  );
-}
-
 const AccountSelectSection = memo(function AccountSelectSection({
   ready,
   authenticated,
@@ -1066,166 +1022,158 @@ const AccountSelectSection = memo(function AccountSelectSection({
     selectableAccounts.length > 3;
 
   const reserveAccountControlSpace = authenticated;
+  const accountSelectHeight = isMobileDrawer ? 100 : 112;
+  const showAccountSelect =
+    !ready ||
+    isLoadingAccounts ||
+    (authenticated && selectableAccounts.length > 0);
 
   return (
-    <div
-      className={
-        panelMode === "sidebar"
-          ? "mt-4 h-[112px]"
-          : isMobileDrawer
-            ? "mt-4 h-[100px]"
-            : ACCOUNT_SELECT_SHELL_CLASS
-      }
-    >
-      <div className="flex h-[18px] items-center justify-between gap-3">
-        <div className="text-sm font-medium leading-[18px] text-zinc-300">
-          Select account(s)
-        </div>
+    <AnimatePresence initial={false}>
+      {showAccountSelect ? (
+        <motion.div
+          key="account-select-section"
+          initial={{ height: 0, marginTop: 0, opacity: 0 }}
+          animate={{ height: accountSelectHeight, marginTop: 16, opacity: 1 }}
+          exit={{ height: 0, marginTop: 0, opacity: 0 }}
+          transition={{
+            height: { duration: 0.24, ease: [0.22, 1, 0.36, 1] },
+            marginTop: { duration: 0.24, ease: [0.22, 1, 0.36, 1] },
+            opacity: { duration: 0.14 },
+          }}
+          className="overflow-hidden"
+        >
+          <div style={{ height: accountSelectHeight }}>
+            <div className="flex h-[18px] items-center justify-between gap-3">
+              <div className="text-sm font-medium leading-[18px] text-zinc-300">
+                Select account(s)
+              </div>
 
-        {showAccountScrollHint ? (
-          <div className="shrink-0 text-[11px] font-medium leading-[18px] text-zinc-500">
-            Swipe to view
-          </div>
-        ) : reserveAccountControlSpace ? (
-          <div
-            className={[
-              "flex h-[18px] w-[54px] shrink-0 items-center justify-end gap-2",
-              showAccountControls ? "" : "invisible",
-            ].join(" ")}
-          >
-            <button
-              type="button"
-              aria-label="Previous accounts"
-              onClick={() => scrollAccounts("back")}
-              disabled={!canScrollBack}
-              className="flex h-[18px] w-5 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
-            >
-              <FaChevronLeft className="h-3.5 w-3.5" />
-            </button>
-
-            <button
-              type="button"
-              aria-label="Next accounts"
-              onClick={() => scrollAccounts("forward")}
-              disabled={!canScrollForward}
-              className="flex h-[18px] w-5 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
-            >
-              <FaChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ) : null}
-      </div>
-
-      <div
-        className={
-          isMobileDrawer
-            ? "mt-2.5 h-[72px] overflow-hidden"
-            : ACCOUNT_LIST_CLASS
-        }
-      >
-        {!ready || isLoadingAccounts ? (
-          <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
-            {Array.from({ length: 3 }).map((_, index) => (
-              <AccountOptionSkeleton
-                key={index}
-                compact={isMobileDrawer}
-                hideMax={isMobileDrawer}
-              />
-            ))}
-          </div>
-        ) : !authenticated ? (
-          <div
-            className={[
-              "flex w-full items-start justify-start",
-              isMobileDrawer ? "h-[64px]" : "h-[80px]",
-            ].join(" ")}
-          >
-            <GoldAccountAction href="/accounts" compact={isMobileDrawer}>
-              Start Challenge
-            </GoldAccountAction>
-          </div>
-        ) : selectableAccounts.length ? (
-          <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
-            {selectableAccounts.map((account) => {
-              const selected = selectedAccountIds.includes(account.id);
-              const maxRiskAmount = getMaxRiskAmount(account);
-
-              return (
-                <button
-                  key={account.id}
-                  data-account-card=""
-                  type="button"
-                  style={ACCOUNT_CARD_STYLE}
-                  onClick={() => onToggleAccount(account.id)}
+              {showAccountScrollHint ? (
+                <div className="shrink-0 text-[11px] font-medium leading-[18px] text-zinc-500">
+                  Swipe to view
+                </div>
+              ) : reserveAccountControlSpace ? (
+                <div
                   className={[
-                    isMobileDrawer
-                      ? MOBILE_DRAWER_ACCOUNT_CARD_CLASS
-                      : ACCOUNT_CARD_CLASS,
-                    "cursor-pointer",
-                    selected
-                      ? "border-zinc-400 bg-zinc-900"
-                      : "border-zinc-800 bg-black/30 hover:border-zinc-700",
+                    "flex h-[18px] w-[54px] shrink-0 items-center justify-end gap-2",
+                    showAccountControls ? "" : "invisible",
                   ].join(" ")}
                 >
-                  <div className="flex h-5 items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1 truncate text-[13px] font-semibold leading-5 text-zinc-100">
-                      {getAccountDisplayName(account)}
-                    </div>
-
-                    <div
-                      className={[
-                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
-                        selected ? "border-zinc-100" : "border-zinc-700",
-                      ].join(" ")}
-                    >
-                      {selected ? (
-                        <div className="h-[6px] w-[6px] rounded-full bg-zinc-100" />
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div
-                    className={[
-                      "text-[12px] leading-4",
-                      isMobileDrawer ? "mt-2" : "mt-2 space-y-0.5",
-                    ].join(" ")}
+                  <button
+                    type="button"
+                    aria-label="Previous accounts"
+                    onClick={() => scrollAccounts("back")}
+                    disabled={!canScrollBack}
+                    className="flex h-[18px] w-5 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
                   >
-                    <div className="flex h-4 items-center justify-between gap-2">
-                      <span className="text-zinc-500">Avail</span>
-                      <span className="font-medium text-zinc-300">
-                        <CompactMoneyFlow
-                          value={getAvailableBalance(account)}
-                        />
-                      </span>
-                    </div>
+                    <FaChevronLeft className="h-3.5 w-3.5" />
+                  </button>
 
-                    {!isMobileDrawer ? (
-                      <div className="flex h-4 items-center justify-between gap-2">
-                        <span className="text-zinc-500">Max</span>
-                        <span className="font-medium text-zinc-300">
-                          <CompactMoneyFlow value={maxRiskAmount} />
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
-                </button>
-              );
-            })}
+                  <button
+                    type="button"
+                    aria-label="Next accounts"
+                    onClick={() => scrollAccounts("forward")}
+                    disabled={!canScrollForward}
+                    className="flex h-[18px] w-5 cursor-pointer items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <FaChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            <div
+              className={
+                isMobileDrawer
+                  ? "mt-2.5 h-[72px] overflow-hidden"
+                  : ACCOUNT_LIST_CLASS
+              }
+            >
+              {!ready || isLoadingAccounts ? (
+                <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <AccountOptionSkeleton
+                      key={index}
+                      compact={isMobileDrawer}
+                      hideMax={isMobileDrawer}
+                    />
+                  ))}
+                </div>
+              ) : selectableAccounts.length ? (
+                <div ref={accountRowRef} className={ACCOUNT_ROW_CLASS}>
+                  {selectableAccounts.map((account) => {
+                    const selected = selectedAccountIds.includes(account.id);
+                    const maxRiskAmount = getMaxRiskAmount(account);
+
+                    return (
+                      <button
+                        key={account.id}
+                        data-account-card=""
+                        type="button"
+                        style={ACCOUNT_CARD_STYLE}
+                        onClick={() => onToggleAccount(account.id)}
+                        className={[
+                          isMobileDrawer
+                            ? MOBILE_DRAWER_ACCOUNT_CARD_CLASS
+                            : ACCOUNT_CARD_CLASS,
+                          "cursor-pointer",
+                          selected
+                            ? "border-zinc-400 bg-zinc-900"
+                            : "border-zinc-800 bg-black/30 hover:border-zinc-700",
+                        ].join(" ")}
+                      >
+                        <div className="flex h-5 items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1 truncate text-[13px] font-semibold leading-5 text-zinc-100">
+                            {getAccountDisplayName(account)}
+                          </div>
+
+                          <div
+                            className={[
+                              "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
+                              selected ? "border-zinc-100" : "border-zinc-700",
+                            ].join(" ")}
+                          >
+                            {selected ? (
+                              <div className="h-[6px] w-[6px] rounded-full bg-zinc-100" />
+                            ) : null}
+                          </div>
+                        </div>
+
+                        <div
+                          className={[
+                            "text-[12px] leading-4",
+                            isMobileDrawer ? "mt-2" : "mt-2 space-y-0.5",
+                          ].join(" ")}
+                        >
+                          <div className="flex h-4 items-center justify-between gap-2">
+                            <span className="text-zinc-500">Avail</span>
+                            <span className="font-medium text-zinc-300">
+                              <CompactMoneyFlow
+                                value={getAvailableBalance(account)}
+                              />
+                            </span>
+                          </div>
+
+                          {!isMobileDrawer ? (
+                            <div className="flex h-4 items-center justify-between gap-2">
+                              <span className="text-zinc-500">Max</span>
+                              <span className="font-medium text-zinc-300">
+                                <CompactMoneyFlow value={maxRiskAmount} />
+                              </span>
+                            </div>
+                          ) : null}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
           </div>
-        ) : (
-          <div
-            className={[
-              "flex w-full items-start justify-start",
-              isMobileDrawer ? "h-[64px]" : "h-[80px]",
-            ].join(" ")}
-          >
-            <GoldAccountAction href="/accounts" compact={isMobileDrawer}>
-              Start Challenge
-            </GoldAccountAction>
-          </div>
-        )}
-      </div>
-    </div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
 });
 
