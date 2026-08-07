@@ -556,7 +556,7 @@ export async function POST(req: Request) {
 
     if (serverBet.odds < MIN_ALLOWED_AMERICAN_ODDS) {
       return blockBet(
-        "Only 200 or better odds can be placed.",
+        "Only -200 or better odds can be placed.",
         "odds_not_allowed",
       );
     }
