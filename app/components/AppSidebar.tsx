@@ -52,10 +52,12 @@ const SECONDARY_NAV_LINKS = [
 ] as const;
 
 const MOBILE_NAV_LINKS = [
-  MAIN_NAV_LINKS[0],
+  {
+    ...MAIN_NAV_LINKS[0],
+    label: "Home",
+  },
   MAIN_NAV_LINKS[1],
   MAIN_NAV_LINKS[3],
-  SECONDARY_NAV_LINKS[0],
 ] as const;
 
 function isActivePath(pathname: string, href: string) {
@@ -112,6 +114,7 @@ export default function AppSidebar() {
 
   return (
     <>
+      {/* Desktop sidebar */}
       <aside className="fixed left-0 top-0 hidden h-screen w-[240px] bg-[#09090b] md:block">
         <div className="flex h-full w-full flex-col border-r border-zinc-800 bg-[#09090b] px-6">
           <div className="pt-5">
@@ -150,18 +153,36 @@ export default function AppSidebar() {
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 isolate overflow-hidden border-t border-zinc-800/80 pb-[env(safe-area-inset-bottom)] [backface-visibility:hidden] [transform:translateZ(0)] md:hidden">
+      {/* Mobile floating nav */}
+      <nav
+        className={[
+          "fixed left-1/2 z-50 isolate md:hidden",
+          "bottom-[calc(env(safe-area-inset-bottom)+10px)]",
+          "w-[290px] max-w-[calc(100vw-32px)]",
+          "-translate-x-1/2",
+          "overflow-hidden rounded-full",
+          "border border-zinc-800/80",
+          "[backface-visibility:hidden]",
+        ].join(" ")}
+      >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[#09090b]/95 backdrop-blur [backface-visibility:hidden] [transform:translateZ(0)]"
+          className={[
+            "pointer-events-none absolute inset-0",
+            "bg-[#09090b]/95 backdrop-blur",
+            "[backface-visibility:hidden]",
+            "[transform:translateZ(0)]",
+          ].join(" ")}
         />
 
-        <div className="relative h-20 [backface-visibility:hidden] [transform:translateZ(0)]">
+        <div className="relative h-[68px]">
           {activeIndex >= 0 ? (
             <motion.div
-              className="pointer-events-none absolute inset-y-0 left-0 z-0 flex w-1/4 items-center justify-center [backface-visibility:hidden] [transform:translateZ(0)]"
+              className="pointer-events-none absolute inset-y-0 left-0 z-0 flex w-1/3 items-center justify-center"
               initial={false}
-              animate={{ x: `${activeIndex * 100}%` }}
+              animate={{
+                x: `${activeIndex * 100}%`,
+              }}
               transition={{
                 type: "spring",
                 stiffness: 430,
@@ -169,11 +190,11 @@ export default function AppSidebar() {
                 mass: 0.75,
               }}
             >
-              <div className="invisible h-[58px] w-[64px] rounded-[20px] bg-zinc-900" />
+              <div className="invisible h-[50px] w-[54px] rounded-full bg-zinc-900" />
             </motion.div>
           ) : null}
 
-          <div className="relative z-10 grid h-full grid-cols-4 [backface-visibility:hidden] [transform:translateZ(0)]">
+          <div className="relative z-10 grid h-full grid-cols-3">
             {MOBILE_NAV_LINKS.map((item) => {
               const isActive = isActivePath(pathname, item.href);
               const Icon = isActive ? item.ActiveIcon : item.InactiveIcon;
@@ -184,15 +205,15 @@ export default function AppSidebar() {
                   href={item.href}
                   aria-label={item.label}
                   className={[
-                    "flex h-full items-center justify-center px-0.5 outline-none transition-colors",
+                    "flex h-full items-center justify-center outline-none transition-colors",
                     "focus:outline-none focus-visible:outline-none",
                     isActive ? "text-zinc-100" : "text-zinc-500",
                   ].join(" ")}
                 >
-                  <span className="flex h-12 w-12 items-center justify-center [backface-visibility:hidden] [transform:translateZ(0)]">
+                  <span className="flex h-11 w-11 items-center justify-center">
                     <Icon
                       aria-hidden="true"
-                      className={`${item.mobileIconClassName} block shrink-0 [backface-visibility:hidden] [transform:translateZ(0)]`}
+                      className={`${item.mobileIconClassName} block shrink-0`}
                     />
                   </span>
                 </Link>
