@@ -161,38 +161,13 @@ export default function AppSidebar() {
           "w-[290px] max-w-[calc(100vw-32px)]",
           "-translate-x-1/2",
           "overflow-hidden rounded-full",
-          "border border-zinc-800/80",
+          "border border-zinc-800",
+          "bg-[#121214]",
           "[backface-visibility:hidden]",
+          "[transform:translateZ(0)]",
         ].join(" ")}
       >
-        <div
-          aria-hidden="true"
-          className={[
-            "pointer-events-none absolute inset-0",
-            "bg-[#09090b]/95 backdrop-blur",
-            "[backface-visibility:hidden]",
-            "[transform:translateZ(0)]",
-          ].join(" ")}
-        />
-
         <div className="relative h-[68px]">
-          {activeIndex >= 0 ? (
-            <motion.div
-              className="pointer-events-none absolute inset-y-0 left-0 z-0 flex w-1/3 items-center justify-center"
-              initial={false}
-              animate={{
-                x: `${activeIndex * 100}%`,
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 430,
-                damping: 36,
-                mass: 0.75,
-              }}
-            >
-              <div className="invisible h-[50px] w-[54px] rounded-full bg-zinc-900" />
-            </motion.div>
-          ) : null}
 
           <div className="relative z-10 grid h-full grid-cols-3">
             {MOBILE_NAV_LINKS.map((item) => {
