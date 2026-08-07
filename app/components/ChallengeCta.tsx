@@ -500,7 +500,7 @@ function InfoCard({
 
       <p className="pr-9 text-[12px] font-medium text-zinc-500">{label}</p>
 
-      <p className="mt-1.5 break-all text-[13px] leading-5 text-zinc-200">
+      <p className="mt-1.5 break-all text-[12px] leading-5 text-zinc-200">
         {value}
       </p>
     </div>
