@@ -39,10 +39,7 @@ export default function LeagueTabs({
     return () => window.cancelAnimationFrame(frameId);
   }, [selectedLeague]);
 
-  function handleLeagueClick(
-    event: MouseEvent<HTMLAnchorElement>,
-    league: string,
-  ) {
+  function handleLeagueClick(event: MouseEvent, league: string) {
     if (
       event.defaultPrevented ||
       event.button !== 0 ||
@@ -59,12 +56,16 @@ export default function LeagueTabs({
   }
 
   return (
-    <div className="relative z-30 w-full min-w-0 overflow-visible">
-      <nav
-        aria-label="Select league"
-        className="no-scrollbar relative w-full min-w-0 overflow-x-auto overscroll-x-contain"
-      >
-        <div className="flex min-w-max items-stretch">
+    <div className="relative">
+      <nav className="relative z-10">
+        <div
+          className={[
+            "flex w-full overflow-x-auto overflow-y-hidden",
+            "px-2",
+            "[-ms-overflow-style:none] [scrollbar-width:none]",
+            "[&::-webkit-scrollbar]:hidden",
+          ].join(" ")}
+        >
           {leagues.map((item) => {
             const isActive = item.league === selectedLeague;
 
@@ -78,7 +79,7 @@ export default function LeagueTabs({
                 aria-current={isActive ? "page" : undefined}
                 onClick={(event) => handleLeagueClick(event, item.league)}
                 className={[
-                  "relative flex h-[52px] w-auto shrink-0 scroll-mx-0 items-center justify-center px-[10.08px] text-[23.4px] leading-none transition-colors duration-150",
+                  "relative flex h-[52px] w-auto shrink-0 scroll-mx-2 items-center justify-center px-[10.08px] text-[23.4px] leading-none transition-colors duration-150",
                   isActive ? "text-zinc-100" : "text-zinc-500",
                 ].join(" ")}
               >
@@ -105,7 +106,7 @@ export default function LeagueTabs({
                       damping: 38,
                       mass: 0.75,
                     }}
-                    className="absolute inset-x-0 bottom-0 z-20 h-[3px] rounded-full bg-white"
+                    className="absolute inset-x-1 bottom-0 z-20 h-[3px] rounded-full bg-white"
                   />
                 ) : null}
               </Link>
