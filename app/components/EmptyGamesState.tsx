@@ -205,9 +205,8 @@ export default function EmptyGamesState({
       <div className="mt-6 sm:mt-11">
         <div className="mb-2 flex items-center justify-between px-1 sm:mb-3">
           <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#cfa13a] shadow-[0_0_10px_rgba(207,161,58,0.45)]" />
 
-            <span className="text-[12px] font-semibold capitalize text-zinc-500">
+            <span className="text-[14px] font-semibold capitalize text-zinc-500">
               Up next
             </span>
           </div>
