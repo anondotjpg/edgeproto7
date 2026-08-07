@@ -105,7 +105,7 @@ export default function LeagueTabs({
                       damping: 38,
                       mass: 0.75,
                     }}
-                    className="absolute inset-x-0 bottom-0 z-20 h-[3px] rounded-full bg-[#cfa13a]"
+                    className="absolute inset-x-0 bottom-0 z-20 h-[3px] rounded-full bg-white"
                   />
                 ) : null}
               </Link>
