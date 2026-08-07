@@ -3,6 +3,7 @@
 
 import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
+import { FaCheck, FaXmark } from "react-icons/fa6";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -29,6 +30,18 @@ export default function ResponsiveToaster() {
       <Toaster
         theme="dark"
         position={isMobile ? "top-center" : "bottom-right"}
+        icons={{
+          success: (
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
+              <FaCheck className="h-[14px] w-[14px]" />
+            </span>
+          ),
+          error: (
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/15 text-red-400">
+              <FaXmark className="h-[15px] w-[15px]" />
+            </span>
+          ),
+        }}
         toastOptions={{
           duration: 3000,
           classNames: {
@@ -38,7 +51,6 @@ export default function ResponsiveToaster() {
               "!w-full !text-[14px] !font-medium !leading-[1.3] !text-zinc-100",
             description:
               "!mt-0.5 !w-full !text-[13px] !leading-[1.3] !text-zinc-500",
-            icon: "hidden",
             success: "!border-zinc-800 !bg-zinc-950 !text-zinc-100",
             error: "!border-zinc-800 !bg-zinc-950 !text-zinc-100",
             warning: "!border-zinc-800 !bg-zinc-950 !text-zinc-100",
@@ -67,6 +79,7 @@ export default function ResponsiveToaster() {
         }
 
         [data-sonner-toast] {
+          position: relative !important;
           background: #09090b !important;
           color: #f4f4f5 !important;
           border-color: #27272a !important;
@@ -75,6 +88,14 @@ export default function ResponsiveToaster() {
 
           padding-left: 20px !important;
           padding-right: 20px !important;
+        }
+
+        /*
+         * Success/error need extra room for the right-side status badge.
+         */
+        [data-sonner-toast][data-type="success"],
+        [data-sonner-toast][data-type="error"] {
+          padding-right: 62px !important;
         }
 
         [data-sonner-toast] [data-content] {
@@ -91,11 +112,40 @@ export default function ResponsiveToaster() {
 
         [data-sonner-toast] [data-description] {
           width: 100% !important;
+          margin-top: 2px !important;
           color: #71717a !important;
           line-height: 1.3 !important;
         }
 
-        [data-sonner-toast] [data-icon] {
+        /*
+         * Move success/error icon from Sonner's normal left position
+         * to the right side of the pill.
+         */
+        [data-sonner-toast][data-type="success"] [data-icon],
+        [data-sonner-toast][data-type="error"] [data-icon] {
+          position: absolute !important;
+          top: 50% !important;
+          right: 14px !important;
+          left: auto !important;
+
+          width: 32px !important;
+          height: 32px !important;
+
+          margin: 0 !important;
+          transform: translateY(-50%) !important;
+
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
+        /*
+         * No icon for normal/info/warning toasts.
+         */
+        [data-sonner-toast]:not([data-type="success"]):not(
+            [data-type="error"]
+          )
+          [data-icon] {
           display: none !important;
         }
 

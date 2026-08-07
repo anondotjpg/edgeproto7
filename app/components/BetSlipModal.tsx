@@ -2184,7 +2184,7 @@ export function BetSlipPanel({
       }
 
       playEdgeSound("error");
-      toast.info("Bet not placed", {
+      toast.error("Bet not placed", {
         description: message,
       });
     }
@@ -2289,7 +2289,7 @@ export function BetSlipPanel({
       }
 
       playEdgeSound("sparkle");
-      toast("Bet placed", {
+      toast.success("Bet placed", {
         description: `${formatMoney(stake)} on ${formatUiTeamName(
           getTeamDisplayName(currentBet.team, currentBet.teamAlias),
         )}`,
