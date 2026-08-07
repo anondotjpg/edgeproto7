@@ -17,6 +17,7 @@ import NumberFlow from "@number-flow/react";
 import { toast } from "sonner";
 import { usePrivy } from "@privy-io/react-auth";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaAnglesRight } from "react-icons/fa6";
 import {
   Drawer,
   DrawerContent,
@@ -195,7 +196,6 @@ function getMatchupDisplayName({
   );
 }
 
-const HOLD_TO_PLACE_MS = 1250;
 
 const ACCOUNT_ROW_CLASS =
   "flex snap-x snap-mandatory scroll-smooth gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
@@ -710,36 +710,200 @@ function ActionButtonSkeleton({
   );
 }
 
+function MobileSlideToPlace({
+  disabled,
+  label,
+  isPlacing,
+  teamColor,
+  darkText = false,
+  onPlaceBet,
+}: {
+  disabled: boolean;
+  label: string;
+  isPlacing: boolean;
+  teamColor?: string | null;
+  darkText?: boolean;
+  onPlaceBet: () => void;
+}) {
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const dragStartClientXRef = useRef(0);
+  const dragStartXRef = useRef(0);
+  const wasPlacingRef = useRef(false);
+  const [dragX, setDragX] = useState(0);
+  const [maxDragX, setMaxDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const hasTeamActionColor = isValidHexColor(teamColor);
+  const safeTeamColor = hasTeamActionColor ? teamColor! : null;
+  const thumbColor = safeTeamColor ?? "#e4e4e7";
+  const thumbTextColor = safeTeamColor
+    ? darkText
+      ? "#120d02"
+      : "#f4f4f5"
+    : "#18181b";
+
+  const progress = maxDragX > 0 ? Math.min(Math.max(dragX / maxDragX, 0), 1) : 0;
+  const canSlide = !disabled && !submitted;
+
+  const updateMetrics = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    // 56px thumb + 8px total horizontal inset (4px each side).
+    const nextMax = Math.max(0, track.clientWidth - 56 - 8);
+    setMaxDragX(nextMax);
+    setDragX((current) => Math.min(current, nextMax));
+  }, []);
+
+  useEffect(() => {
+    updateMetrics();
+    window.addEventListener("resize", updateMetrics);
+
+    return () => window.removeEventListener("resize", updateMetrics);
+  }, [updateMetrics]);
+
+  useEffect(() => {
+    if (isPlacing) {
+      wasPlacingRef.current = true;
+      return;
+    }
+
+    if (submitted && wasPlacingRef.current) {
+      wasPlacingRef.current = false;
+      setSubmitted(false);
+      setIsDragging(false);
+      setDragX(0);
+    }
+  }, [isPlacing, submitted]);
+
+  useEffect(() => {
+    if (disabled && !isPlacing) {
+      setIsDragging(false);
+      setDragX(0);
+    }
+  }, [disabled, isPlacing]);
+
+  function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (!canSlide) return;
+
+    void unlockEdgeSound();
+    event.preventDefault();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    dragStartClientXRef.current = event.clientX;
+    dragStartXRef.current = dragX;
+    setIsDragging(true);
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLButtonElement>) {
+    if (!isDragging || !canSlide) return;
+
+    const delta = event.clientX - dragStartClientXRef.current;
+    const nextX = Math.min(
+      Math.max(dragStartXRef.current + delta, 0),
+      maxDragX,
+    );
+
+    setDragX(nextX);
+  }
+
+  function finishDrag() {
+    if (!isDragging) return;
+
+    setIsDragging(false);
+
+    if (canSlide && progress >= 0.88) {
+      setDragX(maxDragX);
+      setSubmitted(true);
+      onPlaceBet();
+      return;
+    }
+
+    setDragX(0);
+  }
+
+  return (
+    <div
+      ref={trackRef}
+      className={[
+        "relative mt-3 mb-2 h-16 w-full overflow-hidden rounded-xl border",
+        canSlide
+          ? "border-zinc-800 bg-zinc-950"
+          : "border-zinc-800/80 bg-zinc-950/80",
+      ].join(" ")}
+      data-vaul-no-drag=""
+    >
+      {canSlide ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 rounded-xl opacity-20"
+          style={{
+            width: `${56 + dragX}px`,
+            backgroundColor: thumbColor,
+          }}
+        />
+      ) : null}
+
+      <div
+        className={[
+          "pointer-events-none absolute inset-0 flex items-center justify-center px-[72px] text-[16px] font-semibold leading-none transition-colors",
+          canSlide ? "text-zinc-100" : "text-zinc-500",
+        ].join(" ")}
+      >
+        {submitted || isPlacing ? "Placing..." : label}
+      </div>
+
+      <button
+        type="button"
+        aria-label={canSlide ? "Slide to place bet" : label}
+        disabled={!canSlide}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finishDrag}
+        onPointerCancel={finishDrag}
+        onLostPointerCapture={finishDrag}
+        className={[
+          "absolute left-1 top-1/2 flex h-14 w-14 touch-none select-none items-center justify-center rounded-[10px] outline-none",
+          canSlide ? "cursor-grab active:cursor-grabbing" : "cursor-not-allowed",
+          isDragging ? "transition-none" : "transition-transform duration-300 ease-out",
+        ].join(" ")}
+        style={{
+          transform: `translate3d(${dragX}px, -50%, 0)`,
+          backgroundColor: canSlide ? thumbColor : "#27272a",
+          color: canSlide ? thumbTextColor : "#52525b",
+          boxShadow: canSlide
+            ? "inset 0 1px 0 rgba(255,255,255,0.18), 0 1px 2px rgba(0,0,0,0.35)"
+            : "none",
+        }}
+      >
+        <FaAnglesRight aria-hidden="true" className="h-[21px] w-[21px]" />
+      </button>
+    </div>
+  );
+}
+
 function OffsetPlaceBetButton({
   disabled,
   isPlacing,
   isGameStarted,
   mobileLayout,
-  holdProgress,
   panelMode,
   teamColor,
   darkText = false,
   startChallengeMode,
+  mobileLabel,
   onPlaceBet,
-  onPointerDown,
-  onPointerUp,
-  onPointerLeave,
-  onPointerCancel,
 }: {
   disabled: boolean;
   isPlacing: boolean;
   isGameStarted: boolean;
   mobileLayout: boolean;
-  holdProgress: number;
   panelMode: "modal" | "sidebar";
   teamColor?: string | null;
   darkText?: boolean;
   startChallengeMode: boolean;
+  mobileLabel: string;
   onPlaceBet: () => void;
-  onPointerDown: (event: PointerEvent<HTMLButtonElement>) => void;
-  onPointerUp: () => void;
-  onPointerLeave: () => void;
-  onPointerCancel: () => void;
 }) {
   if (startChallengeMode) {
     return (
@@ -771,82 +935,30 @@ function OffsetPlaceBetButton({
     );
   }
 
+  if (mobileLayout) {
+    return (
+      <MobileSlideToPlace
+        disabled={disabled}
+        label={mobileLabel}
+        isPlacing={isPlacing}
+        teamColor={teamColor}
+        darkText={darkText}
+        onPlaceBet={onPlaceBet}
+      />
+    );
+  }
+
   const buttonText = isGameStarted
     ? "Game Started"
     : isPlacing
       ? "Placing..."
-      : mobileLayout
-        ? "Hold to Place"
-        : "Place Bet";
+      : "Place Bet";
 
-  const buttonContent = buttonText;
   const hasTeamActionColor = isValidHexColor(teamColor);
   const useNeutralDefault = !hasTeamActionColor;
-
-  const { shellStyle, faceStyle, progressStyle } =
-    getTeamActionButtonStyles(teamColor);
-
+  const { shellStyle, faceStyle } = getTeamActionButtonStyles(teamColor);
   const neutralFaceClassName =
     "border border-zinc-700 bg-linear-to-br from-zinc-300 via-zinc-400 to-zinc-500 text-zinc-950";
-
-  if (mobileLayout) {
-    return (
-      <div
-        className={[
-          "mt-3 mb-2 rounded-xl",
-          useNeutralDefault ? "bg-zinc-600" : "bg-zinc-800",
-        ].join(" ")}
-        style={{
-          paddingBottom: "2px",
-          ...shellStyle,
-        }}
-      >
-        <motion.button
-          type="button"
-          animate={{
-            y: holdProgress > 0 ? 0 : -2,
-          }}
-          transition={{
-            duration: 0.12,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          onClick={(event) => {
-            event.preventDefault();
-          }}
-          onPointerDown={onPointerDown}
-          onPointerUp={onPointerUp}
-          onPointerLeave={onPointerLeave}
-          onPointerCancel={onPointerCancel}
-          disabled={disabled}
-          className={[
-            "relative h-16 w-full cursor-pointer select-none overflow-hidden rounded-xl text-[16px] font-semibold transition-colors duration-150 disabled:cursor-not-allowed",
-            useNeutralDefault
-              ? neutralFaceClassName
-              : [
-                  "bg-zinc-900",
-                  darkText ? "text-[#120d02]" : "text-zinc-100",
-                ].join(" "),
-          ].join(" ")}
-          style={faceStyle}
-        >
-          <span
-            className={[
-              "pointer-events-none absolute inset-y-0 left-0",
-              useNeutralDefault ? "bg-zinc-600/45" : "bg-zinc-800",
-            ].join(" ")}
-            style={{
-              width: `${holdProgress * 100}%`,
-              ...progressStyle,
-            }}
-          />
-
-          <span className="pointer-events-none relative z-10 select-none">
-            {buttonContent}
-          </span>
-        </motion.button>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -862,18 +974,12 @@ function OffsetPlaceBetButton({
     >
       <motion.button
         type="button"
-        animate={{
-          scale: 1,
-        }}
+        animate={{ scale: 1 }}
         transition={{
           duration: 0.18,
           ease: [0.22, 1, 0.36, 1],
         }}
         onClick={onPlaceBet}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerLeave}
-        onPointerCancel={onPointerCancel}
         disabled={disabled}
         className={[
           "relative w-full translate-y-[-2px] cursor-pointer select-none overflow-hidden rounded-xl font-semibold transition-all duration-100 hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed",
@@ -883,12 +989,12 @@ function OffsetPlaceBetButton({
                 "bg-zinc-900",
                 darkText ? "text-[#120d02]" : "text-zinc-100",
               ].join(" "),
-          panelMode === "sidebar" ? "h-12 text-[15px]" : "h-12 text-[15px]",
+          "h-12 text-[15px]",
         ].join(" ")}
         style={faceStyle}
       >
         <span className="pointer-events-none relative z-10 select-none">
-          {buttonContent}
+          {buttonText}
         </span>
       </motion.button>
     </div>
@@ -1264,10 +1370,6 @@ function BetSlipControls({
   onQuickAmount: (percent: number) => void;
   onPlaceBet: () => void;
 }) {
-  const holdFrameRef = useRef<number | null>(null);
-  const holdStartRef = useRef<number | null>(null);
-  const holdCompletedRef = useRef(false);
-  const [holdProgress, setHoldProgress] = useState(0);
   const [amountShakeKey, setAmountShakeKey] = useState(0);
   const [maxHintPhase, setMaxHintPhase] = useState<
     "hidden" | "visible" | "fading"
@@ -1294,67 +1396,18 @@ function BetSlipControls({
     !selectedAccountIds.length ||
     Boolean(ruleWarning);
 
-  function clearHold(resetProgress = true) {
-    if (holdFrameRef.current !== null) {
-      window.cancelAnimationFrame(holdFrameRef.current);
-      holdFrameRef.current = null;
-    }
+  const mobileActionLabel = isGameStarted
+    ? "Game Started"
+    : isPlacing
+      ? "Placing..."
+      : !selectedAccountIds.length
+        ? "Select account"
+        : amountValue <= 0
+          ? "Enter amount"
+          : ruleWarning
+            ? "Unavailable"
+            : "Slide to Place";
 
-    holdStartRef.current = null;
-    holdCompletedRef.current = false;
-
-    if (resetProgress) {
-      setHoldProgress(0);
-    }
-  }
-
-  function beginHoldToPlace(event: PointerEvent<HTMLButtonElement>) {
-    if (placeBetDisabled) return;
-
-    // Unlock the shared Web Audio context inside the original user gesture.
-    // The success/error sound can then play after the async bet request ends.
-    void unlockEdgeSound();
-
-    if (!mobileLayout) return;
-
-    event.preventDefault();
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-
-    clearHold();
-    holdStartRef.current = performance.now();
-
-    const tick = (now: number) => {
-      if (holdStartRef.current === null) return;
-
-      const elapsed = now - holdStartRef.current;
-      const nextProgress = Math.min(elapsed / HOLD_TO_PLACE_MS, 1);
-
-      setHoldProgress(nextProgress);
-
-      if (nextProgress >= 1) {
-        holdCompletedRef.current = true;
-        clearHold(false);
-        setHoldProgress(1);
-        onPlaceBet();
-
-        window.setTimeout(() => {
-          setHoldProgress(0);
-        }, 180);
-
-        return;
-      }
-
-      holdFrameRef.current = window.requestAnimationFrame(tick);
-    };
-
-    holdFrameRef.current = window.requestAnimationFrame(tick);
-  }
-
-  function cancelHoldToPlace() {
-    if (!mobileLayout || holdCompletedRef.current) return;
-
-    clearHold();
-  }
 
   function handleSidebarAmountInputChange(
     event: ChangeEvent<HTMLInputElement>,
@@ -1449,15 +1502,7 @@ function BetSlipControls({
   }
 
   useEffect(() => {
-    if (!mobileLayout || placeBetDisabled) {
-      clearHold();
-    }
-  }, [mobileLayout, placeBetDisabled]);
-
-  useEffect(() => {
     return () => {
-      clearHold();
-
       clearMobileMaxHintTimers();
     };
   }, []);
@@ -1749,16 +1794,12 @@ function BetSlipControls({
           isPlacing={isPlacing}
           isGameStarted={isGameStarted}
           mobileLayout={mobileLayout}
-          holdProgress={holdProgress}
           panelMode={panelMode}
           teamColor={teamColor}
           darkText={darkText}
           startChallengeMode={startChallengeMode}
+          mobileLabel={mobileActionLabel}
           onPlaceBet={onPlaceBet}
-          onPointerDown={beginHoldToPlace}
-          onPointerUp={cancelHoldToPlace}
-          onPointerLeave={cancelHoldToPlace}
-          onPointerCancel={cancelHoldToPlace}
         />
       )}
     </div>
