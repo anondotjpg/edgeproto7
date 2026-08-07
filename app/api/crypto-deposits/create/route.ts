@@ -113,10 +113,10 @@ function openDepositLimitResponse(extra?: {
     {
       code: "OPEN_DEPOSIT_LIMIT",
       error:
-        "You already have two open deposits. Complete one or wait for one to expire before starting another.",
+        "You already have two open deposits. Complete one or wait",
       toastTitle: "Two deposits already open",
       toastDescription:
-        "Complete one deposit or wait for a quote to expire before starting another.",
+        "Complete one deposit or wait",
       maxOpenDeposits: MAX_OPEN_RELAY_DEPOSITS,
       ...extra,
     },
