@@ -828,8 +828,8 @@ function MobileSlideToPlace({
       className={[
         "relative mt-3 mb-2 h-16 w-full overflow-hidden rounded-xl border",
         canSlide
-          ? "border-zinc-800 bg-zinc-950"
-          : "border-zinc-800/80 bg-zinc-950/80",
+          ? "border-zinc-700/80 bg-zinc-900"
+          : "border-zinc-800/80 bg-zinc-900/70",
       ].join(" ")}
       data-vaul-no-drag=""
     >
