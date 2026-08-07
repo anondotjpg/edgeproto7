@@ -3,7 +3,6 @@
 
 import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
-import { FaCheck, FaXmark } from "react-icons/fa6";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -30,27 +29,16 @@ export default function ResponsiveToaster() {
       <Toaster
         theme="dark"
         position={isMobile ? "top-center" : "bottom-right"}
-        icons={{
-          success: (
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
-              <FaCheck className="h-3.5 w-3.5" />
-            </span>
-          ),
-          error: (
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/15 text-red-400">
-              <FaXmark className="h-4 w-4" />
-            </span>
-          ),
-        }}
         toastOptions={{
           duration: 3000,
           classNames: {
             toast:
-              "relative !rounded-full border border-zinc-800 !bg-zinc-950 !px-5 !py-3.5 !pr-[62px] !text-zinc-100 shadow-2xl",
+              "relative !rounded-full border border-zinc-800 !bg-zinc-950 !px-5 !py-3.5 !text-zinc-100 shadow-2xl",
             title:
               "!w-full !text-[14px] !font-medium !leading-[1.3] !text-zinc-100",
             description:
               "!mt-0.5 !w-full !text-[13px] !leading-[1.3] !text-zinc-500",
+            icon: "hidden",
             success: "!border-zinc-800 !bg-zinc-950 !text-zinc-100",
             error: "!border-zinc-800 !bg-zinc-950 !text-zinc-100",
             warning: "!border-zinc-800 !bg-zinc-950 !text-zinc-100",
@@ -79,7 +67,6 @@ export default function ResponsiveToaster() {
         }
 
         [data-sonner-toast] {
-          position: relative !important;
           background: #09090b !important;
           color: #f4f4f5 !important;
           border-color: #27272a !important;
@@ -87,7 +74,7 @@ export default function ResponsiveToaster() {
           box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45) !important;
 
           padding-left: 20px !important;
-          padding-right: 62px !important;
+          padding-right: 20px !important;
         }
 
         [data-sonner-toast] [data-content] {
@@ -104,27 +91,12 @@ export default function ResponsiveToaster() {
 
         [data-sonner-toast] [data-description] {
           width: 100% !important;
-          margin-top: 2px !important;
           color: #71717a !important;
           line-height: 1.3 !important;
         }
 
-        /*
-         * Sonner normally puts its status icon on the left.
-         * Move our custom status circle to the right.
-         */
         [data-sonner-toast] [data-icon] {
-          position: absolute !important;
-          top: 50% !important;
-          right: 14px !important;
-          left: auto !important;
-          width: 32px !important;
-          height: 32px !important;
-          margin: 0 !important;
-          transform: translateY(-50%) !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
+          display: none !important;
         }
 
         [data-sonner-toast] [data-close-button] {
