@@ -1609,7 +1609,7 @@ function GameStartStatus({ game, now }: { game: Game; now: number | null }) {
           ? "gap-1.5 text-zinc-100"
           : countdown
             ? "font-semibold tabular-nums text-zinc-100"
-            : "text-zinc-300",
+            : "text-zinc-400",
       ].join(" ")}
       title={isLive ? "Live now" : formatGameTime(game.commence_time)}
       aria-label={
@@ -1657,7 +1657,7 @@ function GameCardHeader({
 
       <Link
         href={eventHref}
-        className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[14px] font-medium text-zinc-300 transition-colors hover:text-zinc-400"
+        className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[14px] font-medium text-zinc-400 transition-colors hover:text-zinc-500"
       >
         <span className="lg:hidden">View</span>
         <span className="hidden lg:inline">Game View</span>
