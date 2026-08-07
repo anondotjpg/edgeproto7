@@ -388,34 +388,34 @@ function cleanRpcError(error: RpcLikeError | string) {
   }
 
   if (message.includes("Insufficient balance")) {
-    return "Insufficient available balance.";
+    return "Insufficient available balance";
   }
 
   if (message.includes("Account not active")) {
-    return "This account is not active.";
+    return "This account is not active";
   }
 
   if (message.includes("Account not found")) {
-    return "Account not found.";
+    return "Account not found";
   }
 
   if (message.includes("Invalid stake")) {
-    return "Invalid stake.";
+    return "Invalid stake";
   }
 
   if (message.includes("Invalid odds")) {
-    return "Invalid odds.";
+    return "Invalid odds";
   }
 
   if (isDuplicateEventBetError(error)) {
-    return "You already have a bet on this event for this account.";
+    return "You already have a bet on this event";
   }
 
   if (isDuplicateBetError(error)) {
-    return "You already placed this bet on this account.";
+    return "You already placed this bet";
   }
 
-  return message || "Unable to place bet.";
+  return message || "Unable to place bet";
 }
 
 export async function POST(req: Request) {
@@ -455,19 +455,19 @@ export async function POST(req: Request) {
     const requestTeamLogoAlt = cleanText(body.teamLogoAlt);
 
     if (!accountIds.length) {
-      return blockBet("Select at least one account.", "missing_account");
+      return blockBet("Select at least one account", "missing_account");
     }
 
     if (!gameId || !requestLeague || !requestMarket) {
-      return blockBet("Missing bet details.", "missing_bet_details");
+      return blockBet("Missing bet details", "missing_bet_details");
     }
 
     if (!ALLOWED_MARKETS.has(requestMarket)) {
-      return blockBet("This market is not available.", "market_not_allowed");
+      return blockBet("This market is not available", "market_not_allowed");
     }
 
     if (!Number.isFinite(stake) || stake <= 0) {
-      return blockBet("Invalid stake.", "invalid_stake");
+      return blockBet("Invalid stake", "invalid_stake");
     }
 
     if (!requestPolymarketConditionId || !requestPolymarketTokenId) {
@@ -486,7 +486,7 @@ export async function POST(req: Request) {
     if (userError) throw userError;
 
     if (!dbUser) {
-      return NextResponse.json({ error: "User not found." }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const cleanAccountIds = Array.from(
@@ -496,7 +496,7 @@ export async function POST(req: Request) {
     );
 
     if (!cleanAccountIds.length) {
-      return blockBet("Invalid account ID.", "invalid_account");
+      return blockBet("Invalid account ID", "invalid_account");
     }
 
     const { data: eligibleGame, error: eligibleGameError } = await supabaseAdmin
@@ -513,13 +513,13 @@ export async function POST(req: Request) {
       !eligibleGame ||
       !["open", "live"].includes(String(eligibleGame.status))
     ) {
-      return blockBet("This game is no longer available.", "game_unavailable");
+      return blockBet("This game is no longer available", "game_unavailable");
     }
 
     const game = eligibleGame as EligibleGameRow;
 
     if (game.sport_key !== requestLeague) {
-      return blockBet("This market changed. Refresh and try again.", "league_changed");
+      return blockBet("This market changed. Refresh and try again", "league_changed");
     }
 
     const gameHasStarted =
@@ -539,7 +539,7 @@ export async function POST(req: Request) {
 
     if (!serverBet) {
       return blockBet(
-        "This outcome is no longer available. Refresh and try again.",
+        "This outcome is no longer available",
         "outcome_unavailable",
       );
     }
@@ -549,14 +549,14 @@ export async function POST(req: Request) {
       serverBet.polymarketConditionId !== requestPolymarketConditionId
     ) {
       return blockBet(
-        "This market changed. Refresh and try again.",
+        "This market changed",
         "market_changed",
       );
     }
 
     if (serverBet.odds < MIN_ALLOWED_AMERICAN_ODDS) {
       return blockBet(
-        "Only -200 or better odds can be placed.",
+        "Only -200 or better odds can be placed",
         "odds_not_allowed",
       );
     }
@@ -580,7 +580,7 @@ export async function POST(req: Request) {
 
     if (duplicateBets?.length) {
       return blockBet(
-        "You already placed this bet on this account.",
+        "You already placed this bet",
         "duplicate_open_bet",
       );
     }
@@ -599,7 +599,7 @@ export async function POST(req: Request) {
 
     if (duplicateGameBets?.length) {
       return blockBet(
-        "You already have a bet on this event for this account.",
+        "You already have a bet on this event",
         "duplicate_event_bet",
       );
     }
@@ -619,7 +619,7 @@ export async function POST(req: Request) {
 
       if (duplicateEventBets?.length) {
         return blockBet(
-          "You already have a bet on this event for this account.",
+          "You already have a bet on this event",
           "duplicate_event_bet",
         );
       }
@@ -701,7 +701,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Unable to place bet.",
+        error: error instanceof Error ? error.message : "Unable to place bet",
       },
       { status: 500 },
     );

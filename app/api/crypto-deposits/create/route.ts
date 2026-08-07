@@ -79,7 +79,7 @@ class OpenDepositLimitError extends Error {
 
   constructor(openDepositCount: number) {
     super(
-      "You already have two open deposits. Complete one or wait for one to expire before starting another.",
+      "You already have two open deposits. Complete one or wait",
     );
     this.name = "OpenDepositLimitError";
     this.openDepositCount = openDepositCount;
@@ -139,9 +139,9 @@ function accountQuantityErrorResponse() {
   return NextResponse.json(
     {
       code: "INVALID_ACCOUNT_QUANTITY",
-      error: `Choose between 1 and ${MAX_ACCOUNT_QUANTITY} accounts.`,
+      error: `Choose between 1 and ${MAX_ACCOUNT_QUANTITY} accounts`,
       toastTitle: "Invalid quantity",
-      toastDescription: `You can buy between 1 and ${MAX_ACCOUNT_QUANTITY} accounts at once.`,
+      toastDescription: `You can buy between 1 and ${MAX_ACCOUNT_QUANTITY} accounts`,
       maxAccountQuantity: MAX_ACCOUNT_QUANTITY,
     },
     { status: 400 },
@@ -420,7 +420,7 @@ async function createFreePromoInvoice({
 
     if (accountError) throw accountError;
 
-    throw new Error("Unable to create challenge accounts.");
+    throw new Error("Unable to create challenge accounts");
   }
 
   const firstAccountId = accounts[0].id as string;
@@ -457,21 +457,21 @@ export async function POST(req: Request) {
 
     if (!planKey || !(planKey in PLAN_CONFIG)) {
       return NextResponse.json(
-        { error: "Invalid plan selected." },
+        { error: "Invalid plan selected" },
         { status: 400 },
       );
     }
 
     if (!isDepositChain(chain)) {
       return NextResponse.json(
-        { error: "Invalid payment method." },
+        { error: "Invalid payment method" },
         { status: 400 },
       );
     }
 
     if (!privyUserId) {
       return NextResponse.json(
-        { error: "Missing Privy user ID." },
+        { error: "Missing Privy user ID" },
         { status: 400 },
       );
     }
@@ -481,7 +481,7 @@ export async function POST(req: Request) {
 
     if (!Number.isFinite(planSize) || planSize <= 0) {
       return NextResponse.json(
-        { error: "Invalid plan size." },
+        { error: "Invalid plan size" },
         { status: 400 },
       );
     }
@@ -508,9 +508,9 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           code: "PROMO_INVALID",
-          error: promo.message ?? "Invalid promo code.",
+          error: promo.message ?? "Invalid promo code",
           toastTitle: "Promo code not applied",
-          toastDescription: promo.message ?? "Invalid promo code.",
+          toastDescription: promo.message ?? "Invalid promo code",
         },
         { status: 400 },
       );
@@ -701,7 +701,7 @@ export async function POST(req: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Unable to create deposit invoice.",
+            : "Unable to create deposit invoice",
       },
       { status: 500 },
     );
