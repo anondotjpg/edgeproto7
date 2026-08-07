@@ -617,7 +617,7 @@ export default function OwnedAccountsSection() {
                           >
                             <span
                               aria-hidden="true"
-                              className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md animate-[buttonShimmer_3.4s_ease-out_infinite]"
+                              className="pointer-events-none absolute inset-y-[-35%] left-[-22%] w-[18%] skew-x-[-20deg] bg-white/35 blur-md"
                             />
                             <span className="relative z-10">View</span>
                           </button>
