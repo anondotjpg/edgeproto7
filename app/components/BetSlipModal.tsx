@@ -2158,12 +2158,12 @@ export function BetSlipPanel({
       }
 
       if (!selectedAccountIds.length) {
-        showBetNotPlaced("Select at least one account.", true);
+        showBetNotPlaced("Select at least one account", true);
         return;
       }
 
       if (!stake || stake <= 0) {
-        showBetNotPlaced("Enter a valid bet amount.", true);
+        showBetNotPlaced("Enter a valid bet amount", true);
         return;
       }
 
@@ -2174,7 +2174,7 @@ export function BetSlipPanel({
 
       if (!currentBet.polymarketConditionId || !currentBet.polymarketTokenId) {
         showBetNotPlaced(
-          "Missing Polymarket settlement data. Refresh and try again.",
+          "Missing Polymarket settlement data",
           true,
         );
         return;
@@ -2236,13 +2236,13 @@ export function BetSlipPanel({
       } | null;
 
       if (!response.ok) {
-        const message = data?.error || data?.message || "Unable to place bet.";
+        const message = data?.error || data?.message || "Unable to place bet";
         showBetNotPlaced(message, true);
         return;
       }
 
       if (data?.blocked || data?.ok === false) {
-        const message = data.message || data.error || "Bet not placed.";
+        const message = data.message || data.error || "Bet not placed";
         showBetNotPlaced(message);
         return;
       }
@@ -2261,7 +2261,7 @@ export function BetSlipPanel({
       console.error(err);
 
       const message =
-        err instanceof Error ? err.message : "Something went wrong.";
+        err instanceof Error ? err.message : "Something went wrong";
 
       showBetNotPlaced(message, true);
     } finally {

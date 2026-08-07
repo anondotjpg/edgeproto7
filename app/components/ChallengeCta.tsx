@@ -1181,7 +1181,7 @@ export default function ChallengeCta({
       }
 
       if (!isPromoValidateSuccess(data)) {
-        const message = data?.error || data?.message || "Invalid promo code.";
+        const message = data?.error || data?.message || "Invalid promo code";
 
         setAppliedPromo(null);
 
@@ -1196,7 +1196,7 @@ export default function ChallengeCta({
       setPromoCode(data.code ?? cleanPromoCode);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Invalid promo code.";
+        error instanceof Error ? error.message : "Invalid promo code";
 
       setAppliedPromo(null);
 
@@ -1239,13 +1239,13 @@ export default function ChallengeCta({
 
       if (!response.ok) {
         const message =
-          data?.error || data?.message || "Unable to create deposit invoice.";
+          data?.error || data?.message || "Unable to create deposit invoice";
 
         if (response.status === 409 && data?.code === "OPEN_DEPOSIT_LIMIT") {
           toast.error(data.toastTitle ?? "Two deposits already open", {
             description:
               data.toastDescription ??
-              "Complete one deposit or wait for a quote to expire before starting another.",
+              "Complete one deposit or wait",
           });
 
           return;
@@ -1282,7 +1282,7 @@ export default function ChallengeCta({
       setStep("payment");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Unable to create deposit.";
+        error instanceof Error ? error.message : "Unable to create deposit";
 
       toast.error("Deposit not created", {
         description: message,
@@ -1302,7 +1302,7 @@ export default function ChallengeCta({
       }, 1200);
     } catch {
       toast.error("Unable to copy", {
-        description: "Please copy it manually.",
+        description: "Please copy it manually",
       });
     }
   }
