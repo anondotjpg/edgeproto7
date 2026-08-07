@@ -176,7 +176,7 @@ export default function EmptyGamesState({
       .slice(0, previewCount);
   }, [currentTime, leagueBlocks, leagues, previewCount]);
 
-  const description = "Markets will appear here as soon as they are ready.";
+  const description = "Markets will appear as soon as ready";
 
   return (
     <section className="mx-auto flex min-h-[360px] w-full max-w-[760px] flex-col justify-center py-4 sm:min-h-[480px] sm:py-12">
