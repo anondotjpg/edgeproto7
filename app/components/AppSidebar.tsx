@@ -152,7 +152,7 @@ export default function AppSidebar() {
       <div
         aria-hidden="true"
         className={[
-          "pointer-events-none fixed inset-x-0 bottom-0 z-40 h-[150px] md:hidden",
+          "pointer-events-none fixed inset-x-0 bottom-0 z-40 h-[100px] md:hidden",
           "bg-gradient-to-t",
           "from-[#09090b]",
           "from-20%",
