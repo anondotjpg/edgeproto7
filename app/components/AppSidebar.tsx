@@ -170,12 +170,20 @@ export default function AppSidebar() {
           "w-[290px] max-w-[calc(100vw-32px)]",
           "-translate-x-1/2",
           "overflow-hidden rounded-full",
-          "border border-zinc-800",
-          "bg-[#121214]",
+          "border border-zinc-800/80",
           "[backface-visibility:hidden]",
-          "[transform:translateZ(0)]",
         ].join(" ")}
       >
+        <div
+          aria-hidden="true"
+          className={[
+            "pointer-events-none absolute inset-0",
+            "bg-[#09090b]/95 backdrop-blur",
+            "[backface-visibility:hidden]",
+            "[transform:translateZ(0)]",
+          ].join(" ")}
+        />
+
         <div className="relative h-[68px]">
           <div className="relative z-10 grid h-full grid-cols-3">
             {MOBILE_NAV_LINKS.map((item) => {
