@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { GoHome, GoHomeFill } from "react-icons/go";
 import { HiWallet, HiOutlineWallet } from "react-icons/hi2";
 import { IoStatsChart, IoStatsChartOutline } from "react-icons/io5";
@@ -108,10 +107,6 @@ function DesktopNavLink({
 export default function AppSidebar() {
   const pathname = usePathname();
 
-  const activeIndex = MOBILE_NAV_LINKS.findIndex((item) =>
-    isActivePath(pathname, item.href),
-  );
-
   return (
     <>
       {/* Desktop sidebar */}
@@ -153,6 +148,20 @@ export default function AppSidebar() {
         </div>
       </aside>
 
+      {/* Bottom fade behind floating mobile nav */}
+      <div
+        aria-hidden="true"
+        className={[
+          "pointer-events-none fixed inset-x-0 bottom-0 z-40 h-[150px] md:hidden",
+          "bg-gradient-to-t",
+          "from-[#09090b]",
+          "from-20%",
+          "via-[#09090b]/80",
+          "via-50%",
+          "to-transparent",
+        ].join(" ")}
+      />
+
       {/* Mobile floating nav */}
       <nav
         className={[
@@ -168,7 +177,6 @@ export default function AppSidebar() {
         ].join(" ")}
       >
         <div className="relative h-[68px]">
-
           <div className="relative z-10 grid h-full grid-cols-3">
             {MOBILE_NAV_LINKS.map((item) => {
               const isActive = isActivePath(pathname, item.href);
