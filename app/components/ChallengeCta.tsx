@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { type ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLogin, usePrivy } from "@privy-io/react-auth";
@@ -159,9 +159,9 @@ const MAX_ACCOUNT_QUANTITY = 5;
 
 const CHECKOUT_LAYOUT_TRANSITION = {
   type: "spring",
-  stiffness: 420,
-  damping: 38,
-  mass: 0.75,
+  stiffness: 260,
+  damping: 30,
+  mass: 0.9,
 } as const;
 
 const PAYMENT_METHODS: {
@@ -447,41 +447,22 @@ function CopyIconButton({
   const isCopied = copied === label;
 
   return (
-    <motion.button
+    <button
       type="button"
       onClick={() => onCopy(label, value)}
-      whileHover={{ scale: 1.04 }}
-      whileTap={{ scale: 0.88 }}
-      transition={{ type: "spring", stiffness: 560, damping: 34 }}
       aria-label={isCopied ? "Copied" : "Copy"}
       className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center text-zinc-500 outline-none transition-colors hover:text-zinc-100 focus-visible:text-zinc-100"
     >
-      <AnimatePresence mode="wait" initial={false}>
-        {isCopied ? (
-          <motion.span
-            key="check"
-            initial={{ opacity: 0, scale: 0.5, y: 3, rotate: -12 }}
-            animate={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
-            exit={{ opacity: 0, scale: 0.5, y: -3, rotate: 12 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="grid place-items-center text-zinc-100"
-          >
-            <FiCheck className="h-4 w-4" />
-          </motion.span>
-        ) : (
-          <motion.span
-            key="copy"
-            initial={{ opacity: 0, scale: 0.5, y: 3, rotate: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
-            exit={{ opacity: 0, scale: 0.5, y: -3, rotate: -12 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="grid place-items-center"
-          >
-            <FiCopy className="h-4 w-4" />
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </motion.button>
+      {isCopied ? (
+        <span className="grid place-items-center text-zinc-100">
+          <FiCheck className="h-4 w-4" />
+        </span>
+      ) : (
+        <span className="grid place-items-center">
+          <FiCopy className="h-4 w-4" />
+        </span>
+      )}
+    </button>
   );
 }
 
@@ -688,20 +669,9 @@ function CheckoutContent({
     >
       <AccountHero feeLabel={displayFeeLabel} planKey={planKey} />
 
-      <motion.div
-        layout="size"
-        transition={CHECKOUT_LAYOUT_TRANSITION}
-        className="mt-4 max-h-[calc(100dvh-176px)] overflow-y-auto overflow-x-hidden [-ms-overflow-style:none] [scrollbar-width:none] md:max-h-[560px] [&::-webkit-scrollbar]:hidden"
-      >
-        <AnimatePresence mode="wait" initial={false}>
-          {step === "method" ? (
-            <motion.div
-              key="method"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            >
+      <div className="mt-4 max-h-[calc(100dvh-176px)] overflow-y-auto overflow-x-hidden [-ms-overflow-style:none] [scrollbar-width:none] md:max-h-[560px] [&::-webkit-scrollbar]:hidden">
+        {step === "method" ? (
+          <div>
               <div>
                 <h3 className="text-[18px] font-semibold leading-none tracking-tight text-zinc-50">
                   Pay with crypto
@@ -813,17 +783,11 @@ function CheckoutContent({
                   })}
                 </div>
               )}
-            </motion.div>
-          ) : null}
+          </div>
+        ) : null}
 
-          {step === "payment" && invoice ? (
-            <motion.div
-              key="payment"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            >
+        {step === "payment" && invoice ? (
+          <div>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="text-[18px] font-semibold leading-none tracking-tight text-zinc-50">
@@ -983,10 +947,9 @@ function CheckoutContent({
                   Start a different deposit
                 </button>
               ) : null}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </motion.div>
+          </div>
+        ) : null}
+      </div>
     </motion.div>
   );
 }
