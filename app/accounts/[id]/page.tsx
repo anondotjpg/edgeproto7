@@ -989,7 +989,7 @@ export default function AccountPage() {
         <section className="mt-3 grid grid-cols-2 gap-0 lg:gap-3">
           <div className="pr-1.5 lg:pr-0">
             <RuleRoomCard
-              title="Daily loss"
+              title="Daily"
               room={dailyRoom}
               limit={dailyLossLimit}
               isAccountFailed={isAccountFailed}
@@ -998,7 +998,7 @@ export default function AccountPage() {
 
           <div className="pl-1.5 lg:pl-0">
             <RuleRoomCard
-              title="Total loss"
+              title="Total"
               room={totalRoom}
               limit={totalLossLimit}
               isAccountFailed={isAccountFailed}

@@ -272,11 +272,11 @@ export default function AccountPageSkeleton() {
 
         <section className="mt-3 grid grid-cols-2 gap-0 lg:gap-3">
           <div className="pr-1.5 lg:pr-0">
-            <RuleSkeleton label="Daily loss" />
+            <RuleSkeleton label="Daily" />
           </div>
 
           <div className="pl-1.5 lg:pl-0">
-            <RuleSkeleton label="Total loss" />
+            <RuleSkeleton label="Total" />
           </div>
         </section>
 
