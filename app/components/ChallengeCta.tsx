@@ -693,15 +693,14 @@ function CheckoutContent({
         transition={CHECKOUT_LAYOUT_TRANSITION}
         className="mt-4 max-h-[calc(100dvh-176px)] overflow-y-auto overflow-x-hidden [-ms-overflow-style:none] [scrollbar-width:none] md:max-h-[560px] [&::-webkit-scrollbar]:hidden"
       >
-        <AnimatePresence mode="popLayout" initial={false}>
+        <AnimatePresence mode="wait" initial={false}>
           {step === "method" ? (
             <motion.div
               key="method"
-              layout="position"
-              initial={{ opacity: 0, x: 18 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -18 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             >
               <div>
                 <h3 className="text-[18px] font-semibold leading-none tracking-tight text-zinc-50">
@@ -715,7 +714,7 @@ function CheckoutContent({
                 onChange={onAccountQuantityChange}
               />
 
-              <div className="mt-3 rounded-2xl border border-zinc-800 bg-black/30 p-3">
+              <div className="mt-3 rounded-2xl bg-black/30 p-3">
                 <div className="flex h-10 items-center gap-2">
                   <input
                     value={promoCode}
@@ -729,7 +728,7 @@ function CheckoutContent({
                     type="button"
                     onClick={applyPromoCode}
                     disabled={isApplyingPromo || !cleanPromoCode}
-                    className="grid h-9 min-w-[74px] cursor-pointer place-items-center rounded-xl border border-zinc-800 bg-zinc-900 px-3 text-[12px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="grid h-9 min-w-[74px] cursor-pointer place-items-center rounded-xl bg-zinc-900 px-3 text-[12px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {isApplyingPromo ? (
                       <ButtonSpinner />
@@ -789,7 +788,7 @@ function CheckoutContent({
                         type="button"
                         onClick={() => createInvoice(method.chain)}
                         disabled={disabled}
-                        className="flex w-full cursor-pointer items-center rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3.5 text-left transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex w-full cursor-pointer items-center rounded-2xl bg-black/30 px-4 py-3.5 text-left transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <div className="flex min-w-0 items-center gap-3">
                           <PaymentBadge
@@ -820,11 +819,10 @@ function CheckoutContent({
           {step === "payment" && invoice ? (
             <motion.div
               key="payment"
-              layout="position"
-              initial={{ opacity: 0, x: 18 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -18 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -849,7 +847,7 @@ function CheckoutContent({
 
               {isPromoInvoice ? (
                 <div className="mt-4 grid gap-3">
-                  <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
+                  <div className="rounded-2xl bg-black/30 p-4">
                     <div className="flex items-center justify-between text-[12px]">
                       <span className="text-zinc-500">
                         Promo {invoice.promo_code}
@@ -919,7 +917,7 @@ function CheckoutContent({
 
                   {invoice.discount_amount_cents &&
                   invoice.discount_amount_cents > 0 ? (
-                    <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4">
+                    <div className="rounded-2xl bg-black/30 p-4">
                       <div className="flex items-center justify-between text-[12px]">
                         <span className="text-zinc-500">
                           Promo {invoice.promo_code}
