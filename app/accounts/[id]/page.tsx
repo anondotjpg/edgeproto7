@@ -504,17 +504,7 @@ function RuleRoomCard({
 }) {
   if (isAccountFailed) {
     return (
-      <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] bg-zinc-950/80 px-3 py-3 shadow-[inset_0_0_36px_rgba(239,68,68,0.07),inset_0_1px_0_rgba(248,113,113,0.04)] sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4 sm:shadow-none sm:ring-1 sm:ring-zinc-900">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(239,68,68,0.09),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(127,29,29,0.07),transparent_62%)] sm:hidden"
-        />
-
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-px rounded-[21px] shadow-[inset_0_0_24px_rgba(248,113,113,0.05)] sm:hidden sm:rounded-[25px]"
-        />
-
+      <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] border border-zinc-800 bg-zinc-950/80 px-3 py-3 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
         <div className="relative flex items-start justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
             <MobileTwoLineRuleTitle
@@ -554,17 +544,7 @@ function RuleRoomCard({
       : 0;
 
   return (
-    <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] bg-zinc-950/80 px-3 py-3 shadow-[inset_0_0_36px_rgba(161,161,170,0.04),inset_0_1px_0_rgba(244,244,245,0.02)] sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4 sm:shadow-none sm:ring-1 sm:ring-zinc-900">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(161,161,170,0.06),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(39,39,42,0.14),transparent_62%)] sm:hidden"
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-px rounded-[21px] shadow-[inset_0_0_24px_rgba(212,212,216,0.03)] sm:hidden sm:rounded-[25px]"
-      />
-
+    <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] border border-zinc-800 bg-zinc-950/80 px-3 py-3 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
       <div className="relative flex items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <MobileTwoLineRuleTitle
@@ -962,39 +942,7 @@ export default function AccountPage() {
             </div>
 
             {!shouldDisplayFundedData ? (
-              <div
-                className={[
-                  "relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] bg-zinc-950/80 px-4 py-4 sm:min-h-[166px] sm:px-5",
-                  isAccountFailed
-                    ? "shadow-[inset_0_0_36px_rgba(239,68,68,0.07),inset_0_1px_0_rgba(248,113,113,0.04)] sm:shadow-none"
-                    : "shadow-[inset_0_0_36px_rgba(161,161,170,0.04),inset_0_1px_0_rgba(244,244,245,0.02)] sm:shadow-none",
-                ].join(" ")}
-              >
-                {isAccountFailed ? (
-                  <>
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(239,68,68,0.09),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(127,29,29,0.07),transparent_62%)] sm:hidden"
-                    />
-
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-px rounded-[25px] shadow-[inset_0_0_24px_rgba(248,113,113,0.05)] sm:hidden"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(161,161,170,0.06),transparent_56%),radial-gradient(circle_at_50%_100%,rgba(39,39,42,0.14),transparent_62%)] sm:hidden"
-                    />
-
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-px rounded-[25px] shadow-[inset_0_0_24px_rgba(212,212,216,0.03)] sm:hidden"
-                    />
-                  </>
-                )}
+              <div className="relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] border border-zinc-800 bg-zinc-950/80 px-4 py-4 sm:min-h-[166px] sm:px-5">
 
                 <div className="relative flex items-start justify-between gap-4">
                   <div className="min-w-0">
