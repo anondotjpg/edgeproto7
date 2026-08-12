@@ -532,15 +532,23 @@ function chooseCanonicalTeams(
   );
 }
 
-function findOutcomeIndexForTeam(outcomes: string[], teamName: string): number {
-  const teamNorm = normalize(teamName);
+function findOutcomeIndexForTeam(
+  outcomes: string[],
+  teamName: string,
+  aliases: string[] = [],
+): number {
+  const candidates = [teamName, ...aliases]
+    .map(normalize)
+    .filter(Boolean);
 
   return outcomes.findIndex((outcome) => {
     const outcomeNorm = normalize(outcome);
-    return (
-      outcomeNorm === teamNorm ||
-      teamNorm.includes(outcomeNorm) ||
-      outcomeNorm.includes(teamNorm)
+
+    return candidates.some(
+      (candidate) =>
+        outcomeNorm === candidate ||
+        candidate.includes(outcomeNorm) ||
+        outcomeNorm.includes(candidate),
     );
   });
 }
@@ -656,6 +664,10 @@ function buildSpreadOddsMarket(
   event: PolymarketEvent,
   market: PolymarketMarket,
   teams: { away: string; home: string },
+  aliases?: {
+    away?: string[];
+    home?: string[];
+  },
 ): OddsMarket | null {
   const outcomes = parseStringArray(market.outcomes).map(cleanText);
   const prices = parseStringArray(market.outcomePrices).map(Number);
@@ -664,8 +676,16 @@ function buildSpreadOddsMarket(
 
   if (outcomes.length !== 2 || prices.length !== 2 || line === null) return null;
 
-  const awayIndex = findOutcomeIndexForTeam(outcomes, teams.away);
-  const homeIndex = findOutcomeIndexForTeam(outcomes, teams.home);
+  const awayIndex = findOutcomeIndexForTeam(
+    outcomes,
+    teams.away,
+    aliases?.away,
+  );
+  const homeIndex = findOutcomeIndexForTeam(
+    outcomes,
+    teams.home,
+    aliases?.home,
+  );
 
   if (awayIndex === -1 || homeIndex === -1 || awayIndex === homeIndex) {
     return null;
@@ -761,15 +781,6 @@ async function buildGameFromEvent(
   const moneyline = buildMoneylineOddsMarket(event, moneylineMarket, teams);
   if (!moneyline) return null;
 
-  const bestSpreadMarket = chooseHighestVolumeMarket(markets, "spreads");
-  const bestTotalMarket = chooseHighestVolumeMarket(markets, "totals");
-
-  const spread = bestSpreadMarket
-    ? buildSpreadOddsMarket(event, bestSpreadMarket, teams)
-    : null;
-
-  const total = bestTotalMarket ? buildTotalsOddsMarket(event, bestTotalMarket) : null;
-
   const slugTokens = extractSlugTokens(
     moneylineMarket.slug || event.slug,
     league.key,
@@ -781,6 +792,28 @@ async function buildGameFromEvent(
     resolveTeamByToken(awaySlugToken, teams.away, league.teamLeague),
     resolveTeamByToken(homeSlugToken, teams.home, league.teamLeague),
   ]);
+
+  const bestSpreadMarket = chooseHighestVolumeMarket(markets, "spreads");
+  const bestTotalMarket = chooseHighestVolumeMarket(markets, "totals");
+
+  const spread = bestSpreadMarket
+    ? buildSpreadOddsMarket(event, bestSpreadMarket, teams, {
+        away: [
+          awaySlugToken,
+          awayResolved.team?.abbreviation || "",
+          awayResolved.team?.alias || "",
+        ],
+        home: [
+          homeSlugToken,
+          homeResolved.team?.abbreviation || "",
+          homeResolved.team?.alias || "",
+        ],
+      })
+    : null;
+
+  const total = bestTotalMarket
+    ? buildTotalsOddsMarket(event, bestTotalMarket)
+    : null;
 
   const oddsMarkets = [moneyline.market, spread, total].filter(
     (market): market is OddsMarket => Boolean(market),
