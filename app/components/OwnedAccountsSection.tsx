@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { PLAN_CONFIG, type PlanKey } from "@/lib/plans";
@@ -30,6 +31,33 @@ type ExistingAccount = {
 };
 
 const MAX_ACCOUNT_NAME_LENGTH = 15;
+const HIDE_FAILED_ACCOUNTS_STORAGE_KEY = "edge:hide-failed-accounts";
+
+function readStoredHideFailedAccounts() {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return (
+      window.localStorage.getItem(HIDE_FAILED_ACCOUNTS_STORAGE_KEY) === "true"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function writeStoredHideFailedAccounts(value: boolean) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(
+      HIDE_FAILED_ACCOUNTS_STORAGE_KEY,
+      value ? "true" : "false",
+    );
+  } catch {
+    // Ignore storage failures so the toggle still works in-memory.
+  }
+}
+
 
 const ACCOUNT_ROW_CLASS =
   "flex flex-col gap-2 overflow-visible sm:flex-row sm:snap-x sm:snap-mandatory sm:overflow-x-auto sm:overflow-y-hidden sm:overscroll-x-contain sm:scroll-smooth sm:[-ms-overflow-style:none] sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden";
@@ -196,6 +224,39 @@ function MiniGoalProgressBar({
   );
 }
 
+function HideFailedToggle({
+  enabled,
+  onToggle,
+}: {
+  enabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      role="switch"
+      aria-checked={enabled}
+      className="inline-flex h-[29px] shrink-0 cursor-pointer items-center gap-[7px] text-[14.5px] font-medium leading-none text-zinc-400"
+    >
+      <span>Hide failed</span>
+
+      <span
+        className={[
+          "relative h-[17px] w-[34px] shrink-0 rounded-full p-0.5 transition-colors duration-200",
+          enabled ? "bg-emerald-500" : "bg-zinc-800",
+        ].join(" ")}
+      >
+        <motion.span
+          animate={{ x: enabled ? 19 : 0 }}
+          transition={{ type: "spring", stiffness: 520, damping: 34 }}
+          className="block h-[13px] w-[13px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+        />
+      </span>
+    </button>
+  );
+}
+
 export default function OwnedAccountsSection() {
   const router = useRouter();
   const { ready, authenticated, getAccessToken } = usePrivy();
@@ -210,6 +271,11 @@ export default function OwnedAccountsSection() {
   const [canScrollBack, setCanScrollBack] = useState(false);
   const [canScrollForward, setCanScrollForward] = useState(false);
   const [hasHorizontalOverflow, setHasHorizontalOverflow] = useState(false);
+  const [hideFailedAccounts, setHideFailedAccounts] = useState(false);
+
+  useEffect(() => {
+    setHideFailedAccounts(readStoredHideFailedAccounts());
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -309,7 +375,7 @@ export default function OwnedAccountsSection() {
       row.removeEventListener("scroll", updateScrollState);
       window.removeEventListener("resize", updateScrollState);
     };
-  }, [accounts.length, isLoading, ready, authenticated]);
+  }, [accounts.length, hideFailedAccounts, isLoading, ready, authenticated]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(updateScrollState);
@@ -317,7 +383,7 @@ export default function OwnedAccountsSection() {
     return () => {
       window.cancelAnimationFrame(frame);
     };
-  }, [accounts.length, isLoading]);
+  }, [accounts.length, hideFailedAccounts, isLoading]);
 
   async function saveAccountName(accountId: string) {
     if (savingAccountId) return;
@@ -369,6 +435,14 @@ export default function OwnedAccountsSection() {
     }
   }
 
+  function toggleHideFailedAccounts() {
+    setHideFailedAccounts((current) => {
+      const nextValue = !current;
+      writeStoredHideFailedAccounts(nextValue);
+      return nextValue;
+    });
+  }
+
   function openAccount(accountId: string) {
     router.push(`/accounts/${accountId}`);
   }
@@ -405,6 +479,14 @@ export default function OwnedAccountsSection() {
     window.setTimeout(updateScrollState, 180);
     window.setTimeout(updateScrollState, 420);
   }
+
+  const failedAccountCount = accounts.filter(
+    (account) => account.status.toLowerCase() === "failed",
+  ).length;
+
+  const visibleAccounts = hideFailedAccounts
+    ? accounts.filter((account) => account.status.toLowerCase() !== "failed")
+    : accounts;
 
   const showAccounts =
     ready && !isLoading && authenticated && accounts.length > 0;
@@ -449,43 +531,52 @@ export default function OwnedAccountsSection() {
               <span className="text-zinc-500 hidden">({accounts.length})</span>
             </h2>
 
-            <div
-              className={[
-                "hidden h-7 w-[64px] shrink-0 items-center justify-end gap-2 sm:flex",
-                reserveArrowSpace ? "" : "invisible",
-              ].join(" ")}
-            >
-              <button
-                type="button"
-                aria-label="Previous accounts"
-                onClick={() => scrollAccounts("back")}
-                disabled={!hasOverflowControls || !canScrollBack}
-                className={[
-                  "flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30",
-                  hasOverflowControls ? "cursor-pointer" : "invisible",
-                ].join(" ")}
-              >
-                <FaChevronLeft className="h-4 w-4" />
-              </button>
+            <div className="flex shrink-0 items-center gap-3">
+              {failedAccountCount > 0 ? (
+                <HideFailedToggle
+                  enabled={hideFailedAccounts}
+                  onToggle={toggleHideFailedAccounts}
+                />
+              ) : null}
 
-              <button
-                type="button"
-                aria-label="Next accounts"
-                onClick={() => scrollAccounts("forward")}
-                disabled={!hasOverflowControls || !canScrollForward}
+              <div
                 className={[
-                  "flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30",
-                  hasOverflowControls ? "cursor-pointer" : "invisible",
+                  "hidden h-7 w-[64px] shrink-0 items-center justify-end gap-2 sm:flex",
+                  reserveArrowSpace ? "" : "invisible",
                 ].join(" ")}
               >
-                <FaChevronRight className="h-4 w-4" />
-              </button>
+                <button
+                  type="button"
+                  aria-label="Previous accounts"
+                  onClick={() => scrollAccounts("back")}
+                  disabled={!hasOverflowControls || !canScrollBack}
+                  className={[
+                    "flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30",
+                    hasOverflowControls ? "cursor-pointer" : "invisible",
+                  ].join(" ")}
+                >
+                  <FaChevronLeft className="h-4 w-4" />
+                </button>
+
+                <button
+                  type="button"
+                  aria-label="Next accounts"
+                  onClick={() => scrollAccounts("forward")}
+                  disabled={!hasOverflowControls || !canScrollForward}
+                  className={[
+                    "flex h-7 w-7 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30",
+                    hasOverflowControls ? "cursor-pointer" : "invisible",
+                  ].join(" ")}
+                >
+                  <FaChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
 
           <div className="relative">
             <div ref={rowRef} className={ACCOUNT_ROW_CLASS}>
-              {accounts.map((account) => {
+              {visibleAccounts.map((account) => {
                 const plan = PLAN_CONFIG[account.plan_key as PlanKey];
 
                 const sizeLabel =
