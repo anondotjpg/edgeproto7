@@ -8,6 +8,7 @@ import { HiWallet, HiOutlineWallet } from "react-icons/hi2";
 import { IoStatsChart, IoStatsChartOutline } from "react-icons/io5";
 import { SiCashapp } from "react-icons/si";
 import { BiPurchaseTag, BiSolidPurchaseTag } from "react-icons/bi";
+import { PulsingBorder } from "@paper-design/shaders-react";
 
 const MAIN_NAV_LINKS = [
   {
@@ -167,25 +168,58 @@ export default function AppSidebar() {
         className={[
           "fixed left-1/2 z-50 isolate md:hidden",
           "bottom-[calc(env(safe-area-inset-bottom)+10px)]",
-          "w-[290px] max-w-[calc(100vw-32px)]",
+          "h-[68px] w-[290px] max-w-[calc(100vw-32px)]",
           "-translate-x-1/2",
           "overflow-hidden rounded-full",
-          "border border-zinc-800/80",
+          "shadow-[0_12px_38px_rgba(0,0,0,0.55)]",
           "[backface-visibility:hidden]",
         ].join(" ")}
       >
+        {/* Paper Shaders black-metal border */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-full"
+        >
+          <PulsingBorder
+            width="100%"
+            height="100%"
+            colors={["#050505", "#18181b", "#3f3f46", "#111113"]}
+            colorBack="#000000"
+            roundness={1}
+            thickness={0.065}
+            softness={0.22}
+            aspectRatio="auto"
+            intensity={0.3}
+            bloom={0.05}
+            spots={4}
+            spotSize={0.5}
+            pulse={0.08}
+            smoke={0}
+            smokeSize={0.4}
+            speed={0.18}
+            scale={1}
+            marginLeft={0}
+            marginRight={0}
+            marginTop={0}
+            marginBottom={0}
+            className="absolute inset-0 h-full w-full"
+          />
+        </div>
+
+        {/* Inner nav surface masks the shader so only the metal rim is visible */}
         <div
           aria-hidden="true"
           className={[
-            "pointer-events-none absolute inset-0",
+            "pointer-events-none absolute inset-[1px] rounded-full",
             "bg-[#09090b]/95 backdrop-blur",
+            "shadow-[inset_0_1px_0_rgba(255,255,255,0.025),inset_0_-1px_0_rgba(0,0,0,0.9)]",
             "[backface-visibility:hidden]",
             "[transform:translateZ(0)]",
           ].join(" ")}
         />
 
-        <div className="relative h-[68px]">
-          <div className="relative z-10 grid h-full grid-cols-3">
+        <div className="relative z-10 h-full">
+          <div className="grid h-full grid-cols-3">
             {MOBILE_NAV_LINKS.map((item) => {
               const isActive = isActivePath(pathname, item.href);
               const Icon = isActive ? item.ActiveIcon : item.InactiveIcon;
