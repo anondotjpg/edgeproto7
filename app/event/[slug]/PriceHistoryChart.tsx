@@ -335,7 +335,7 @@ export default function PriceHistoryChart({
   return (
     <div className="mt-8 min-w-0 rounded-[28px] bg-zinc-950 sm:p-6">
       <div className="mb-4">
-        <div className="text-[12px] font-medium capitalize text-zinc-500">
+        <div className="text-[12px] font-medium capitalize text-zinc-400">
           History
         </div>
       </div>
