@@ -37,6 +37,7 @@ type MarketSet = {
 
 const MARKET_COLORS_STORAGE_KEY = "edge:market-colors-enabled";
 const GOLD_MARKETS_STORAGE_KEY = "edge:gold-markets-enabled";
+const PRO_MARKETS_STORAGE_KEY = "edge:pro-markets-enabled";
 const GOLD_MARKET_COLOR = "#cfa13a";
 const GAME_START_COUNTDOWN_WINDOW_MS = 3 * 60 * 60 * 1000;
 const useBrowserLayoutEffect =
@@ -59,6 +60,16 @@ function readStoredGoldMarketsEnabled() {
     return window.localStorage.getItem(GOLD_MARKETS_STORAGE_KEY) === "true";
   } catch {
     return false;
+  }
+}
+
+function readStoredProMarketsEnabled() {
+  if (typeof window === "undefined") return true;
+
+  try {
+    return window.localStorage.getItem(PRO_MARKETS_STORAGE_KEY) !== "false";
+  } catch {
+    return true;
   }
 }
 
@@ -379,11 +390,28 @@ function getMarket(
   return bookmaker?.markets?.find((market) => market.key === key);
 }
 
+function normalizeTeamMatchValue(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 function getOutcomeByName(
   outcomes: OddsOutcome[] | undefined,
   teamName: string,
+  teamInfo?: TeamInfo,
 ) {
-  return outcomes?.find((outcome) => outcome.name === teamName);
+  const candidates = [
+    teamName,
+    teamInfo?.name,
+    teamInfo?.abbreviation,
+    teamInfo?.alias,
+  ]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .map(normalizeTeamMatchValue);
+
+  return outcomes?.find((outcome) => {
+    const outcomeName = normalizeTeamMatchValue(outcome.name);
+    return candidates.includes(outcomeName);
+  });
 }
 
 function getOutcomeByOutcomeName(
@@ -405,10 +433,10 @@ function getMarketSet(game: Game): MarketSet {
     h2h,
     spread,
     total,
-    awayMoneyline: getOutcomeByName(h2h?.outcomes, game.away_team),
-    homeMoneyline: getOutcomeByName(h2h?.outcomes, game.home_team),
-    awaySpread: getOutcomeByName(spread?.outcomes, game.away_team),
-    homeSpread: getOutcomeByName(spread?.outcomes, game.home_team),
+    awayMoneyline: getOutcomeByName(h2h?.outcomes, game.away_team, game.away_team_info),
+    homeMoneyline: getOutcomeByName(h2h?.outcomes, game.home_team, game.home_team_info),
+    awaySpread: getOutcomeByName(spread?.outcomes, game.away_team, game.away_team_info),
+    homeSpread: getOutcomeByName(spread?.outcomes, game.home_team, game.home_team_info),
     overTotal: getOutcomeByOutcomeName(total?.outcomes, "Over"),
     underTotal: getOutcomeByOutcomeName(total?.outcomes, "Under"),
   };
@@ -729,11 +757,13 @@ function MobileMoneylineModalButton({
   ticker,
   colorsEnabled,
   goldEnabled,
+  proEnabled,
 }: {
   betData: BetSlipDataWithTeamAlias;
   ticker: string;
   colorsEnabled: boolean;
   goldEnabled: boolean;
+  proEnabled: boolean;
 }) {
   const isGoldMarket = Boolean(goldEnabled && !betData.isLive);
   const displayTeamColor = isGoldMarket
@@ -746,6 +776,57 @@ function MobileMoneylineModalButton({
     selected: false,
     isLive: betData.isLive,
   });
+
+  if (proEnabled) {
+    return (
+      <div className="group relative overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950">
+        <BetSlipModal
+          {...betData}
+          colorsEnabled={colorsEnabled}
+          goldEnabled={goldEnabled}
+          teamColor={betData.teamColor}
+          triggerClassName="peer block h-[42px] w-full cursor-pointer bg-transparent"
+          triggerContentClassName="sr-only"
+        />
+
+        <div
+          className={[
+            "pointer-events-none absolute inset-0 flex items-center justify-center gap-1.5 px-3 text-center transition-colors duration-150",
+            betData.isLive
+              ? "bg-zinc-950"
+              : displayTeamColor
+                ? ""
+                : "bg-zinc-900/30 peer-hover:bg-zinc-900/80 group-hover:bg-zinc-900/80",
+          ].join(" ")}
+          style={faceStyle}
+        >
+          {betData.isLive ? (
+            <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+          ) : (
+            <>
+              <span
+                className={[
+                  "text-[12px] font-bold leading-none tracking-[0.12em]",
+                  isGoldMarket ? "text-[#120d02]" : "text-zinc-200",
+                ].join(" ")}
+              >
+                {ticker}
+              </span>
+
+              <span
+                className={[
+                  "text-[15.6px] font-semibold leading-none tracking-tight",
+                  isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
+                ].join(" ")}
+              >
+                <OddsValue value={betData.odds} signClassName="font-medium" />
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -796,10 +877,7 @@ function MobileMoneylineModalButton({
                 isGoldMarket ? "text-[#120d02]" : "text-zinc-100",
               ].join(" ")}
             >
-              <OddsValue
-                value={betData.odds}
-                signClassName="font-medium"
-              />
+              <OddsValue value={betData.odds} signClassName="font-medium" />
             </span>
           </>
         )}
@@ -811,10 +889,50 @@ function MobileMoneylineModalButton({
 function MobileMarketModalButton({
   betData,
   label,
+  proEnabled,
 }: {
   betData: BetSlipDataWithTeamAlias;
   label: string;
+  proEnabled: boolean;
 }) {
+  if (proEnabled) {
+    return (
+      <div className="group relative overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950">
+        <BetSlipModal
+          {...betData}
+          teamColor={betData.teamColor}
+          triggerClassName="peer block h-[42px] w-full cursor-pointer bg-transparent"
+          triggerContentClassName="sr-only"
+        />
+
+        <div
+          className={[
+            "pointer-events-none absolute inset-0 flex items-center justify-between gap-1 px-2.5 transition-colors duration-150",
+            betData.isLive
+              ? "bg-zinc-950"
+              : "bg-zinc-900/30 peer-hover:bg-zinc-900/80 group-hover:bg-zinc-900/80",
+          ].join(" ")}
+        >
+          {betData.isLive ? (
+            <span className="flex w-full justify-center">
+              <FaLock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+            </span>
+          ) : (
+            <>
+              <span className="min-w-0 truncate text-[13.2px] font-bold leading-none tracking-[0.06em] text-zinc-300">
+                {label}
+              </span>
+
+              <span className="shrink-0 text-[15.6px] font-semibold leading-none tracking-tight text-zinc-100">
+                <OddsValue value={betData.odds} signClassName="font-medium" />
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="group relative rounded-lg bg-zinc-800"
@@ -839,10 +957,7 @@ function MobileMarketModalButton({
             </span>
 
             <span className="shrink-0 text-[15.6px] font-semibold leading-none tracking-tight text-zinc-100">
-              <OddsValue
-                value={betData.odds}
-                signClassName="font-medium"
-              />
+              <OddsValue value={betData.odds} signClassName="font-medium" />
             </span>
           </>
         )}
@@ -857,12 +972,14 @@ function MobileMatchupCard({
   homeBetData,
   colorsEnabled,
   goldEnabled,
+  proEnabled,
 }: {
   game: Game;
   awayBetData: BetSlipDataWithTeamAlias;
   homeBetData: BetSlipDataWithTeamAlias;
   colorsEnabled: boolean;
   goldEnabled: boolean;
+  proEnabled: boolean;
 }) {
   return (
     <article className="relative md:hidden">
@@ -886,6 +1003,7 @@ function MobileMatchupCard({
           ticker={getTeamTicker(game.away_team, game.away_team_info)}
           colorsEnabled={colorsEnabled}
           goldEnabled={goldEnabled}
+          proEnabled={proEnabled}
         />
 
         <MobileMoneylineModalButton
@@ -893,6 +1011,7 @@ function MobileMatchupCard({
           ticker={getTeamTicker(game.home_team, game.home_team_info)}
           colorsEnabled={colorsEnabled}
           goldEnabled={goldEnabled}
+          proEnabled={proEnabled}
         />
       </div>
     </article>
@@ -911,6 +1030,7 @@ function MobileExtraMarketsCard({
   homeSpread,
   overTotal,
   underTotal,
+  proEnabled,
 }: {
   spread?: OddsMarket;
   total?: OddsMarket;
@@ -923,6 +1043,7 @@ function MobileExtraMarketsCard({
   homeSpread?: OddsOutcome;
   overTotal?: OddsOutcome;
   underTotal?: OddsOutcome;
+  proEnabled: boolean;
 }) {
   const hasSpread = Boolean(spread && awaySpreadBetData && homeSpreadBetData);
   const hasTotal = Boolean(total && overTotalBetData && underTotalBetData);
@@ -944,6 +1065,7 @@ function MobileExtraMarketsCard({
           <div className="grid grid-cols-2 gap-2.5">
             <MobileMarketModalButton
               betData={awaySpreadBetData}
+              proEnabled={proEnabled}
               label={
                 spread && awaySpread
                   ? getOutcomeButtonLabel({
@@ -958,6 +1080,7 @@ function MobileExtraMarketsCard({
 
             <MobileMarketModalButton
               betData={homeSpreadBetData}
+              proEnabled={proEnabled}
               label={
                 spread && homeSpread
                   ? getOutcomeButtonLabel({
@@ -982,6 +1105,7 @@ function MobileExtraMarketsCard({
           <div className="grid grid-cols-2 gap-2.5">
             <MobileMarketModalButton
               betData={overTotalBetData}
+              proEnabled={proEnabled}
               label={
                 total && overTotal
                   ? getOutcomeButtonLabel({ market: total, outcome: overTotal })
@@ -990,6 +1114,7 @@ function MobileExtraMarketsCard({
             />
             <MobileMarketModalButton
               betData={underTotalBetData}
+              proEnabled={proEnabled}
               label={
                 total && underTotal
                   ? getOutcomeButtonLabel({
@@ -1455,6 +1580,7 @@ export default function EventBettingClient({
   const now = useCurrentTimestamp(true);
   const [marketColorsEnabled, setMarketColorsEnabled] = useState(true);
   const [goldMarketsEnabled, setGoldMarketsEnabled] = useState(false);
+  const [proMarketsEnabled, setProMarketsEnabled] = useState(true);
   const [marketColorsReady, setMarketColorsReady] = useState(false);
   const marketSet = useMemo(() => getMarketSet(game), [game]);
 
@@ -1465,6 +1591,7 @@ export default function EventBettingClient({
     setMarketColorsEnabled(
       storedGoldMarketsEnabled ? false : readStoredMarketColorsEnabled(),
     );
+    setProMarketsEnabled(readStoredProMarketsEnabled());
     setMarketColorsReady(true);
   }, []);
 
@@ -1567,6 +1694,7 @@ export default function EventBettingClient({
               homeBetData={betData.homeMoneyline}
               colorsEnabled={marketColorsEnabled}
               goldEnabled={goldMarketsEnabled}
+              proEnabled={proMarketsEnabled}
             />
           ) : null}
 
@@ -1582,6 +1710,7 @@ export default function EventBettingClient({
             homeSpreadBetData={betData.homeSpread}
             overTotalBetData={betData.overTotal}
             underTotalBetData={betData.underTotal}
+            proEnabled={proMarketsEnabled}
           />
 
           <DesktopMarketsBoard

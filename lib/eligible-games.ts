@@ -697,8 +697,11 @@ function buildSpreadOddsMarket(
     key: "spreads",
     label: `Spread ${line > 0 ? "+" : ""}${line}`,
     line,
-    outcomes: [awayIndex, homeIndex].map((index) => ({
-      name: outcomes[index],
+    outcomes: [
+      { index: awayIndex, teamName: teams.away },
+      { index: homeIndex, teamName: teams.home },
+    ].map(({ index, teamName }) => ({
+      name: teamName,
       price: probabilityToAmerican(prices[index]),
       point: index === 0 ? line : -line,
       tokenId: clobTokenIds[index],

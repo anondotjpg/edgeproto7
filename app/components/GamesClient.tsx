@@ -196,11 +196,28 @@ function getMarket(bookmaker: Bookmaker | undefined, marketKey: string) {
   return bookmaker?.markets.find((market) => market.key === marketKey);
 }
 
+function normalizeTeamMatchValue(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 function getOutcomeByName(
   outcomes: OddsOutcome[] | undefined,
   teamName: string,
+  teamInfo?: TeamInfo,
 ) {
-  return outcomes?.find((outcome) => outcome.name === teamName);
+  const candidates = [
+    teamName,
+    teamInfo?.name,
+    teamInfo?.abbreviation,
+    teamInfo?.alias,
+  ]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .map(normalizeTeamMatchValue);
+
+  return outcomes?.find((outcome) => {
+    const outcomeName = normalizeTeamMatchValue(outcome.name);
+    return candidates.includes(outcomeName);
+  });
 }
 
 function getOutcomeByOutcomeName(
@@ -1691,10 +1708,10 @@ function GameCard({
   const spread = getMarket(bookmaker, "spreads");
   const total = getMarket(bookmaker, "totals");
 
-  const awayMoneyline = getOutcomeByName(h2h?.outcomes, game.away_team);
-  const homeMoneyline = getOutcomeByName(h2h?.outcomes, game.home_team);
-  const awaySpread = getOutcomeByName(spread?.outcomes, game.away_team);
-  const homeSpread = getOutcomeByName(spread?.outcomes, game.home_team);
+  const awayMoneyline = getOutcomeByName(h2h?.outcomes, game.away_team, game.away_team_info);
+  const homeMoneyline = getOutcomeByName(h2h?.outcomes, game.home_team, game.home_team_info);
+  const awaySpread = getOutcomeByName(spread?.outcomes, game.away_team, game.away_team_info);
+  const homeSpread = getOutcomeByName(spread?.outcomes, game.home_team, game.home_team_info);
   const overTotal = getOutcomeByOutcomeName(total?.outcomes, "Over");
   const underTotal = getOutcomeByOutcomeName(total?.outcomes, "Under");
   const eventHref = `/event/${game.slug}`;
@@ -2027,8 +2044,8 @@ function getFirstBetForGames(games: Game[] | undefined, now?: number | null) {
   const h2h = getMarket(bookmaker, "h2h");
   const spread = getMarket(bookmaker, "spreads");
   const total = getMarket(bookmaker, "totals");
-  const awayMoneyline = getOutcomeByName(h2h?.outcomes, firstGame.away_team);
-  const awaySpread = getOutcomeByName(spread?.outcomes, firstGame.away_team);
+  const awayMoneyline = getOutcomeByName(h2h?.outcomes, firstGame.away_team, firstGame.away_team_info);
+  const awaySpread = getOutcomeByName(spread?.outcomes, firstGame.away_team, firstGame.away_team_info);
   const overTotal = getOutcomeByOutcomeName(total?.outcomes, "Over");
 
   if (h2h && awayMoneyline) {
