@@ -504,7 +504,7 @@ function RuleRoomCard({
 }) {
   if (isAccountFailed) {
     return (
-      <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] border border-zinc-800 bg-zinc-950/80 px-3 py-3 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
+      <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] bg-zinc-950/80 ring-1 ring-zinc-900 px-3 py-3 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
         <div className="relative flex items-start justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
             <MobileTwoLineRuleTitle
@@ -544,7 +544,7 @@ function RuleRoomCard({
       : 0;
 
   return (
-    <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] border border-zinc-800 bg-zinc-950/80 px-3 py-3 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
+    <div className="relative flex min-h-[118px] flex-col overflow-hidden rounded-[22px] bg-zinc-950/80 ring-1 ring-zinc-900 px-3 py-3 sm:min-h-[166px] sm:rounded-[26px] sm:px-5 sm:py-4">
       <div className="relative flex items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <MobileTwoLineRuleTitle
@@ -942,7 +942,7 @@ export default function AccountPage() {
             </div>
 
             {!shouldDisplayFundedData ? (
-              <div className="relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] border border-zinc-800 bg-zinc-950/80 px-4 py-4 sm:min-h-[166px] sm:px-5">
+              <div className="relative flex min-h-[132px] flex-col overflow-hidden rounded-[26px] bg-zinc-950/80 ring-1 ring-zinc-900 px-4 py-4 sm:min-h-[166px] sm:px-5">
 
                 <div className="relative flex items-start justify-between gap-4">
                   <div className="min-w-0">
